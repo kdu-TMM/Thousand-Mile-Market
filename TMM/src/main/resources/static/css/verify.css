@@ -1,17 +1,13 @@
 /* ===== 본인인증 페이지 ===== */
-body.verify-body {
-    background: #1a1a2e;
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 40px 16px;
-}
 .verify-card {
-    background: #fff; border-radius: 16px;
+    background: #fff;
+    border-radius: 16px;
     width: 100%; max-width: 480px;
+    margin: 40px auto;
     padding: 40px 36px 36px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+    border: 1px solid #e8edf2;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
-.verify-logo { font-size: 22px; font-weight: 900; color: #ff5a5f; margin-bottom: 20px; cursor: pointer; }
 .verify-title { font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 6px; }
 .verify-subtitle { font-size: 13px; color: #888; margin-bottom: 28px; }
 
@@ -23,7 +19,7 @@ body.verify-body {
     padding: 11px 14px; font-size: 14px;
     outline: none; transition: border-color 0.15s;
 }
-.verify-input:focus { border-color: #ff5a5f; }
+.verify-input:focus { border-color: #007bff; }
 .verify-input-sm { width: 56px; flex-shrink: 0; text-align: center; }
 
 .verify-rrn-row { display: flex; align-items: center; gap: 8px; }
@@ -38,20 +34,20 @@ body.verify-body {
     padding: 8px 14px; font-size: 13px; font-weight: 600;
     cursor: pointer; transition: all 0.15s;
 }
-.verify-carrier-btn:has(input:checked) { border-color: #ff5a5f; background: #fff5f5; color: #ff5a5f; }
+.verify-carrier-btn:has(input:checked) { border-color: #007bff; background: #f0f4ff; color: #007bff; }
 .verify-carrier-btn input { display: none; }
 
 .verify-phone-row { display: flex; gap: 8px; align-items: center; }
 .verify-phone-row .verify-input { flex: 1; }
 .verify-send-btn {
     white-space: nowrap;
-    background: #ff5a5f; color: #fff;
+    background: #007bff; color: #fff;
     border: none; border-radius: 8px;
     padding: 11px 14px; font-size: 13px; font-weight: 700;
     cursor: pointer; transition: background 0.15s;
 }
-.verify-send-btn:hover { background: #e04850; }
-.verify-timer { font-size: 14px; font-weight: 700; color: #ff5a5f; white-space: nowrap; }
+.verify-send-btn:hover { background: #0069d9; }
+.verify-timer { font-size: 14px; font-weight: 700; color: #007bff; white-space: nowrap; }
 
 /* 약관 */
 .verify-terms {
@@ -62,17 +58,17 @@ body.verify-body {
     display: flex; align-items: center; gap: 10px;
     font-size: 14px; font-weight: 800; cursor: pointer;
 }
-.verify-terms-all input[type="checkbox"] { width: 18px; height: 18px; accent-color: #ff5a5f; cursor: pointer; }
+.verify-terms-all input[type="checkbox"] { width: 18px; height: 18px; accent-color: #007bff; cursor: pointer; }
 .verify-terms-divider { border-top: 1px solid #eee; }
 .verify-terms-list { display: flex; flex-direction: column; gap: 8px; }
 .verify-term-item {
     display: flex; align-items: center; gap: 8px;
     font-size: 13px; color: #444; cursor: pointer;
 }
-.verify-term-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #ff5a5f; cursor: pointer; }
+.verify-term-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #007bff; cursor: pointer; }
 .verify-term-item span { flex: 1; }
 .verify-term-link { font-size: 12px; color: #aaa; text-decoration: none; white-space: nowrap; }
-.verify-term-link:hover { color: #ff5a5f; text-decoration: underline; }
+.verify-term-link:hover { color: #007bff; text-decoration: underline; }
 
 /* 메시지 */
 .verify-msg { font-size: 13px; min-height: 18px; }
@@ -82,10 +78,10 @@ body.verify-body {
 /* 다음 버튼 */
 .verify-next-btn {
     width: 100%; padding: 15px;
-    background: #ff5a5f; color: #fff;
+    background: #007bff; color: #fff;
     border: none; border-radius: 10px;
     font-size: 16px; font-weight: 800;
     cursor: pointer; margin-top: 4px;
     transition: background 0.15s;
 }
-.verify-next-btn:hover { background: #e04850; }
+.verify-next-btn:hover { background: #0069d9; }

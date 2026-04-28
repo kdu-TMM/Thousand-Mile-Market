@@ -3,73 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <title>본인인증 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/verify.css}">
 </head>
-<body class="verify-body">
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
 
-<div class="verify-card">
-    <div class="verify-logo" onclick="location.href='/'">천리마켓</div>
-    <h2 class="verify-title">본인인증을 진행해 주세요</h2>
-    <p class="verify-subtitle">회원가입을 위해 본인 명의 휴대폰으로 인증해 주세요.</p>
+    <main class="main-content">
+        <div class="verify-card">
+            <h2 class="verify-title">본인인증을 진행해 주세요</h2>
+            <p class="verify-subtitle">회원가입을 위해 본인 명의 휴대폰으로 인증해 주세요.</p>
 
-    <form class="verify-form" onsubmit="return false;">
-        <div class="verify-field">
-            <label class="verify-label">이름</label>
-            <input type="text" id="vName" class="verify-input" placeholder="실명 입력">
+            <form class="verify-form" onsubmit="return false;">
+                <div class="verify-field">
+                    <label class="verify-label">이름</label>
+                    <input type="text" id="vName" class="verify-input" placeholder="실명 입력">
+                </div>
+                <div class="verify-field">
+                    <label class="verify-label">주민등록번호</label>
+                    <div class="verify-rrn-row">
+                        <input type="text" id="vBirth" class="verify-input" placeholder="생년월일 6자리" maxlength="6">
+                        <span class="verify-rrn-dash">−</span>
+                        <input type="text" id="vGender" class="verify-input verify-input-sm" placeholder="●" maxlength="1">
+                        <span class="verify-rrn-mask">● ● ● ● ● ●</span>
+                    </div>
+                </div>
+                <div class="verify-field">
+                    <label class="verify-label">통신사</label>
+                    <div class="verify-carrier-row">
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="SKT"> SKT</label>
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="KT"> KT</label>
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="LGU+"> LG U+</label>
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="SKT알뜰"> SKT 알뜰</label>
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="KT알뜰"> KT 알뜰</label>
+                        <label class="verify-carrier-btn"><input type="radio" name="carrier" value="LG알뜰"> LG 알뜰</label>
+                    </div>
+                </div>
+                <div class="verify-field">
+                    <label class="verify-label">휴대폰 번호</label>
+                    <div class="verify-phone-row">
+                        <input type="tel" id="vPhone" class="verify-input" placeholder="'-' 없이 숫자만 입력">
+                        <button type="button" class="verify-send-btn" onclick="sendCode()">인증번호 전송</button>
+                    </div>
+                </div>
+                <div class="verify-field" id="codeField" style="display:none;">
+                    <label class="verify-label">인증번호</label>
+                    <div class="verify-phone-row">
+                        <input type="text" id="vCode" class="verify-input" placeholder="인증번호 6자리" maxlength="6">
+                        <span class="verify-timer" id="verifyTimer">3:00</span>
+                    </div>
+                </div>
+                <div class="verify-terms">
+                    <label class="verify-terms-all">
+                        <input type="checkbox" id="agreeAll" onchange="toggleAllTerms(this)">
+                        <span>전체 동의</span>
+                    </label>
+                    <div class="verify-terms-divider"></div>
+                    <div class="verify-terms-list">
+                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 천리마켓 이용약관 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 개인정보 수집·이용 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 휴대폰 본인확인서비스 이용약관</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 마케팅 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 광고성 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                    </div>
+                </div>
+                <div id="verifyMsg" class="verify-msg"></div>
+                <button type="button" class="verify-next-btn" onclick="goNext()">다음</button>
+            </form>
         </div>
-        <div class="verify-field">
-            <label class="verify-label">주민등록번호</label>
-            <div class="verify-rrn-row">
-                <input type="text" id="vBirth" class="verify-input" placeholder="생년월일 6자리" maxlength="6">
-                <span class="verify-rrn-dash">−</span>
-                <input type="text" id="vGender" class="verify-input verify-input-sm" placeholder="●" maxlength="1">
-                <span class="verify-rrn-mask">● ● ● ● ● ●</span>
-            </div>
-        </div>
-        <div class="verify-field">
-            <label class="verify-label">통신사</label>
-            <div class="verify-carrier-row">
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="SKT"> SKT</label>
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="KT"> KT</label>
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="LGU+"> LG U+</label>
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="SKT알뜰"> SKT 알뜰</label>
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="KT알뜰"> KT 알뜰</label>
-                <label class="verify-carrier-btn"><input type="radio" name="carrier" value="LG알뜰"> LG 알뜰</label>
-            </div>
-        </div>
-        <div class="verify-field">
-            <label class="verify-label">휴대폰 번호</label>
-            <div class="verify-phone-row">
-                <input type="tel" id="vPhone" class="verify-input" placeholder="'-' 없이 숫자만 입력">
-                <button type="button" class="verify-send-btn" onclick="sendCode()">인증번호 전송</button>
-            </div>
-        </div>
-        <div class="verify-field" id="codeField" style="display:none;">
-            <label class="verify-label">인증번호</label>
-            <div class="verify-phone-row">
-                <input type="text" id="vCode" class="verify-input" placeholder="인증번호 6자리" maxlength="6">
-                <span class="verify-timer" id="verifyTimer">3:00</span>
-            </div>
-        </div>
-        <div class="verify-terms">
-            <label class="verify-terms-all">
-                <input type="checkbox" id="agreeAll" onchange="toggleAllTerms(this)">
-                <span>전체 동의</span>
-            </label>
-            <div class="verify-terms-divider"></div>
-            <div class="verify-terms-list">
-                <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 천리마켓 이용약관 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 개인정보 수집·이용 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 휴대폰 본인확인서비스 이용약관</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 마케팅 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 광고성 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-            </div>
-        </div>
-        <div id="verifyMsg" class="verify-msg"></div>
-        <button type="button" class="verify-next-btn" onclick="goNext()">다음</button>
-    </form>
+    </main>
+
+    <script th:src="@{/js/verify.js}"></script>
 </div>
-
-<script th:src="@{/js/verify.js}"></script>
 </body>
 </html>
