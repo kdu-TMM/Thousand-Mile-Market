@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>판매 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/sell.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+        <div class="page-box">
+            <h2 class="page-title">판매</h2>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" id="tabBtnWrite" onclick="switchSellTab('write', this)">판매하기</button>
+                <button class="tab-btn" id="tabBtnList" onclick="switchSellTab('list', this)">판매목록</button>
+            </div>
+
+            <!-- ===== 판매하기 탭 ===== -->
+            <div id="tab-write">
+                <form class="sell-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>사진 첨부 <span style="font-size:12px;color:#aaa;font-weight:400;">최대 10장</span></label>
+                        <div class="photo-upload-wrap">
+                            <div class="image-upload-area" onclick="document.getElementById('imgInput').click()">
+                                <span style="font-size:22px;color:#ccc;">+</span>
+                                <span id="photoCount" style="font-size:11px;color:#aaa;">0/10</span>
+                            </div>
+                            <div class="photo-preview-list" id="photoPreviewList"></div>
+                        </div>
+                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+                    </div>
+                    <div class="form-group">
+                        <label>제목</label>
+                        <input type="text" class="form-input" placeholder="글 제목">
+                    </div>
+                    <div class="form-group">
+                        <label>카테고리</label>
+                        <select class="form-input">
+                            <option value="">카테고리 선택</option>
+                            <option>디지털/가전</option><option>의류/잡화</option>
+                            <option>가구/인테리어</option><option>도서/음반</option>
+                            <option>스포츠/레저</option><option>기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>판매 방식</label>
+                        <div class="sell-type-wrap">
+                            <label class="sell-type-option">
+                                <input type="radio" name="sellType" value="normal" checked onchange="toggleAuctionFields(this)">
+                                <span>일반 판매</span>
+                            </label>
+                            <label class="sell-type-option">
+                                <input type="radio" name="sellType" value="auction" onchange="toggleAuctionFields(this)">
+                                <span>경매</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="normalPriceGroup">
+                        <label>가격</label>
+                        <div class="price-input-wrap">
+                            <input type="number" class="form-input" placeholder="가격을 입력하세요">
+                            <span class="price-unit">원</span>
+                            <label class="nego-label"><input type="checkbox"> 가격 제안 받기</label>
+                        </div>
+                    </div>
+                    <div id="auctionFields" style="display:none;">
+                        <div class="form-group">
+                            <label>시작가</label>
+                            <div class="price-input-wrap">
+                                <input type="number" class="form-input" placeholder="경매 시작 가격">
+                                <span class="price-unit">원</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>경매 시간</label>
+                            <div class="price-input-wrap">
+                                <select class="form-input" style="flex:1">
+                                    <option value="1">1시간</option><option value="3">3시간</option>
+                                    <option value="6">6시간</option><option value="12">12시간</option>
+                                    <option value="24" selected>24시간</option>
+                                    <option value="48">48시간</option><option value="72">72시간</option>
+                                </select>
+                                <span class="price-unit">후 종료</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>자세한 설명</label>
+                        <textarea class="form-textarea" rows="6" placeholder="물품 상태, 구매 시기, 하자 여부 등을 자세히 적어주세요."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>거래 지역</label>
+                        <div class="region-select-wrap">
+                            <select class="form-input" id="regionSido" onchange="updateSigungu()">
+                                <option value="">시/도 선택</option>
+                                <option value="서울특별시">서울특별시</option>
+                                <option value="경기도" selected>경기도</option>
+                                <option value="인천광역시">인천광역시</option>
+                                <option value="부산광역시">부산광역시</option>
+                                <option value="대구광역시">대구광역시</option>
+                                <option value="광주광역시">광주광역시</option>
+                                <option value="대전광역시">대전광역시</option>
+                                <option value="울산광역시">울산광역시</option>
+                                <option value="세종특별자치시">세종특별자치시</option>
+                                <option value="강원도">강원도</option>
+                                <option value="충청북도">충청북도</option>
+                                <option value="충청남도">충청남도</option>
+                                <option value="전라북도">전라북도</option>
+                                <option value="전라남도">전라남도</option>
+                                <option value="경상북도">경상북도</option>
+                                <option value="경상남도">경상남도</option>
+                                <option value="제주특별자치도">제주특별자치도</option>
+                            </select>
+                            <select class="form-input" id="regionSigungu" onchange="updateDong()">
+                                <option value="">시/군/구 선택</option>
+                            </select>
+                            <select class="form-input" id="regionDong">
+                                <option value="">읍/면/동 선택</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="history.back()">취소</button>
+                        <button type="submit" class="btn-primary">등록하기</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ===== 판매목록 탭 ===== -->
+            <div id="tab-list" style="display:none;">
+                <div class="tab-bar" style="margin-bottom:20px;">
+                    <button class="tab-btn active" onclick="filterSales('all', this)">전체</button>
+                    <button class="tab-btn" onclick="filterSales('판매중', this)">판매중</button>
+                    <button class="tab-btn" onclick="filterSales('경매중', this)">경매중</button>
+                    <button class="tab-btn" onclick="filterSales('예약중', this)">예약중</button>
+                    <button class="tab-btn" onclick="filterSales('판매완료', this)">판매완료</button>
+                </div>
+                <ul class="sales-list" id="salesList">
+                    <li class="sales-item" data-status="판매중">
+                        <div class="sales-thumb">(사진)</div>
+                        <div class="sales-info"><p class="sales-name">맥북 프로 14인치</p><p class="sales-price">2,200,000원</p><p class="sales-date">2024.03.15</p></div>
+                        <span class="badge badge-on">판매중</span>
+                    </li>
+                    <li class="sales-item" data-status="경매중">
+                        <div class="sales-thumb">(사진)</div>
+                        <div class="sales-info"><p class="sales-name">아이패드 프로 11인치</p><p class="sales-price sales-price-bid">현재가 750,000원</p><p class="sales-date">남은 시간 <strong class="auction-remain">2시간 14분</strong></p></div>
+                        <span class="badge badge-auction">경매중</span>
+                    </li>
+                    <li class="sales-item" data-status="예약중">
+                        <div class="sales-thumb">(사진)</div>
+                        <div class="sales-info"><p class="sales-name">에어팟 프로 2세대</p><p class="sales-price">180,000원</p><p class="sales-date">2024.03.10</p></div>
+                        <span class="badge badge-reserve">예약중</span>
+                    </li>
+                    <li class="sales-item" data-status="판매완료">
+                        <div class="sales-thumb">(사진)</div>
+                        <div class="sales-info"><p class="sales-name">닌텐도 스위치</p><p class="sales-price">230,000원</p><p class="sales-date">2024.02.28</p></div>
+                        <span class="badge badge-done">판매완료</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script th:src="@{/js/sell.js}"></script>
+</div>
+</body>
+</html>

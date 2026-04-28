@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/product.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+
+        <div class="pd-breadcrumb" id="pdBreadcrumb">
+            <a href="/">홈</a>
+            <span>›</span>
+            <span id="pdCatLabel">카테고리</span>
+            <span>›</span>
+            <span id="pdTitleShort">상품명</span>
+        </div>
+
+        <div class="pd-layout" id="pdLayout" style="display:none;">
+
+            <!-- 이미지 캐러셀 -->
+            <div class="pd-gallery">
+                <div class="pd-img-wrap">
+                    <div class="pd-img-placeholder" id="pdImgMain">(사진 없음)</div>
+                </div>
+                <div class="pd-img-dots" id="pdDots">
+                    <span class="pd-dot active"></span>
+                    <span class="pd-dot"></span>
+                </div>
+            </div>
+
+            <!-- 상품 정보 -->
+            <div class="pd-info">
+                <div class="pd-status-badge" id="pdStatusBadge"></div>
+                <h1 class="pd-title" id="pdTitle"></h1>
+                <div class="pd-price-row">
+                    <span class="pd-price" id="pdPrice"></span>
+                    <span class="pd-price-unit">원</span>
+                </div>
+
+                <!-- 경매 전용 -->
+                <div class="pd-bid-area" id="pdBidArea" style="display:none;">
+                    <div class="pd-bid-row"><span class="pd-bid-label">시작가</span><span class="pd-bid-start" id="pdStartPrice"></span></div>
+                    <div class="pd-bid-row"><span class="pd-bid-label">현재가</span><span class="pd-bid-current" id="pdCurrentPrice"></span></div>
+                    <div class="pd-bid-row"><span class="pd-bid-label">입찰 수</span><span id="pdBidCount"></span></div>
+                    <div class="pd-bid-row"><span class="pd-bid-label">남은 시간</span><span class="pd-bid-timer" id="pdAuctionTimer"></span></div>
+                </div>
+
+                <div class="pd-stats-row">
+                    <span class="pd-stat">♥ <span id="pdWishes">0</span></span>
+                    <span class="pd-stat-div">·</span>
+                    <span class="pd-stat">👁 <span id="pdViews">0</span></span>
+                    <span class="pd-stat-div">·</span>
+                    <span class="pd-stat" id="pdDateLabel"></span>
+                    <span class="pd-report" onclick="alert('신고가 접수되었습니다.')">🚨 신고하기</span>
+                </div>
+
+                <div class="pd-meta-table">
+                    <div class="pd-meta-row"><span class="pd-meta-key">상품상태</span><span class="pd-meta-val" id="pdCondition"></span></div>
+                    <div class="pd-meta-row"><span class="pd-meta-key">거래지역</span><span class="pd-meta-val" id="pdRegion"></span></div>
+                </div>
+
+                <div class="pd-description" id="pdDescription"></div>
+
+                <div class="pd-actions" id="pdActions">
+                    <button class="pd-btn-wish" id="pdWishBtn" onclick="toggleWish()">
+                        <span class="pd-wish-heart">♥</span> 찜 <span id="pdWishCount">0</span>
+                    </button>
+                    <button class="pd-btn-chat" onclick="location.href='/chat'">💬 채팅하기</button>
+                    <button class="pd-btn-buy" id="pdBuyBtn">바로구매</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비슷한 상품 -->
+        <div class="pd-similar" id="pdSimilar" style="display:none;">
+            <div class="pd-similar-header">
+                <h3 class="pd-similar-title">이 상품과 비슷해요</h3>
+                <span class="pd-similar-page" id="pdSimilarPage"></span>
+            </div>
+            <div class="pd-similar-scroll-wrap">
+                <button class="pd-similar-arrow left" onclick="scrollSimilar(-1)">‹</button>
+                <div class="pd-similar-grid" id="pdSimilarGrid"></div>
+                <button class="pd-similar-arrow right" onclick="scrollSimilar(1)">›</button>
+            </div>
+        </div>
+
+        <div class="pd-error" id="pdError" style="display:none;">
+            <p>상품을 찾을 수 없습니다.</p>
+            <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="location.href='/'">홈으로</button>
+        </div>
+
+    </main>
+
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script th:src="@{/js/product.js}"></script>
+</div>
+</body>
+</html>
