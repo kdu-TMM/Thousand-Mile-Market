@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>대화하기 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+        <div class="chat-layout">
+            <!-- 채팅 목록 -->
+            <aside class="chat-list">
+                <h3 class="chat-list-title">채팅 목록</h3>
+                <ul>
+                    <li class="chat-item active" onclick="selectChat(this, '김철수', '맥북 언제 거래 가능하세요?')">
+                        <div class="chat-avatar">김</div>
+                        <div class="chat-meta">
+                            <p class="chat-name">김철수</p>
+                            <p class="chat-preview">맥북 언제 거래 가능하세요?</p>
+                        </div>
+                        <span class="chat-time">10분 전</span>
+                    </li>
+                    <li class="chat-item" onclick="selectChat(this, '이영희', '에어팟 아직 판매 중인가요?')">
+                        <div class="chat-avatar">이</div>
+                        <div class="chat-meta">
+                            <p class="chat-name">이영희</p>
+                            <p class="chat-preview">에어팟 아직 판매 중인가요?</p>
+                        </div>
+                        <span class="chat-time">1시간 전</span>
+                    </li>
+                    <li class="chat-item" onclick="selectChat(this, '박민준', '가격 조금 깎아주실 수 있나요?')">
+                        <div class="chat-avatar">박</div>
+                        <div class="chat-meta">
+                            <p class="chat-name">박민준</p>
+                            <p class="chat-preview">가격 조금 깎아주실 수 있나요?</p>
+                        </div>
+                        <span class="chat-time">어제</span>
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- 채팅 창 -->
+            <section class="chat-window">
+                <div class="chat-window-header">
+                    <span id="chatPartner">김철수</span>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="msg msg-other"><span>맥북 언제 거래 가능하세요?</span></div>
+                    <div class="msg msg-me"><span>내일 오후 가능합니다!</span></div>
+                </div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chatInput" class="form-input" placeholder="메시지를 입력하세요">
+                    <button class="btn-primary" onclick="sendMsg()">전송</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        function selectChat(el, name, preview) {
+            document.querySelectorAll('.chat-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('chatPartner').textContent = name;
+            document.getElementById('chatMessages').innerHTML =
+                '<div class="msg msg-other"><span>' + preview + '</span></div>';
+        }
+        function sendMsg() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            const box = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'msg msg-me';
+            div.innerHTML = '<span>' + text + '</span>';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            input.value = '';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('chatInput').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') sendMsg();
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
