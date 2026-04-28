@@ -20,12 +20,12 @@
     outline: none; transition: border-color 0.15s;
 }
 .verify-input:focus { border-color: #007bff; }
-.verify-input-sm { width: 56px; flex-shrink: 0; text-align: center; }
+.verify-input-sm { width: 46px; flex-shrink: 0; text-align: center; }
 
 .verify-rrn-row { display: flex; align-items: center; gap: 8px; }
 .verify-rrn-row .verify-input:first-child { flex: 1; }
-.verify-rrn-dash { font-size: 18px; color: #555; font-weight: 700; }
-.verify-rrn-mask { font-size: 18px; color: #ccc; letter-spacing: 4px; user-select: none; }
+.verify-rrn-dash { font-size: 14px; color: #555; font-weight: 700; }
+.verify-rrn-mask { font-size: 13px; color: #ccc; letter-spacing: 2px; user-select: none; white-space: nowrap; }
 
 .verify-carrier-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .verify-carrier-btn {
