@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+
+body {
+    font-family: 'Pretendard', sans-serif;
+    background-color: #fcfdfe;
+}
+
+.star-active {
+    color: #2563eb;
+    fill: #2563eb;
+}
+
+.star-inactive {
+    color: #e2e8f0;
+    fill: #e2e8f0;
+}
+
+.sidebar-link:hover {
+    background-color: #f8faff;
+    color: #2563eb;
+}
+
+.sidebar-link.active {
+    background-color: #f0f4ff;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.nav-active-bar {
+    color: #2563eb;
+    font-weight: 700;
+    position: relative;
+}
+
+.nav-active-bar::after {
+    content: '';
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #2563eb;
+}
+
+.hidden-view {
+    display: none;
+}
+
+.img-container {
+    position: relative;
+    overflow: hidden;
+    background-color: #f1f5f9;
+}
+
+.img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
