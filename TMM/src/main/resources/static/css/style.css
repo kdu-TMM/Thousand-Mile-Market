@@ -1,5 +1,6 @@
 /* ===== 초기화 & 폰트 ===== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #fff; color: #212121; }
 
 /* ===== 헤더 ===== */
@@ -107,8 +108,8 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 .form-actions .btn-primary, .form-actions .btn-secondary { width: auto; flex: 1; }
 
 /* ===== 레이아웃 ===== */
-.app-container { min-height: 100vh; }
-.main-content { max-width: 1024px; margin: 0 auto; padding: 40px 0 60px; }
+.app-container { min-height: 100%; display: flex; flex-direction: column; }
+.main-content { max-width: 1024px; width: 100%; margin: 0 auto; padding: 40px 0 60px; }
 .page-box {
     background: #fff; border: 1px solid #eee; border-radius: 8px;
     padding: 40px; max-width: 720px; margin: 0 auto;
@@ -170,7 +171,8 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 .badge-done    { background: #f5f5f5; color: #888; }
 
 /* ===== 채팅 ===== */
-.chat-layout { display: flex; height: calc(100vh - 140px); border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+.main-chat { flex: 1; padding: 16px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-layout { flex: 1; display: flex; border: 1px solid #eee; border-radius: 8px; overflow: hidden; min-height: 0; }
 .chat-list { width: 280px; border-right: 1px solid #eee; overflow-y: auto; flex-shrink: 0; }
 .chat-list-title { padding: 20px 16px 12px; font-size: 16px; font-weight: 800; border-bottom: 1px solid #eee; }
 .chat-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; border-bottom: 1px solid #f5f5f5; }
