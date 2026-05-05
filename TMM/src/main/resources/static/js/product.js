@@ -5,6 +5,14 @@ let wished = false;
 let slideIndex = 0;
 let slideUrls = [];
 
+/* Firebase 연동 전 임시 로컬 이미지 (imageUrls가 있으면 자동으로 대체됨) */
+const localImageMap = {
+    1: ['/images/popular/popular-1.jpg'],
+    2: ['/images/popular/popular-2.jpg'],
+    3: ['/images/popular/popular-3.jpg'],
+    4: ['/images/popular/popular-4.jpg'],
+};
+
 fetch('/data/products.json')
     .then(r => r.json())
     .then(data => {
@@ -89,7 +97,8 @@ function renderProduct(p) {
     document.getElementById('pdRegion').textContent = p.region;
     document.getElementById('pdDescription').textContent = p.description || '';
 
-    renderGallery(p.imageUrls, p.title);
+    const images = p.imageUrls?.length ? p.imageUrls : (localImageMap[p.id] ?? []);
+    renderGallery(images, p.title);
     document.getElementById('pdLayout').style.display = 'grid';
 }
 
