@@ -1,0 +1,49 @@
+/* ===== 판매 방식 선택 ===== */
+.sell-type-wrap { display: flex; gap: 20px; }
+.sell-type-option {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; font-weight: 600; color: #333; cursor: pointer;
+}
+.sell-type-option input[type="radio"] { accent-color: #007bff; width: 16px; height: 16px; }
+
+/* ===== 사진 업로드 미리보기 ===== */
+.photo-upload-wrap { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.photo-preview-list { display: flex; gap: 10px; flex-wrap: wrap; }
+.photo-preview-item {
+    position: relative; width: 90px; height: 90px;
+    border-radius: 8px; overflow: hidden;
+    border: 1px solid #e0e0e0;
+}
+.photo-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-remove-btn {
+    position: absolute; top: 3px; right: 3px;
+    background: rgba(0,0,0,0.55); color: #fff;
+    border: none; border-radius: 50%;
+    width: 20px; height: 20px; font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.photo-remove-btn:hover { background: rgba(220,0,0,0.8); }
+
+/* ===== 파일 업로드 버튼 ===== */
+.image-upload-area {
+    width: 120px; height: 120px;
+    border: 2px dashed #ccc; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 13px; color: #aaa; cursor: pointer; gap: 4px;
+}
+.image-upload-area:hover { border-color: #007bff; color: #007bff; }
+
+/* ===== 지역 셀렉트박스 3단 ===== */
+.region-select-wrap { display: flex; gap: 8px; }
+.region-select-wrap .form-input { flex: 1; }
+
+/* ===== 가격 입력 ===== */
+.price-input-wrap { display: flex; align-items: center; gap: 10px; }
+.price-unit { font-size: 14px; color: #555; white-space: nowrap; }
+.nego-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: #555; white-space: nowrap; cursor: pointer;
+}
+
+/* ===== 판매하기 폼 ===== */
+.sell-form { display: flex; flex-direction: column; gap: 20px; }
