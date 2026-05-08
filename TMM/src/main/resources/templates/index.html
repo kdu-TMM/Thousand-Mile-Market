@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>천리마켓 - TMM</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+</head>
+<body>
+    <div class="app-container">
+        <div th:replace="~{fragments/header :: header}"></div>
+
+        <main class="main-content">
+
+            <!-- ===== 필터 바 ===== -->
+            <div class="filter-bar">
+                <div class="filter-top-row">
+                    <div class="filter-left">
+                        <select class="filter-select" id="filterRegion" onchange="applyFilter()">
+                            <option value="">전체 지역</option>
+                            <option>서울</option><option>경기</option><option>인천</option>
+                            <option>부산</option><option>대구</option><option>광주</option>
+                            <option>대전</option><option>울산</option><option>세종</option>
+                            <option>강원</option><option>충북</option><option>충남</option>
+                            <option>전북</option><option>전남</option><option>경북</option>
+                            <option>경남</option><option>제주</option>
+                        </select>
+                        <select class="filter-select" id="filterCategory" onchange="applyFilter()">
+                            <option value="">전체 카테고리</option>
+                            <option>디지털/가전</option><option>의류/잡화</option>
+                            <option>가구/인테리어</option><option>도서/음반</option>
+                            <option>스포츠/레저</option><option>기타</option>
+                        </select>
+                        <button class="filter-reset-btn" onclick="resetFilter()">초기화</button>
+                    </div>
+                </div>
+                <div class="filter-section-tabs">
+                    <button class="fsection-tab active" onclick="showSection('all', this)">전체</button>
+                    <button class="fsection-tab" onclick="showSection('popular', this)">🔥 인기 상품</button>
+                    <button class="fsection-tab" onclick="showSection('category', this)">📦 카테고리별 중고 물품</button>
+                    <button class="fsection-tab" onclick="showSection('auction', this)">🔨 경매 진행 중</button>
+                    <button class="fsection-tab" onclick="showSection('all-items', this)">📋 전체 중고 물품</button>
+                </div>
+            </div>
+
+            <!-- ===== 인기 상품 ===== -->
+            <section class="product-section" id="section-popular">
+                <h2 class="product-section-title">🔥 인기 상품</h2>
+                <div class="product-grid">
+                    <div class="product-card" onclick="goProduct(1,'아이폰 15 Pro','950,000')">
+                        <div class="product-image"><img src="/images/popular/popular-1.jpg" alt="아이폰 15 Pro" onerror="imgError(this)"></div>
+                        <div class="product-info">
+                            <h3 class="product-title">아이폰 15 Pro</h3>
+                            <div class="product-details">
+                                <span class="product-price">950,000</span>
+                                <span class="product-date">10분 전</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-card" onclick="goProduct(2,'맥북 에어 M3','1,200,000')">
+                        <div class="product-image"><img src="/images/popular/popular-2.jpg" alt="맥북 에어 M3" onerror="imgError(this)"></div>
+                        <div class="product-info">
+                            <h3 class="product-title">맥북 에어 M3</h3>
+                            <div class="product-details">
+                                <span class="product-price">1,200,000</span>
+                                <span class="product-date">30분 전</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-card" onclick="goProduct(3,'다이슨 청소기','280,000')">
+                        <div class="product-image"><img src="/images/popular/popular-3.jpg" alt="다이슨 청소기" onerror="imgError(this)"></div>
+                        <div class="product-info">
+                            <h3 class="product-title">다이슨 청소기</h3>
+                            <div class="product-details">
+                                <span class="product-price">280,000</span>
+                                <span class="product-date">1시간 전</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-card" onclick="goProduct(4,'닌텐도 스위치 OLED','290,000')">
+                        <div class="product-image"><img src="/images/popular/popular-4.jpg" alt="닌텐도 스위치 OLED" onerror="imgError(this)"></div>
+                        <div class="product-info">
+                            <h3 class="product-title">닌텐도 스위치 OLED</h3>
+                            <div class="product-details">
+                                <span class="product-price">290,000</span>
+                                <span class="product-date">2시간 전</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 카테고리별 중고 물품 ===== -->
+            <section class="product-section" id="section-category">
+                <h2 class="product-section-title">📦 카테고리별 중고 물품</h2>
+                <div class="category-tab-bar">
+                    <button class="category-tab active" onclick="switchCategory('all', this)">전체</button>
+                    <button class="category-tab" onclick="switchCategory('digital', this)">디지털/가전</button>
+                    <button class="category-tab" onclick="switchCategory('fashion', this)">의류/잡화</button>
+                    <button class="category-tab" onclick="switchCategory('furniture', this)">가구/인테리어</button>
+                    <button class="category-tab" onclick="switchCategory('book', this)">도서/음반</button>
+                    <button class="category-tab" onclick="switchCategory('sports', this)">스포츠/레저</button>
+                    <button class="category-tab" onclick="switchCategory('etc', this)">기타</button>
+                </div>
+                <div class="product-grid" id="categoryGrid">
+                    <div class="product-card" data-category="digital" onclick="goProduct(9,'갤럭시 S24','720,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">갤럭시 S24</h3><div class="product-details"><span class="product-price">720,000</span><span class="product-date">방금 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="fashion" onclick="goProduct(7,'나이키 에어맥스 95','85,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">나이키 에어맥스 95</h3><div class="product-details"><span class="product-price">85,000</span><span class="product-date">5분 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="furniture" onclick="goProduct(8,'이케아 책상','55,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">이케아 책상</h3><div class="product-details"><span class="product-price">55,000</span><span class="product-date">20분 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="book" onclick="goProduct(10,'개발 서적 묶음','30,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">개발 서적 묶음</h3><div class="product-details"><span class="product-price">30,000</span><span class="product-date">1시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="sports" onclick="goProduct(11,'MTB 자전거','180,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">자전거 (MTB)</h3><div class="product-details"><span class="product-price">180,000</span><span class="product-date">2시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="etc" onclick="goProduct(1,'레고 클래식 세트','40,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">레고 클래식 세트</h3><div class="product-details"><span class="product-price">40,000</span><span class="product-date">3시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="digital" onclick="goProduct(14,'애플워치 SE 2','220,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">애플워치 SE 2</h3><div class="product-details"><span class="product-price">220,000</span><span class="product-date">4시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="fashion" onclick="goProduct(15,'아디다스 울트라부스트','60,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">아디다스 패딩 M</h3><div class="product-details"><span class="product-price">60,000</span><span class="product-date">5시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="digital" onclick="goProduct(12,'소니 WH-1000XM5','260,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">소니 WH-1000XM5</h3><div class="product-details"><span class="product-price">260,000</span><span class="product-date">6시간 전</span></div></div>
+                    </div>
+                    <div class="product-card" data-category="furniture" onclick="goProduct(13,'허먼밀러 의자','450,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
+                        <div class="product-info"><h3 class="product-title">허먼밀러 의자</h3><div class="product-details"><span class="product-price">450,000</span><span class="product-date">7시간 전</span></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 경매 상품 ===== -->
+            <section class="product-section" id="section-auction">
+                <h2 class="product-section-title">🔨 경매 진행 중</h2>
+                <div class="product-grid" id="auctionGrid">
+                    <div class="product-card auction no-bid" onclick="goProduct(5,'빈티지 필름 카메라','50,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div><div class="auction-timer">🕐 23:45:12</div><div class="bid-count-banner">0명 입찰</div></div>
+                        <div class="product-info"><div class="auction-badge-label">시작가</div><h3 class="product-title">빈티지 필름 카메라</h3><div class="product-details"><span class="product-price start-price">50,000</span></div></div>
+                    </div>
+                    <div class="product-card auction bidding" onclick="goProduct(6,'레트로 게임기 FC','132,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div><div class="auction-timer">🕐 11:32:05</div><div class="bid-count-banner">5명 입찰 중</div></div>
+                        <div class="product-info"><div class="auction-badge-label bidding">입찰 중</div><h3 class="product-title">레트로 게임기 FC</h3><div class="product-details"><span class="product-price bid-price">132,000</span></div></div>
+                    </div>
+                    <div class="product-card auction no-bid" onclick="goProduct(5,'한정판 스니커즈','200,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div><div class="auction-timer">🕐 47:00:00</div><div class="bid-count-banner">0명 입찰</div></div>
+                        <div class="product-info"><div class="auction-badge-label">시작가</div><h3 class="product-title">한정판 스니커즈</h3><div class="product-details"><span class="product-price start-price">200,000</span></div></div>
+                    </div>
+                    <div class="product-card auction bidding" onclick="goProduct(6,'아이패드 미니 6세대','480,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div><div class="auction-timer">🕐 02:15:33</div><div class="bid-count-banner">12명 입찰 중</div></div>
+                        <div class="product-info"><div class="auction-badge-label bidding">입찰 중</div><h3 class="product-title">아이패드 미니 6세대</h3><div class="product-details"><span class="product-price bid-price">480,000</span></div></div>
+                    </div>
+                    <div class="product-card auction bidding" onclick="goProduct(6,'다이슨 에어랩','310,000')">
+                        <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div><div class="auction-timer">🕐 05:48:20</div><div class="bid-count-banner">3명 입찰 중</div></div>
+                        <div class="product-info"><div class="auction-badge-label bidding">입찰 중</div><h3 class="product-title">다이슨 에어랩</h3><div class="product-details"><span class="product-price bid-price">310,000</span></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== 전체 중고 물품 (무한 스크롤) ===== -->
+            <section class="product-section" id="section-all-items">
+                <h2 class="product-section-title">📋 전체 중고 물품</h2>
+                <div class="product-grid" id="mainGrid"></div>
+                <div id="scrollSentinel" style="height:1px;"></div>
+                <div id="loadingSpinner" class="loading-spinner" style="display:none;">
+                    <span>불러오는 중...</span>
+                </div>
+            </section>
+
+        </main>
+
+        <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    </div>
+
+    <script th:src="@{/js/index.js}"></script>
+</body>
+</html>

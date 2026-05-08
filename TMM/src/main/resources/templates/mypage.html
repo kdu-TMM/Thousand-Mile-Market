@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+        <div class="page-box">
+            <h2 class="page-title">마이페이지</h2>
+
+            <!-- 프로필 카드 -->
+            <div class="mypage-profile">
+                <div class="mypage-avatar" id="mpAvatar">홍</div>
+                <div class="mypage-profile-info">
+                    <p class="mypage-name" id="mpName">홍길동</p>
+                    <p class="mypage-bio" id="mpBio">천리 길도 거래부터, 믿음직한 중고거래입니다.</p>
+                    <p class="mypage-region">📍 <span id="mpRegion">경기도 의정부시 신곡2동</span></p>
+                    <p class="mypage-join">가입일 2026.01.01</p>
+                </div>
+            </div>
+
+            <!-- 거래 평점 / 누적 거래 -->
+            <div class="mypage-rating-row">
+                <div class="mypage-rating-item">
+                    <span class="mypage-rating-label">거래 평점</span>
+                    <span class="mypage-rating-value">4.8 <span class="mypage-rating-sub">/ 5.0</span></span>
+                </div>
+                <div class="mypage-rating-div"></div>
+                <div class="mypage-rating-item">
+                    <span class="mypage-rating-label">누적 거래</span>
+                    <span class="mypage-rating-value">218 <span class="mypage-rating-sub">회</span></span>
+                </div>
+                <div class="mypage-tags">
+                    <span class="mypage-tag primary"># 친절해요</span>
+                    <span class="mypage-tag"># 응답이 빨라요</span>
+                </div>
+            </div>
+
+            <!-- 탭 바 -->
+            <div class="mypage-tab-bar">
+                <button class="mypage-tab active" onclick="switchMypageTab('Dashboard', this)">대시보드</button>
+                <button class="mypage-tab" onclick="switchMypageTab('Sales', this)">판매 내역</button>
+                <button class="mypage-tab" onclick="switchMypageTab('Settings', this)">프로필 설정</button>
+            </div>
+
+            <!-- ===== 대시보드 탭 ===== -->
+            <div id="mpTabDashboard" class="mypage-tab-panel">
+                <div class="mypage-stats">
+                    <div class="mypage-stat-item"><span class="mypage-stat-num">8</span><span class="mypage-stat-label">판매 중</span></div>
+                    <div class="mypage-stat-item"><span class="mypage-stat-num">3</span><span class="mypage-stat-label">찜한 상품</span></div>
+                    <div class="mypage-stat-item"><span class="mypage-stat-num">5</span><span class="mypage-stat-label">구매 내역</span></div>
+                    <div class="mypage-stat-item"><span class="mypage-stat-num">2</span><span class="mypage-stat-label">경매 참여</span></div>
+                </div>
+
+                <div class="mypage-menu-grid">
+                    <div class="mypage-menu-item" onclick="location.href='/sell?tab=list'"><div class="mypage-menu-icon">📦</div><p>판매 목록</p></div>
+                    <div class="mypage-menu-item" onclick="location.href='/my-list'"><div class="mypage-menu-icon">❤️</div><p>찜한 상품</p></div>
+                    <div class="mypage-menu-item" onclick="location.href='/my-list?tab=buy'"><div class="mypage-menu-icon">🛒</div><p>구매 내역</p></div>
+                    <div class="mypage-menu-item" onclick="location.href='/chat'"><div class="mypage-menu-icon">💬</div><p>대화 목록</p></div>
+                </div>
+            </div>
+
+            <!-- ===== 판매 내역 탭 ===== -->
+            <div id="mpTabSales" class="mypage-tab-panel" style="display:none;">
+                <div class="mypage-sales-summary">
+                    <div class="mypage-summary-card">
+                        <span class="mypage-summary-label">판매 중</span>
+                        <span class="mypage-summary-num on">5 건</span>
+                    </div>
+                    <div class="mypage-summary-card">
+                        <span class="mypage-summary-label">거래 대기</span>
+                        <span class="mypage-summary-num reserved">2 건</span>
+                    </div>
+                    <div class="mypage-summary-card">
+                        <span class="mypage-summary-label">판매 완료</span>
+                        <span class="mypage-summary-num done">12 건</span>
+                    </div>
+                </div>
+
+                <ul class="sales-list">
+                    <li class="sales-item">
+                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
+                        <div class="sales-info">
+                            <p class="sales-name">아이폰 15 Pro 256GB</p>
+                            <p class="sales-price">950,000원</p>
+                            <p class="sales-date">2026.04.19 · 경기도 의정부시 신곡2동</p>
+                        </div>
+                        <span class="badge badge-on">판매중</span>
+                    </li>
+                    <li class="sales-item">
+                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
+                        <div class="sales-info">
+                            <p class="sales-name">빈티지 필름 카메라</p>
+                            <p class="sales-price sales-price-bid">현재가 132,000원</p>
+                            <p class="sales-date">남은 시간 <strong class="auction-remain">11:32:05</strong></p>
+                        </div>
+                        <span class="badge badge-auction">경매중</span>
+                    </li>
+                    <li class="sales-item">
+                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
+                        <div class="sales-info">
+                            <p class="sales-name">나이키 에어맥스 95</p>
+                            <p class="sales-price">85,000원</p>
+                            <p class="sales-date">2026.04.15</p>
+                        </div>
+                        <span class="badge badge-done">판매완료</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- ===== 프로필 설정 탭 ===== -->
+            <div id="mpTabSettings" class="mypage-tab-panel" style="display:none;">
+                <div class="mypage-settings-form">
+                    <div class="mypage-field">
+                        <label class="mypage-field-label">닉네임</label>
+                        <input type="text" id="settingName" value="홍길동" class="mypage-field-input">
+                    </div>
+                    <div class="mypage-field">
+                        <label class="mypage-field-label">한 줄 소개</label>
+                        <textarea id="settingBio" rows="3" class="mypage-field-input">천리 길도 거래부터, 믿음직한 중고거래입니다.</textarea>
+                    </div>
+                    <div class="mypage-field">
+                        <label class="mypage-field-label">거래 지역</label>
+                        <input type="text" id="settingRegion" value="경기도 의정부시 신곡2동" class="mypage-field-input">
+                    </div>
+                    <div class="mypage-settings-actions">
+                        <button class="btn-primary" style="width:auto;padding:10px 32px;" onclick="saveMypageSettings(event)">저장</button>
+                        <button class="btn-secondary" style="width:auto;padding:10px 24px;" onclick="switchMypageTab('Dashboard', document.querySelector('.mypage-tab'))">취소</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script th:src="@{/js/mypage.js}"></script>
+</div>
+</body>
+</html>

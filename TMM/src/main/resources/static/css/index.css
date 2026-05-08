@@ -1,0 +1,141 @@
+/* ===== 섹션 간격 ===== */
+.product-section { margin-bottom: 70px; }
+
+/* ===== 필터 바 ===== */
+.filter-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 28px;
+    padding: 14px 18px;
+    background: #f8fafc;
+    border: 1px solid #e8edf2;
+    border-radius: 8px;
+}
+.filter-top-row { display: flex; align-items: center; justify-content: space-between; }
+.filter-left { display: flex; gap: 10px; align-items: center; }
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+}
+.filter-select:focus { border-color: #007bff; }
+.filter-reset-btn {
+    padding: 8px 16px;
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+}
+.filter-reset-btn:hover { border-color: #007bff; color: #007bff; }
+
+/* 섹션 탭 */
+.filter-section-tabs {
+    display: flex;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid #e8edf2;
+    margin-top: 12px;
+}
+.fsection-tab {
+    padding: 5px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.fsection-tab.active { background: #007bff; border-color: #007bff; color: #fff; }
+.fsection-tab:hover:not(.active) { border-color: #007bff; color: #007bff; }
+
+/* ===== 카테고리 탭 ===== */
+.category-tab-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+.category-tab-bar::-webkit-scrollbar { display: none; }
+.category-tab {
+    padding: 6px 18px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.category-tab.active, .category-tab:hover { background: #007bff; border-color: #007bff; color: #fff; }
+
+/* ===== 경매 카드 ===== */
+.auction-timer {
+    position: absolute;
+    top: 8px; left: 8px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.3px;
+    z-index: 2;
+}
+.bid-count-banner {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    background: rgba(0,0,0,0.60);
+    color: #fff;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    z-index: 2;
+}
+.product-card.auction.bidding .bid-count-banner { background: rgba(230, 85, 13, 0.88); }
+
+.auction-badge-label {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-bottom: 4px;
+    background: #e8f4ff; color: #007bff;
+}
+.auction-badge-label.bidding { background: #fff1e6; color: #e65d0d; }
+
+.product-price.start-price { color: #007bff; font-weight: 800; font-size: 17px; }
+.product-price.start-price::after { content: '원'; font-size: 14px; margin-left: 2px; }
+.product-price.bid-price { color: #e65d0d; font-weight: 800; font-size: 17px; }
+.product-price.bid-price::after { content: '원'; font-size: 14px; margin-left: 2px; }
+
+.product-card.auction.no-bid { border-color: #b3d4ff; }
+.product-card.auction.bidding { border-color: #f5c09a; }
+
+/* 경매 배지 (판매목록) */
+.badge-auction { background: #fff1e6; color: #e65d0d; }
+.sales-price-bid { color: #e65d0d; font-weight: 800; font-size: 14px; }
+.auction-remain { color: #e65d0d; }
+
+/* ===== 무한 스크롤 로딩 ===== */
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: #aaa;
+    font-size: 14px;
+}

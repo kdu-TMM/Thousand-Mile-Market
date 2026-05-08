@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>고객센터 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+        <div class="page-box">
+            <h2 class="page-title">고객센터</h2>
+
+            <div class="support-grid">
+                <div class="support-card" onclick="location.href='#faq'">
+                    <div class="support-icon">📋</div>
+                    <p>자주 묻는 질문</p>
+                </div>
+                <div class="support-card">
+                    <div class="support-icon">📞</div>
+                    <p>전화 문의<br><small>1588-0000</small></p>
+                </div>
+                <div class="support-card">
+                    <div class="support-icon">💬</div>
+                    <p>1:1 문의</p>
+                </div>
+            </div>
+
+            <h3 class="section-subtitle" id="faq">자주 묻는 질문</h3>
+            <ul class="faq-list">
+                <li class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        거래 사기를 당했어요. 어떻게 신고하나요?
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        앱 내 신고 기능을 이용하거나 고객센터로 문의해 주세요. 증거 자료(채팅 내역, 송금 영수증)를 함께 제출하시면 빠른 처리가 가능합니다.
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        판매 글을 수정하거나 삭제하려면 어떻게 하나요?
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        판매목록 페이지에서 해당 게시글을 클릭한 후 수정 또는 삭제 버튼을 이용하세요.
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        회원 탈퇴는 어떻게 하나요?
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        마이페이지 → 설정 → 회원 탈퇴 순으로 진행하실 수 있습니다. 탈퇴 시 모든 데이터가 삭제되며 복구가 불가능합니다.
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        안전 거래는 어떻게 이용하나요?
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        채팅창에서 '안전거래 요청' 버튼을 눌러 에스크로 방식으로 결제하면 구매 확정 전까지 대금이 보호됩니다.
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        function toggleFaq(btn) {
+            const answer = btn.nextElementSibling;
+            const isOpen = answer.classList.contains('open');
+            document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+            document.querySelectorAll('.faq-arrow').forEach(a => a.textContent = '▼');
+            if (!isOpen) {
+                answer.classList.add('open');
+                btn.querySelector('.faq-arrow').textContent = '▲';
+            }
+        }
+    </script>
+</div>
+</body>
+</html>

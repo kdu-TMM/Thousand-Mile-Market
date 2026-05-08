@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="quickMenu" class="quick-menu">
+
+    <!-- 찜한상품 패널 -->
+    <div class="qm-panel" id="wishPanel">
+        <div class="qm-panel-header">
+            <span>찜한 상품</span>
+            <button class="qm-panel-close" onclick="closePanel('wishPanel')">✕</button>
+        </div>
+        <div class="qm-panel-body">
+            <div class="qm-panel-item" onclick="location.href='/'">
+                <div class="qm-panel-thumb">(사진)</div>
+                <div class="qm-panel-info">
+                    <p class="qm-panel-name">아이폰 15 Pro</p>
+                    <p class="qm-panel-price">950,000원</p>
+                </div>
+            </div>
+            <div class="qm-panel-item" onclick="location.href='/'">
+                <div class="qm-panel-thumb">(사진)</div>
+                <div class="qm-panel-info">
+                    <p class="qm-panel-name">다이슨 청소기</p>
+                    <p class="qm-panel-price">280,000원</p>
+                </div>
+            </div>
+            <div class="qm-panel-empty" id="wishEmpty" style="display:none;">
+                <p>찜한 상품이 없습니다.</p>
+            </div>
+        </div>
+        <button class="qm-panel-more" onclick="location.href='/my-list'">전체 보기 →</button>
+    </div>
+
+    <!-- 최근본상품 패널 -->
+    <div class="qm-panel" id="recentPanel">
+        <div class="qm-panel-header">
+            <span>최근 본 상품</span>
+            <button class="qm-panel-close" onclick="closePanel('recentPanel')">✕</button>
+        </div>
+        <div class="qm-panel-body" id="recentPanelBody">
+            <div class="qm-panel-empty" id="recentEmpty">
+                <div class="qm-recent-empty-icon">&#128065;</div>
+                <p>최근 본 상품이<br>없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 찜한상품 버튼 -->
+    <div class="quick-menu-box qm-wish" onclick="togglePanel('wishPanel')">
+        <div class="qm-icon">&#9825;</div>
+        <div class="qm-label">찜한상품</div>
+        <div class="qm-count">3</div>
+    </div>
+
+    <!-- 최근본상품 버튼 -->
+    <div class="quick-menu-box qm-recent" onclick="togglePanel('recentPanel')">
+        <div class="qm-icon">&#128065;</div>
+        <div class="qm-label">최근본상품</div>
+        <div class="qm-recent-count" id="recentCount">0</div>
+    </div>
+
+    <!-- TOP 버튼 -->
+    <button class="quick-menu-box qm-top" id="btnTop"
+            onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        TOP
+    </button>
+
+    <script th:src="@{/js/quick-menu.js}"></script>
+</aside>
+
+</body>
+</html>

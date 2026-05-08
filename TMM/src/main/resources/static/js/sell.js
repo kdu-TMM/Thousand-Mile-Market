@@ -1,0 +1,144 @@
+/* ===== 탭 전환 ===== */
+function switchSellTab(tab, btn) {
+    document.querySelectorAll('#tab-write, #tab-list').forEach(t => t.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+    document.querySelectorAll('.tab-bar:first-of-type .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function toggleAuctionFields(radio) {
+    const isAuction = radio.value === 'auction';
+    document.getElementById('auctionFields').style.display = isAuction ? 'block' : 'none';
+    document.getElementById('normalPriceGroup').style.display = isAuction ? 'none' : 'block';
+}
+
+function filterSales(status, btn) {
+    const parentTabBar = btn.closest('.tab-bar');
+    parentTabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.sales-item').forEach(item => {
+        item.style.display = (status === 'all' || item.dataset.status === status) ? 'flex' : 'none';
+    });
+}
+
+/* ===== 사진 미리보기 ===== */
+const uploadedFiles = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+    const imgInput = document.getElementById('imgInput');
+    if (!imgInput) return;
+
+    imgInput.addEventListener('change', function (e) {
+        const files = Array.from(e.target.files);
+        files.forEach(file => {
+            if (uploadedFiles.length >= 10) return;
+            uploadedFiles.push(file);
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const idx = uploadedFiles.length - 1;
+                const wrap = document.createElement('div');
+                wrap.className = 'photo-preview-item';
+                wrap.innerHTML = `
+                    <img src="${ev.target.result}" alt="미리보기">
+                    <button class="photo-remove-btn" onclick="removePhoto(${idx})">✕</button>`;
+                document.getElementById('photoPreviewList').appendChild(wrap);
+                document.getElementById('photoCount').textContent = uploadedFiles.length + '/10';
+            };
+            reader.readAsDataURL(file);
+        });
+        this.value = '';
+    });
+
+    /* 지역 초기값: 경기도 > 의정부시 > 신곡2동 */
+    updateSigungu();
+    const sigunguEl = document.getElementById('regionSigungu');
+    if (sigunguEl) {
+        sigunguEl.value = '의정부시';
+        updateDong();
+        const dongEl = document.getElementById('regionDong');
+        if (dongEl) dongEl.value = '신곡2동';
+    }
+
+    /* URL 파라미터로 탭 전환 */
+    const urlParams = new URLSearchParams(location.search);
+    if (urlParams.get('tab') === 'list') {
+        switchSellTab('list', document.getElementById('tabBtnList'));
+    }
+});
+
+function removePhoto(idx) {
+    uploadedFiles.splice(idx, 1);
+    const list = document.getElementById('photoPreviewList');
+    list.querySelectorAll('.photo-preview-item').forEach(el => el.remove());
+    uploadedFiles.forEach((file, i) => {
+        const reader = new FileReader();
+        reader.onload = function (ev) {
+            const wrap = document.createElement('div');
+            wrap.className = 'photo-preview-item';
+            wrap.innerHTML = `
+                <img src="${ev.target.result}" alt="미리보기">
+                <button class="photo-remove-btn" onclick="removePhoto(${i})">✕</button>`;
+            list.appendChild(wrap);
+        };
+        reader.readAsDataURL(file);
+    });
+    document.getElementById('photoCount').textContent = uploadedFiles.length + '/10';
+}
+
+/* ===== 지역 셀렉트박스 ===== */
+const regionData = {
+    '경기도': {
+        '의정부시': ['신곡1동','신곡2동','의정부1동','의정부2동','의정부3동','호원1동','호원2동','장암동','녹양동','가능동','흥선동','효자동','민락동','낙양동'],
+        '수원시':   ['장안구','권선구','팔달구','영통구'],
+        '성남시':   ['수정구','중원구','분당구'],
+        '고양시':   ['덕양구','일산동구','일산서구'],
+        '용인시':   ['처인구','기흥구','수지구'],
+        '부천시':   ['원미구','소사구','오정구'],
+        '안산시':   ['단원구','상록구'],
+        '남양주시': ['화도읍','오남읍','진건읍','별내면','퇴계원면'],
+        '화성시':   ['봉담읍','향남읍','남양읍','우정읍','장안면'],
+        '평택시':   ['평택동','비전1동','비전2동','통복동','중앙동'],
+    },
+    '서울특별시': {
+        '강남구':   ['역삼1동','역삼2동','개포1동','개포2동','청담동','삼성1동','삼성2동','논현1동','논현2동','압구정동','신사동','도곡1동','도곡2동'],
+        '강서구':   ['가양1동','가양2동','가양3동','화곡본동','화곡1동','화곡2동','화곡3동','발산1동','우장산동','방화1동','방화2동','방화3동','마곡동'],
+        '마포구':   ['공덕동','아현동','도화동','용강동','대흥동','신수동','서강동','서교동','합정동','망원1동','망원2동','연남동','성산1동','성산2동','상암동'],
+        '종로구':   ['청운효자동','사직동','삼청동','부암동','평창동','무악동','교남동','가회동','종로1·2·3·4가동','혜화동','창신1동','창신2동','창신3동','숭인1동','숭인2동'],
+        '영등포구': ['영등포본동','신길1동','신길3동','신길4동','신길5동','대림1동','대림2동','대림3동','도림동','문래동','양평1동','양평2동','당산1동','당산2동'],
+    },
+    '인천광역시': {
+        '남동구': ['구월1동','구월2동','구월3동','구월4동','간석1동','간석2동','간석3동','간석4동','만수1동','만수2동','만수3동','만수4동','논현1동','논현고잔동','논현2동'],
+        '연수구': ['옥련1동','옥련2동','선학동','연수1동','연수2동','연수3동','청학동','동춘1동','동춘2동','동춘3동','송도1동','송도2동','송도3동','송도4동'],
+        '부평구': ['부평1동','부평2동','부평3동','부평4동','부평5동','부평6동','십정1동','십정2동','산곡1동','산곡2동','산곡3동','산곡4동','갈산1동','갈산2동','삼산1동','삼산2동'],
+    },
+    '부산광역시': {
+        '해운대구': ['우동','중동','좌동','송정동','반여1동','반여2동','반여3동','반여4동','반송1동','반송2동','석대동','재송1동','재송2동'],
+        '수영구':   ['남천1동','남천2동','수영동','망미1동','망미2동','광안1동','광안2동','광안3동','광안4동'],
+        '사상구':   ['삼락동','모라1동','모라3동','덕포1동','덕포2동','괘법동','감전동','주례1동','주례2동','주례3동','학장동','엄궁동'],
+    },
+};
+
+function updateSigungu() {
+    const sido = document.getElementById('regionSido').value;
+    const sigungu = document.getElementById('regionSigungu');
+    const dong = document.getElementById('regionDong');
+    sigungu.innerHTML = '<option value="">시/군/구 선택</option>';
+    dong.innerHTML = '<option value="">읍/면/동 선택</option>';
+    if (sido && regionData[sido]) {
+        Object.keys(regionData[sido]).forEach(sg => {
+            sigungu.innerHTML += `<option value="${sg}">${sg}</option>`;
+        });
+    }
+}
+
+function updateDong() {
+    const sido = document.getElementById('regionSido').value;
+    const sg = document.getElementById('regionSigungu').value;
+    const dong = document.getElementById('regionDong');
+    dong.innerHTML = '<option value="">읍/면/동 선택</option>';
+    if (sido && sg && regionData[sido]?.[sg]) {
+        regionData[sido][sg].forEach(d => {
+            dong.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+    }
+}
