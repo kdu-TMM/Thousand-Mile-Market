@@ -6,7 +6,7 @@ plugins {
 
 group = 'kdu.og'
 version = '0.0.1-SNAPSHOT'
-description = 'Spring Boot 프로젝트'
+description = '아마도 천리마켓 TMM'
 
 java {
 	toolchain {
@@ -28,6 +28,41 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	
+	
+	// Google Cloud SQL - MySQL
+	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// Google Cloud SQL Socket Factory
+	implementation 'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.26.1'
+
+	// Firebase Admin SDK
+	implementation 'com.google.firebase:firebase-admin:9.8.0'
+	
+	// 로그
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
+	// 웹소켓
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+	// GSON
+	implementation 'com.google.code.gson:gson:2.10.1'
+	
+	// MyBatis
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+
+	// XML
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+	
+	
 }
 
 tasks.named('test') {
