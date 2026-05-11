@@ -36,4 +36,7 @@ public class PageController {
 
     @GetMapping("/product/{id}")
     public String product(@PathVariable String id) { return "product"; }
+
+    @GetMapping("/migrate")
+    public String migrate() { return "migrate"; }
 }

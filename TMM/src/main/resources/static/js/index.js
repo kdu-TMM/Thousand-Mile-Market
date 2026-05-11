@@ -150,13 +150,23 @@ function applyAllItemsFilter() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    fetch('/data/products.json')
-        .then(r => r.json())
-        .then(data => {
-            allProducts = data;
+function loadProducts() {
+    window.fs.getDocs(window.fs.collection(window.db, 'products'))
+        .then(snapshot => {
+            allProducts = snapshot.docs.map(d => d.data());
             applyAllItemsFilter();
+        })
+        .catch(() => {
+            /* Firestore 실패 시 products.json 폴백 */
+            fetch('/data/products.json')
+                .then(r => r.json())
+                .then(data => { allProducts = data; applyAllItemsFilter(); });
         });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (window.db) loadProducts();
+    else window.addEventListener('firebase-ready', loadProducts);
 });
 
 /* 필터 변경 시 전체 물품 섹션도 다시 필터링 */
