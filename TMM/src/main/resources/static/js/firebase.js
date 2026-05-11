@@ -1,6 +1,7 @@
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js';
 import { getFirestore, collection, getDocs,
-         doc, getDoc, setDoc }                    from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
+         doc, getDoc, setDoc,
+         query, where }                           from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
 import { getStorage }                             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
@@ -22,7 +23,7 @@ window.storage    = getStorage(app);
 window.auth       = getAuth(app);
 
 /* Firestore 유틸 — 일반 JS 파일에서 window.fs.* 로 사용 */
-window.fs = { collection, getDocs, doc, getDoc, setDoc };
+window.fs = { collection, getDocs, doc, getDoc, setDoc, query, where };
 
 /* Auth 유틸 — 일반 JS 파일에서 window.authFuncs.* 로 사용 */
 window.authFuncs = {
