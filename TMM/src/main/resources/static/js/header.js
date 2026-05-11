@@ -1,9 +1,13 @@
 function openLoginModal() {
     document.getElementById('loginModal').classList.add('active');
-    const msg = document.getElementById('loginMsg');
-    if (msg) { msg.textContent = ''; msg.className = 'verify-msg'; }
-    const btn = document.getElementById('loginSubmitBtn');
-    if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
+    const userIdEl = document.getElementById('loginUserId');
+    const pwEl     = document.getElementById('loginPw');
+    const msg      = document.getElementById('loginMsg');
+    const btn      = document.getElementById('loginSubmitBtn');
+    if (userIdEl) userIdEl.value = '';
+    if (pwEl)     pwEl.value = '';
+    if (msg)  { msg.textContent = ''; msg.className = 'verify-msg'; }
+    if (btn)  { btn.disabled = false; btn.textContent = '로그인'; }
 }
 
 function closeLoginModal(e) {
@@ -14,14 +18,20 @@ function closeLoginModal(e) {
 
 async function doLogin() {
     if (!window.auth || !window.authFuncs) return false;
-    const email = document.getElementById('loginEmail').value.trim();
-    const pw    = document.getElementById('loginPw').value;
-    const msg   = document.getElementById('loginMsg');
-    const btn   = document.getElementById('loginSubmitBtn');
+    const userId = document.getElementById('loginUserId').value.trim();
+    const pw     = document.getElementById('loginPw').value;
+    const msg    = document.getElementById('loginMsg');
+    const btn    = document.getElementById('loginSubmitBtn');
 
-    if (!email || !pw) {
-        msg.textContent = '이메일과 비밀번호를 입력해 주세요.';
+    function setErr(text) {
+        msg.textContent = text;
         msg.className = 'verify-msg err';
+        btn.disabled = false;
+        btn.textContent = '로그인';
+    }
+
+    if (!userId || !pw) {
+        setErr('아이디와 비밀번호를 입력해 주세요.');
         return false;
     }
 
@@ -29,20 +39,27 @@ async function doLogin() {
     btn.textContent = '로그인 중...';
 
     try {
+        /* Firestore에서 아이디로 이메일 조회 */
+        const { fs, db } = window;
+        const snap = await fs.getDocs(
+            fs.query(fs.collection(db, 'users'), fs.where('userId', '==', userId))
+        );
+        if (snap.empty) {
+            setErr('존재하지 않는 아이디입니다.');
+            return false;
+        }
+        const email = snap.docs[0].data().email;
+
         await window.authFuncs.signInWithEmailAndPassword(window.auth, email, pw);
         closeLoginModal();
     } catch (e) {
-        btn.disabled = false;
-        btn.textContent = '로그인';
         const errorMap = {
-            'auth/user-not-found':      '등록된 이메일이 없습니다.',
-            'auth/wrong-password':      '비밀번호가 올바르지 않습니다.',
-            'auth/invalid-email':       '유효하지 않은 이메일 형식입니다.',
-            'auth/invalid-credential':  '이메일 또는 비밀번호가 올바르지 않습니다.',
-            'auth/too-many-requests':   '잠시 후 다시 시도해 주세요.'
+            'auth/wrong-password':     '잘못된 비밀번호입니다.',
+            'auth/invalid-credential': '잘못된 비밀번호입니다.',
+            'auth/too-many-requests':  '잠시 후 다시 시도해 주세요.',
+            'auth/user-disabled':      '비활성화된 계정입니다.'
         };
-        msg.textContent = errorMap[e.code] || '로그인 실패: ' + e.message;
-        msg.className = 'verify-msg err';
+        setErr(errorMap[e.code] || '로그인 실패: ' + e.message);
     }
     return false;
 }
