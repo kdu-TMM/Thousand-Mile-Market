@@ -1,5 +1,9 @@
 function openLoginModal() {
     document.getElementById('loginModal').classList.add('active');
+    const msg = document.getElementById('loginMsg');
+    if (msg) { msg.textContent = ''; msg.className = 'verify-msg'; }
+    const btn = document.getElementById('loginSubmitBtn');
+    if (btn) { btn.disabled = false; btn.textContent = '로그인'; }
 }
 
 function closeLoginModal(e) {
@@ -7,6 +11,72 @@ function closeLoginModal(e) {
         document.getElementById('loginModal').classList.remove('active');
     }
 }
+
+async function doLogin() {
+    if (!window.auth || !window.authFuncs) return false;
+    const email = document.getElementById('loginEmail').value.trim();
+    const pw    = document.getElementById('loginPw').value;
+    const msg   = document.getElementById('loginMsg');
+    const btn   = document.getElementById('loginSubmitBtn');
+
+    if (!email || !pw) {
+        msg.textContent = '이메일과 비밀번호를 입력해 주세요.';
+        msg.className = 'verify-msg err';
+        return false;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '로그인 중...';
+
+    try {
+        await window.authFuncs.signInWithEmailAndPassword(window.auth, email, pw);
+        closeLoginModal();
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '로그인';
+        const errorMap = {
+            'auth/user-not-found':      '등록된 이메일이 없습니다.',
+            'auth/wrong-password':      '비밀번호가 올바르지 않습니다.',
+            'auth/invalid-email':       '유효하지 않은 이메일 형식입니다.',
+            'auth/invalid-credential':  '이메일 또는 비밀번호가 올바르지 않습니다.',
+            'auth/too-many-requests':   '잠시 후 다시 시도해 주세요.'
+        };
+        msg.textContent = errorMap[e.code] || '로그인 실패: ' + e.message;
+        msg.className = 'verify-msg err';
+    }
+    return false;
+}
+
+async function doLogout() {
+    if (!window.authFuncs) return;
+    await window.authFuncs.signOut(window.auth);
+}
+
+function updateAuthUI(user) {
+    const bar = document.getElementById('utilityBar');
+    if (!bar) return;
+    if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        bar.innerHTML =
+            `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
+            `<span class="utility-divider">|</span>` +
+            `<button onclick="location.href='/mypage'">마이페이지</button>` +
+            `<span class="utility-divider">|</span>` +
+            `<button onclick="doLogout()">로그아웃</button>`;
+    } else {
+        bar.innerHTML =
+            `<button onclick="openLoginModal()">로그인</button>` +
+            `<span class="utility-divider">|</span>` +
+            `<button onclick="location.href='/verify'">회원가입</button>`;
+    }
+}
+
+function initAuthListener() {
+    window.authFuncs.onAuthStateChanged(window.auth, updateAuthUI);
+}
+
+if (window.auth && window.authFuncs) initAuthListener();
+else window.addEventListener('firebase-ready', initAuthListener);
 
 function toggleHqm(id) {
     const panel = document.getElementById(id);
