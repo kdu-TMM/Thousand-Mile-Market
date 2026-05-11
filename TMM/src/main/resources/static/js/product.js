@@ -13,15 +13,19 @@ const localImageMap = {
     4: ['/images/popular/popular-4.jpg'],
 };
 
-fetch('/data/products.json')
-    .then(r => r.json())
-    .then(data => {
-        allProducts = data;
-        currentProduct = data.find(p => p.id === productId);
-        if (!currentProduct) {
+function loadProduct() {
+    /* 단일 상품 조회 + 전체 상품(비슷한 상품용) 병렬 로드 */
+    Promise.all([
+        window.fs.getDoc(window.fs.doc(window.db, 'products', String(productId))),
+        window.fs.getDocs(window.fs.collection(window.db, 'products'))
+    ])
+    .then(([docSnap, snapshot]) => {
+        if (!docSnap.exists()) {
             document.getElementById('pdError').style.display = 'flex';
             return;
         }
+        allProducts    = snapshot.docs.map(d => d.data());
+        currentProduct = docSnap.data();
         renderProduct(currentProduct);
         renderSimilar(currentProduct);
         const priceStr = currentProduct.type === 'auction'
@@ -33,7 +37,22 @@ fetch('/data/products.json')
             currentProduct.imageUrls?.[0] ?? null
         );
     })
-    .catch(() => { document.getElementById('pdError').style.display = 'flex'; });
+    .catch(() => {
+        /* Firestore 실패 시 products.json 폴백 */
+        fetch('/data/products.json')
+            .then(r => r.json())
+            .then(data => {
+                allProducts    = data;
+                currentProduct = data.find(p => p.id === productId);
+                if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
+                renderProduct(currentProduct);
+                renderSimilar(currentProduct);
+            });
+    });
+}
+
+if (window.db) loadProduct();
+else window.addEventListener('firebase-ready', loadProduct);
 
 /* ===== 이미지 갤러리 ===== */
 function renderGallery(imageUrls, alt) {

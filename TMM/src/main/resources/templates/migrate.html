@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Firestore 데이터 마이그레이션</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+        h2 { margin-bottom: 8px; }
+        p  { color: #666; margin-bottom: 24px; font-size: 14px; }
+        button {
+            padding: 14px 32px; font-size: 16px; font-weight: 700;
+            background: #007bff; color: #fff; border: none;
+            border-radius: 8px; cursor: pointer;
+        }
+        button:disabled { background: #aaa; cursor: not-allowed; }
+        #log {
+            margin-top: 24px; padding: 16px;
+            background: #f5f5f5; border-radius: 8px;
+            font-size: 13px; line-height: 2;
+            white-space: pre-wrap; max-height: 400px; overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Firestore 데이터 마이그레이션</h2>
+    <p>products.json의 상품 데이터를 Firestore products 컬렉션에 업로드합니다.<br>
+       <strong>한 번만 실행하세요.</strong> 중복 실행 시 데이터가 덮어씌워집니다.</p>
+    <button id="btn" onclick="migrate()">업로드 시작</button>
+    <div id="log"></div>
+
+    <script type="module">
+        import { initializeApp }             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js';
+        import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey:            "AIzaSyDLxhAV6pRt2Ht91W9qmfofoikKfGl9TBg",
+            authDomain:        "thousand-mile-market.firebaseapp.com",
+            projectId:         "thousand-mile-market",
+            storageBucket:     "thousand-mile-market.firebasestorage.app",
+            messagingSenderId: "607580438456",
+            appId:             "1:607580438456:web:3408a35953420d9af7994d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db  = getFirestore(app);
+
+        window.migrate = async function () {
+            const btn = document.getElementById('btn');
+            const log = document.getElementById('log');
+            btn.disabled = true;
+            log.textContent = '시작...\n';
+
+            try {
+                const res = await fetch('/data/products.json');
+                const products = await res.json();
+                log.textContent += `총 ${products.length}개 상품 발견\n\n`;
+
+                for (const product of products) {
+                    await setDoc(doc(db, 'products', String(product.id)), product);
+                    log.textContent += `✅ [${product.id}] ${product.title}\n`;
+                    log.scrollTop = log.scrollHeight;
+                }
+
+                log.textContent += '\n🎉 완료! 모든 상품이 Firestore에 업로드되었습니다.';
+                btn.textContent = '완료';
+            } catch (e) {
+                log.textContent += `\n❌ 오류: ${e.message}`;
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
