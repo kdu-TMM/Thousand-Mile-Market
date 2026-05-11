@@ -3,10 +3,10 @@
 <body>
 <header th:fragment="header" class="header">
     <div class="header-utility-bar">
-        <div class="utility-inner">
+        <div class="utility-inner" id="utilityBar">
             <button onclick="openLoginModal()">로그인</button>
             <span class="utility-divider">|</span>
-            <button onclick="location.href='/mypage'">마이페이지</button>
+            <button onclick="location.href='/verify'">회원가입</button>
         </div>
     </div>
     <div class="header-top">
@@ -33,10 +33,11 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeLoginModal()">✕</button>
             <h2 class="modal-title">로그인</h2>
-            <form class="modal-form" onsubmit="return false;">
-                <input type="text" placeholder="아이디" class="form-input">
-                <input type="password" placeholder="비밀번호" class="form-input">
-                <button type="submit" class="btn-primary">로그인</button>
+            <form class="modal-form" onsubmit="return doLogin();">
+                <input type="email" id="loginEmail" placeholder="이메일" class="form-input" autocomplete="email">
+                <input type="password" id="loginPw" placeholder="비밀번호" class="form-input" autocomplete="current-password">
+                <div id="loginMsg" class="verify-msg" style="min-height:18px;margin-bottom:4px;"></div>
+                <button type="submit" id="loginSubmitBtn" class="btn-primary">로그인</button>
             </form>
             <div class="modal-divider"><span>또는</span></div>
             <button class="btn-secondary" onclick="location.href='/verify'">회원가입</button>

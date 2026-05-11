@@ -79,6 +79,11 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 .modal-divider::before { left: 0; }
 .modal-divider::after { right: 0; }
 
+/* ===== 폼 메시지 ===== */
+.verify-msg { font-size: 13px; min-height: 18px; }
+.verify-msg.err { color: #e53935; }
+.verify-msg.ok  { color: #2e7d32; }
+
 /* ===== 공통 버튼 ===== */
 .btn-primary {
     width: 100%; padding: 12px; background: #007bff; color: #fff;
