@@ -44,6 +44,8 @@ async function sendCode() {
     const phoneFormatted = '+82' + phone.replace(/^0/, '');
 
     try {
+        /* render() 완료 후 SMS 발송 (타이밍 오류 방지) */
+        await window.recaptchaVerifier.render();
         confirmationResult = await window.authFuncs.signInWithPhoneNumber(
             window.auth, phoneFormatted, window.recaptchaVerifier
         );
