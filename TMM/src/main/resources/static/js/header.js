@@ -17,7 +17,7 @@ function closeLoginModal(e) {
 }
 
 async function doLogin() {
-    if (!window.auth || !window.authFuncs) return false;
+    if (!window.auth || !window.authFuncs) return;
     const userId = document.getElementById('loginUserId').value.trim();
     const pw     = document.getElementById('loginPw').value;
     const msg    = document.getElementById('loginMsg');
@@ -32,7 +32,7 @@ async function doLogin() {
 
     if (!userId || !pw) {
         setErr('아이디와 비밀번호를 입력해 주세요.');
-        return false;
+        return;
     }
 
     btn.disabled = true;
@@ -46,7 +46,7 @@ async function doLogin() {
         );
         if (snap.empty) {
             setErr('존재하지 않는 아이디입니다.');
-            return false;
+            return;
         }
         const email = snap.docs[0].data().email;
 

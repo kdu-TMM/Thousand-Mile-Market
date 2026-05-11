@@ -33,11 +33,11 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeLoginModal()">✕</button>
             <h2 class="modal-title">로그인</h2>
-            <form class="modal-form" onsubmit="return doLogin();">
+            <form class="modal-form" onsubmit="event.preventDefault();">
                 <input type="text" id="loginUserId" placeholder="아이디" class="form-input" autocomplete="username">
                 <input type="password" id="loginPw" placeholder="비밀번호" class="form-input" autocomplete="current-password">
                 <div id="loginMsg" class="verify-msg" style="min-height:18px;margin-bottom:4px;"></div>
-                <button type="submit" id="loginSubmitBtn" class="btn-primary">로그인</button>
+                <button type="button" id="loginSubmitBtn" class="btn-primary" onclick="doLogin()">로그인</button>
             </form>
             <div class="modal-divider"><span>또는</span></div>
             <button class="btn-secondary" onclick="location.href='/verify'">회원가입</button>
