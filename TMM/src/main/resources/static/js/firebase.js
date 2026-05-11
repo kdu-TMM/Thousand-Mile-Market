@@ -6,7 +6,8 @@ import { getStorage }                             from 'https://www.gstatic.com/
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          onAuthStateChanged, updateProfile,
-         RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
+         RecaptchaVerifier, signInWithPhoneNumber,
+         initializeRecaptchaConfig }             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
 
 const firebaseConfig = {
     apiKey:            "AIzaSyDLxhAV6pRt2Ht91W9qmfofoikKfGl9TBg",
@@ -36,6 +37,11 @@ window.authFuncs = {
     RecaptchaVerifier,
     signInWithPhoneNumber
 };
+
+/* reCAPTCHA Enterprise 설정 명시적 로드 */
+initializeRecaptchaConfig(window.auth)
+    .then(() => console.log('[firebase.js] reCAPTCHA Enterprise 설정 로드 완료'))
+    .catch(e => console.warn('[firebase.js] reCAPTCHA 설정 로드 실패:', e.message));
 
 /* 초기화 완료 신호 */
 window.dispatchEvent(new Event('firebase-ready'));
