@@ -1,12 +1,15 @@
 let timerInterval = null;
 
 function sendCode() {
-    const phone = document.getElementById('vPhone').value.replace(/\D/g, '');
+    const phoneEl = document.getElementById('vPhone');
+    if (!phoneEl) return;
+    const phone = phoneEl.value.replace(/\D/g, '');
     if (phone.length < 10) {
         showMsg('올바른 휴대폰 번호를 입력해 주세요.');
         return;
     }
-    document.getElementById('codeField').style.display = '';
+    const codeField = document.getElementById('codeField');
+    if (codeField) codeField.style.display = 'block';
     startTimer(180);
     showMsg('인증번호가 전송되었습니다. (테스트: 123456)', 'ok');
 }
@@ -36,6 +39,7 @@ function syncAllTerms() {
 
 function showMsg(msg, type) {
     const el = document.getElementById('verifyMsg');
+    if (!el) { console.error('[verify] verifyMsg 요소를 찾을 수 없음'); return; }
     el.textContent = msg;
     el.className = 'verify-msg ' + (type === 'ok' ? 'ok' : 'err');
 }
