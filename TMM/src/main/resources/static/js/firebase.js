@@ -5,7 +5,8 @@ import { getFirestore, collection, getDocs,
 import { getStorage }                             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
-         onAuthStateChanged, updateProfile }      from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
+         onAuthStateChanged, updateProfile,
+         RecaptchaVerifier, signInWithPhoneNumber } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
 
 const firebaseConfig = {
     apiKey:            "AIzaSyDLxhAV6pRt2Ht91W9qmfofoikKfGl9TBg",
@@ -31,7 +32,9 @@ window.authFuncs = {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    RecaptchaVerifier,
+    signInWithPhoneNumber
 };
 
 /* 초기화 완료 신호 */

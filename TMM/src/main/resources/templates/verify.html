@@ -44,8 +44,9 @@
                     <label class="verify-label">휴대폰 번호</label>
                     <div class="verify-phone-row">
                         <input type="tel" id="vPhone" class="verify-input" placeholder="'-' 없이 숫자만 입력">
-                        <button type="button" class="verify-send-btn" onclick="sendCode()">인증번호 전송</button>
+                        <button type="button" id="sendCodeBtn" class="verify-send-btn" onclick="sendCode()">인증번호 전송</button>
                     </div>
+                    <div id="recaptcha-container"></div>
                 </div>
                 <div class="verify-field" id="codeField" style="display:none;">
                     <label class="verify-label">인증번호</label>
@@ -75,6 +76,23 @@
     </main>
 
     <script th:src="@{/js/verify.js}"></script>
+    <script>
+    /* ===== 진단 스크립트 (문제 해결 후 삭제) ===== */
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('[진단] verify.js 로드 여부:', typeof sendCode === 'function' ? '✅ OK' : '❌ 미로드 - verify.js 404 가능성');
+        console.log('[진단] 버튼 존재 여부:', !!document.querySelector('.verify-send-btn') ? '✅ OK' : '❌ 버튼 없음');
+        console.log('[진단] vPhone 요소:', !!document.getElementById('vPhone') ? '✅ OK' : '❌ 없음');
+        console.log('[진단] codeField 요소:', !!document.getElementById('codeField') ? '✅ OK' : '❌ 없음');
+        console.log('[진단] verifyMsg 요소:', !!document.getElementById('verifyMsg') ? '✅ OK' : '❌ 없음');
+
+        const btn = document.querySelector('.verify-send-btn');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                console.log('[진단] 버튼 클릭 감지됨 ✅');
+            });
+        }
+    });
+    </script>
 </div>
 </body>
 </html>
