@@ -39,23 +39,14 @@ async function doLogin() {
     btn.textContent = '로그인 중...';
 
     try {
-        /* Firestore에서 아이디로 이메일 조회 */
-        const { fs, db } = window;
-        const snap = await fs.getDocs(
-            fs.query(fs.collection(db, 'users'), fs.where('userId', '==', userId))
-        );
-        if (snap.empty) {
-            setErr('존재하지 않는 아이디입니다.');
-            return;
-        }
-        const email = snap.docs[0].data().email;
-
-        await window.authFuncs.signInWithEmailAndPassword(window.auth, email, pw);
+        const internalEmail = userId.toLowerCase() + '@tmm.app';
+        await window.authFuncs.signInWithEmailAndPassword(window.auth, internalEmail, pw);
         closeLoginModal();
     } catch (e) {
         const errorMap = {
+            'auth/user-not-found':     '존재하지 않는 아이디입니다.',
             'auth/wrong-password':     '잘못된 비밀번호입니다.',
-            'auth/invalid-credential': '잘못된 비밀번호입니다.',
+            'auth/invalid-credential': '아이디 또는 비밀번호가 올바르지 않습니다.',
             'auth/too-many-requests':  '잠시 후 다시 시도해 주세요.',
             'auth/user-disabled':      '비활성화된 계정입니다.'
         };

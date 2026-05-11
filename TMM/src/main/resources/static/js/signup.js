@@ -28,24 +28,28 @@ async function doSignup() {
     const pw        = document.getElementById('signupPw').value;
     const pwConfirm = document.getElementById('signupPwConfirm').value;
     const nickname  = document.getElementById('signupNickname').value.trim();
-    const email     = document.getElementById('signupEmail').value.trim();
 
     if (!userId || userId.length < 4 || userId.length > 12)
         return showSignupMsg('아이디는 4~12자로 입력해 주세요.');
     if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(userId))
         return showSignupMsg('아이디는 영문과 숫자를 모두 포함해야 합니다.');
-    if (!email)                         return showSignupMsg('이메일을 입력해 주세요.');
-    if (!pw || pw.length < 8)           return showSignupMsg('비밀번호는 8자 이상 입력해 주세요.');
-    if (pw !== pwConfirm)               return showSignupMsg('비밀번호가 일치하지 않습니다.');
-    if (!nickname)                      return showSignupMsg('닉네임을 입력해 주세요.');
+    if (!pw || pw.length < 8)
+        return showSignupMsg('비밀번호는 8자 이상 입력해 주세요.');
+    if (pw !== pwConfirm)
+        return showSignupMsg('비밀번호가 일치하지 않습니다.');
+    if (!nickname)
+        return showSignupMsg('닉네임을 입력해 주세요.');
 
     const btn = document.getElementById('signupSubmitBtn');
     btn.disabled = true;
     btn.textContent = '가입 중...';
 
+    /* 아이디 → 내부 이메일 자동 생성 (사용자에게 노출 안됨) */
+    const internalEmail = userId.toLowerCase() + '@tmm.app';
+
     try {
         const { createUserWithEmailAndPassword, updateProfile } = window.authFuncs;
-        const userCred = await createUserWithEmailAndPassword(window.auth, email, pw);
+        const userCred = await createUserWithEmailAndPassword(window.auth, internalEmail, pw);
 
         await updateProfile(userCred.user, { displayName: nickname });
 
@@ -55,7 +59,6 @@ async function doSignup() {
             phone,
             userId,
             nickname,
-            email,
             profileImg: '',
             region:     '',
             bio:        '',
@@ -69,9 +72,8 @@ async function doSignup() {
         btn.disabled = false;
         btn.textContent = '가입하기';
         const errorMap = {
-            'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
-            'auth/invalid-email':        '유효하지 않은 이메일 형식입니다.',
-            'auth/weak-password':        '비밀번호는 6자 이상이어야 합니다.'
+            'auth/email-already-in-use': '이미 사용 중인 아이디입니다.',
+            'auth/weak-password':        '비밀번호는 8자 이상이어야 합니다.'
         };
         showSignupMsg(errorMap[e.code] || '오류가 발생했습니다: ' + e.message);
     }
