@@ -30,8 +30,10 @@ async function doSignup() {
     const nickname  = document.getElementById('signupNickname').value.trim();
     const email     = document.getElementById('signupEmail').value.trim();
 
-    if (!userId || userId.length < 4)  return showSignupMsg('아이디는 4자 이상 입력해 주세요.');
-    if (!/^[a-zA-Z0-9]+$/.test(userId)) return showSignupMsg('아이디는 영문과 숫자만 사용할 수 있습니다.');
+    if (!userId || userId.length < 4 || userId.length > 12)
+        return showSignupMsg('아이디는 4~12자로 입력해 주세요.');
+    if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(userId))
+        return showSignupMsg('아이디는 영문과 숫자를 모두 포함해야 합니다.');
     if (!email)                         return showSignupMsg('이메일을 입력해 주세요.');
     if (!pw || pw.length < 8)           return showSignupMsg('비밀번호는 8자 이상 입력해 주세요.');
     if (pw !== pwConfirm)               return showSignupMsg('비밀번호가 일치하지 않습니다.');
