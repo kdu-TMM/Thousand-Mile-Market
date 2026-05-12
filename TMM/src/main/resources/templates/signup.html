@@ -4,48 +4,98 @@
     <meta charset="UTF-8">
     <title>회원가입 - 천리마켓</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="stylesheet" th:href="@{/css/verify.css}">
+    <link rel="stylesheet" th:href="@{/css/signup.css}">
 </head>
 <body>
 <div class="app-container">
     <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="main-content">
-        <div class="page-box narrow">
-            <h2 class="page-title">회원가입</h2>
-            <form class="modal-form" onsubmit="return false;">
-                <div class="form-group">
-                    <label>이름</label>
-                    <input type="text" id="signupName" class="form-input" placeholder="이름" readonly>
-                </div>
-                <div class="form-group">
-                    <label>전화번호</label>
-                    <input type="tel" id="signupPhone" class="form-input" placeholder="010-0000-0000" readonly>
-                </div>
-                <div class="form-group">
-                    <label>아이디</label>
-                    <input type="text" id="signupUserId" class="form-input" placeholder="영문+숫자 포함 4~12자">
-                </div>
-                <div class="form-group">
-                    <label>비밀번호</label>
-                    <input type="password" id="signupPw" class="form-input" placeholder="비밀번호 (8자 이상)">
-                </div>
-                <div class="form-group">
-                    <label>비밀번호 확인</label>
-                    <input type="password" id="signupPwConfirm" class="form-input" placeholder="비밀번호 재입력">
-                </div>
-                <div class="form-group">
-                    <label>닉네임</label>
-                    <input type="text" id="signupNickname" class="form-input" placeholder="닉네임 입력">
-                </div>
-                <div id="signupMsg" class="verify-msg" style="min-height:18px;"></div>
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="history.back()">취소</button>
-                    <button type="button" id="signupSubmitBtn" class="btn-primary" onclick="doSignup()">가입하기</button>
-                </div>
-            </form>
+        <div class="signup-content">
+            <div class="signup-main">
+
+                <span class="signup-title">회원가입</span>
+                <span class="signup-subtitle">천리마켓에 오신 것을 환영합니다</span>
+
+                <form onsubmit="return false;">
+
+                    <!-- 필수 항목 -->
+                    <div class="signup-field-group">
+
+                        <div class="signup-row">
+                            <label class="signup-label">
+                                아이디 <span class="signup-required">*</span>
+                            </label>
+                            <div class="signup-input-with-btn">
+                                <input type="text" id="signupUserId" class="signup-input"
+                                    placeholder="영문+숫자 포함 4~12자"
+                                    oninput="resetIdCheck()">
+                                <button type="button" class="signup-check-btn" onclick="checkUserId()">중복확인</button>
+                            </div>
+                        </div>
+                        <p id="msgUserId" class="signup-msg-row"></p>
+
+                        <div class="signup-row">
+                            <label class="signup-label">
+                                비밀번호 <span class="signup-required">*</span>
+                            </label>
+                            <input type="password" id="signupPw" class="signup-input"
+                                placeholder="8자 이상">
+                        </div>
+
+                        <div class="signup-row">
+                            <label class="signup-label">
+                                비밀번호 확인 <span class="signup-required">*</span>
+                            </label>
+                            <input type="password" id="signupPwConfirm" class="signup-input"
+                                placeholder="비밀번호 재입력">
+                        </div>
+                        <p id="msgPw" class="signup-msg-row"></p>
+
+                        <div class="signup-row">
+                            <label class="signup-label">
+                                닉네임 <span class="signup-required">*</span>
+                            </label>
+                            <input type="text" id="signupNickname" class="signup-input"
+                                placeholder="2~10자">
+                        </div>
+                        <p id="msgNick" class="signup-msg-row"></p>
+
+                    </div>
+
+                    <!-- 선택 항목 -->
+                    <div class="signup-optional-divider">선택 정보</div>
+                    <div class="signup-field-group">
+
+                        <div class="signup-row">
+                            <label class="signup-label">이름</label>
+                            <input type="text" id="signupName" class="signup-input"
+                                placeholder="실명 (선택)">
+                        </div>
+
+                        <div class="signup-row">
+                            <label class="signup-label">전화번호</label>
+                            <input type="tel" id="signupPhone" class="signup-input"
+                                placeholder="010-0000-0000 (선택)">
+                        </div>
+
+                    </div>
+
+                    <p id="signupMsg"></p>
+
+                    <div class="signup-buttons">
+                        <button type="button" id="signupSubmitBtn"
+                            class="signup-submit" onclick="doSignup()">가입하기</button>
+                        <p class="signup-login-link">
+                            이미 계정이 있으신가요? <a href="javascript:openLoginModal()">로그인</a>
+                        </p>
+                    </div>
+
+                </form>
+            </div>
         </div>
     </main>
+
     <script th:src="@{/js/signup.js}"></script>
 </div>
 </body>

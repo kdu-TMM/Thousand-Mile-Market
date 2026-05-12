@@ -4,69 +4,60 @@
     <meta charset="UTF-8">
     <title>내 목록 - 천리마켓</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/my-list.css}">
 </head>
 <body>
 <div class="app-container">
     <div th:replace="~{fragments/header :: header}"></div>
 
     <main class="main-content">
-        <div class="page-box">
+        <div id="mylistAuthGuard" class="auth-guard" style="display:none;">
+            <span class="auth-guard-icon">🔒</span>
+            <p>내 목록은 로그인 후 이용할 수 있습니다.</p>
+            <button class="btn-primary" onclick="openLoginModal()">로그인하기</button>
+        </div>
+
+        <div id="mylistContent" class="page-box mylist-box" style="display:none;">
             <h2 class="page-title">내 목록</h2>
+
             <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('wish', this)">찜 목록</button>
-                <button class="tab-btn" onclick="switchTab('buy', this)">구매내역</button>
+                <button class="tab-btn active" onclick="switchListTab('wish', this)">찜 목록</button>
+                <button class="tab-btn" onclick="switchListTab('sales', this)">판매목록</button>
+                <button class="tab-btn" onclick="switchListTab('buy', this)">구매내역</button>
             </div>
 
-            <!-- 찜 목록 -->
+            <!-- ===== 찜 목록 ===== -->
             <div id="tab-wish" class="tab-content">
-                <div class="product-grid">
-                    <div class="product-card" th:each="i : ${#numbers.sequence(1, 6)}">
-                        <div class="product-image"><span>(사진)</span></div>
-                        <div class="product-info">
-                            <h3 class="product-title">찜한 물품 <span th:text="${i}"></span></h3>
-                            <div class="product-details">
-                                <span class="product-price">50,000</span>
-                                <span class="product-date">3일 전</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <p id="wishLoading" class="list-empty">불러오는 중...</p>
+                <div id="wishList" class="product-grid wish-grid"></div>
+                <p id="wishEmpty" class="list-empty" style="display:none;">찜한 상품이 없습니다.</p>
             </div>
 
-            <!-- 구매내역 -->
+            <!-- ===== 판매목록 ===== -->
+            <div id="tab-sales" class="tab-content" style="display:none;">
+                <div class="sub-tab-bar">
+                    <button class="sub-tab-btn active" onclick="filterSales('all', this)">전체</button>
+                    <button class="sub-tab-btn" onclick="filterSales('판매중', this)">판매중</button>
+                    <button class="sub-tab-btn" onclick="filterSales('경매중', this)">경매중</button>
+                    <button class="sub-tab-btn" onclick="filterSales('예약중', this)">예약중</button>
+                    <button class="sub-tab-btn" onclick="filterSales('판매완료', this)">판매완료</button>
+                </div>
+                <p id="salesLoading" class="list-empty">불러오는 중...</p>
+                <ul id="salesList" class="sales-list"></ul>
+                <p id="salesEmpty" class="list-empty" style="display:none;">등록된 상품이 없습니다.</p>
+            </div>
+
+            <!-- ===== 구매내역 ===== -->
             <div id="tab-buy" class="tab-content" style="display:none;">
-                <ul class="sales-list">
-                    <li class="sales-item">
-                        <div class="sales-thumb">(사진)</div>
-                        <div class="sales-info">
-                            <p class="sales-name">에어팟 맥스</p>
-                            <p class="sales-price">350,000원</p>
-                            <p class="sales-date">2024.03.01</p>
-                        </div>
-                        <span class="badge badge-done">거래완료</span>
-                    </li>
-                    <li class="sales-item">
-                        <div class="sales-thumb">(사진)</div>
-                        <div class="sales-info">
-                            <p class="sales-name">키보드 HHKB</p>
-                            <p class="sales-price">120,000원</p>
-                            <p class="sales-date">2024.02.15</p>
-                        </div>
-                        <span class="badge badge-done">거래완료</span>
-                    </li>
-                </ul>
+                <p id="buyLoading" class="list-empty">불러오는 중...</p>
+                <ul id="buyList" class="sales-list"></ul>
+                <p id="buyEmpty" class="list-empty" style="display:none;">구매 내역이 없습니다.</p>
             </div>
         </div>
     </main>
 
-    <script>
-        function switchTab(tab, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-            document.getElementById('tab-' + tab).style.display = 'block';
-        }
-    </script>
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script th:src="@{/js/my-list.js}"></script>
 </div>
 </body>
 </html>

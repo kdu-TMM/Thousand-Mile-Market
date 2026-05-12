@@ -1,50 +1,109 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const name  = sessionStorage.getItem('verifyName');
-    const phone = sessionStorage.getItem('verifyPhone');
-    if (!name || !phone) {
-        location.href = '/verify';
+let userIdChecked = false;
+
+function setMsg(id, text, ok) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'signup-msg-row' + (ok ? ' ok' : (text ? ' err' : ''));
+}
+
+function setGlobalMsg(text, ok) {
+    const el = document.getElementById('signupMsg');
+    if (!el) return;
+    el.textContent = text;
+    el.className = ok ? 'ok' : (text ? 'err' : '');
+}
+
+function resetIdCheck() {
+    userIdChecked = false;
+    setMsg('msgUserId', '', false);
+}
+
+async function checkUserId() {
+    const userId = document.getElementById('signupUserId').value.trim();
+    if (!userId || userId.length < 4 || userId.length > 12) {
+        setMsg('msgUserId', '아이디는 4~12자로 입력해 주세요.', false);
         return;
     }
-    document.getElementById('signupName').value = name;
-    const formatted = phone.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3');
-    document.getElementById('signupPhone').value = formatted;
-});
+    if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(userId)) {
+        setMsg('msgUserId', '아이디는 영문과 숫자를 모두 포함해야 합니다.', false);
+        return;
+    }
 
-function showSignupMsg(msg, type) {
-    const el = document.getElementById('signupMsg');
-    el.textContent = msg;
-    el.className = 'verify-msg ' + (type === 'ok' ? 'ok' : 'err');
+    if (!window.db || !window.fs) {
+        /* Firebase 미준비 시 중복확인 생략하고 통과 */
+        userIdChecked = true;
+        setMsg('msgUserId', '사용 가능한 아이디입니다.', true);
+        return;
+    }
+
+    try {
+        const snap = await window.fs.getDocs(
+            window.fs.query(
+                window.fs.collection(window.db, 'users'),
+                window.fs.where('userId', '==', userId.toLowerCase())
+            )
+        );
+        if (!snap.empty) {
+            userIdChecked = false;
+            setMsg('msgUserId', '이미 사용 중인 아이디입니다.', false);
+        } else {
+            userIdChecked = true;
+            setMsg('msgUserId', '사용 가능한 아이디입니다.', true);
+        }
+    } catch {
+        userIdChecked = true;
+        setMsg('msgUserId', '확인 중 오류가 발생했습니다.', false);
+    }
 }
 
 async function doSignup() {
     if (!window.auth || !window.authFuncs) {
-        showSignupMsg('초기화 중입니다. 잠시 후 다시 시도해 주세요.');
+        setGlobalMsg('초기화 중입니다. 잠시 후 다시 시도해 주세요.', false);
         return;
     }
 
-    const name      = document.getElementById('signupName').value.trim();
-    const phone     = document.getElementById('signupPhone').value.replace(/\D/g, '');
     const userId    = document.getElementById('signupUserId').value.trim();
     const pw        = document.getElementById('signupPw').value;
     const pwConfirm = document.getElementById('signupPwConfirm').value;
     const nickname  = document.getElementById('signupNickname').value.trim();
+    const name      = document.getElementById('signupName').value.trim();
+    const phone     = document.getElementById('signupPhone').value.replace(/\D/g, '');
 
-    if (!userId || userId.length < 4 || userId.length > 12)
-        return showSignupMsg('아이디는 4~12자로 입력해 주세요.');
-    if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(userId))
-        return showSignupMsg('아이디는 영문과 숫자를 모두 포함해야 합니다.');
-    if (!pw || pw.length < 8)
-        return showSignupMsg('비밀번호는 8자 이상 입력해 주세요.');
-    if (pw !== pwConfirm)
-        return showSignupMsg('비밀번호가 일치하지 않습니다.');
-    if (!nickname)
-        return showSignupMsg('닉네임을 입력해 주세요.');
+    setMsg('msgUserId', '', false);
+    setMsg('msgPw', '', false);
+    setMsg('msgNick', '', false);
+    setGlobalMsg('', false);
+
+    if (!userId || userId.length < 4 || userId.length > 12) {
+        setMsg('msgUserId', '아이디는 4~12자로 입력해 주세요.', false);
+        return;
+    }
+    if (!/^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/.test(userId)) {
+        setMsg('msgUserId', '아이디는 영문과 숫자를 모두 포함해야 합니다.', false);
+        return;
+    }
+    if (!userIdChecked) {
+        setMsg('msgUserId', '아이디 중복확인을 해 주세요.', false);
+        return;
+    }
+    if (!pw || pw.length < 8) {
+        setMsg('msgPw', '비밀번호는 8자 이상 입력해 주세요.', false);
+        return;
+    }
+    if (pw !== pwConfirm) {
+        setMsg('msgPw', '비밀번호가 일치하지 않습니다.', false);
+        return;
+    }
+    if (!nickname || nickname.length < 2) {
+        setMsg('msgNick', '닉네임은 2자 이상 입력해 주세요.', false);
+        return;
+    }
 
     const btn = document.getElementById('signupSubmitBtn');
     btn.disabled = true;
     btn.textContent = '가입 중...';
 
-    /* 아이디 → 내부 이메일 자동 생성 (사용자에게 노출 안됨) */
     const internalEmail = userId.toLowerCase() + '@tmm.app';
 
     try {
@@ -54,19 +113,17 @@ async function doSignup() {
         await updateProfile(userCred.user, { displayName: nickname });
 
         await window.fs.setDoc(window.fs.doc(window.db, 'users', userCred.user.uid), {
-            uid:       userCred.user.uid,
-            name,
-            phone,
+            uid:        userCred.user.uid,
             userId,
             nickname,
+            name,
+            phone,
             profileImg: '',
             region:     '',
             bio:        '',
             createdAt:  new Date().toISOString()
         });
 
-        sessionStorage.removeItem('verifyName');
-        sessionStorage.removeItem('verifyPhone');
         location.href = '/';
     } catch (e) {
         btn.disabled = false;
@@ -75,6 +132,6 @@ async function doSignup() {
             'auth/email-already-in-use': '이미 사용 중인 아이디입니다.',
             'auth/weak-password':        '비밀번호는 8자 이상이어야 합니다.'
         };
-        showSignupMsg(errorMap[e.code] || '오류가 발생했습니다: ' + e.message);
+        setGlobalMsg(errorMap[e.code] || '오류가 발생했습니다: ' + e.message, false);
     }
 }
