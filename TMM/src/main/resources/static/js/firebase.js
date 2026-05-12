@@ -43,5 +43,10 @@ initializeRecaptchaConfig(window.auth)
     .then(() => console.log('[firebase.js] reCAPTCHA Enterprise 설정 로드 완료'))
     .catch(e => console.warn('[firebase.js] reCAPTCHA 설정 로드 실패:', e.message));
 
-/* 초기화 완료 신호 */
-window.dispatchEvent(new Event('firebase-ready'));
+/* onAuthStateChanged 첫 콜백 이후에 firebase-ready 발사
+   (이 시점에 currentUser가 실제 로그인 상태를 반영함) */
+const _unsubInit = onAuthStateChanged(window.auth, () => {
+    _unsubInit();                          // 최초 1회만 실행
+    window.firebaseReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+});

@@ -84,6 +84,20 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 .verify-msg.err { color: #e53935; }
 .verify-msg.ok  { color: #2e7d32; }
 
+/* ===== 로그인 필요 가드 ===== */
+.auth-guard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 100px 0;
+    color: #888;
+    font-size: 15px;
+}
+.auth-guard .auth-guard-icon { font-size: 48px; }
+.auth-guard .btn-primary { width: auto; padding: 10px 36px; }
+
 /* ===== 공통 버튼 ===== */
 .btn-primary {
     width: 100%; padding: 12px; background: #007bff; color: #fff;

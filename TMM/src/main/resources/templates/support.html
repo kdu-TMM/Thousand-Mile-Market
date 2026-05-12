@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>고객센터 - 천리마켓</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/support.css}">
 </head>
 <body>
 <div class="app-container">
@@ -13,6 +14,90 @@
         <div class="page-box">
             <h2 class="page-title">고객센터</h2>
 
+            <!-- ===== 사기이력조회 서비스 ===== -->
+            <section class="fraud-section">
+                <div class="fraud-top">
+                    <div>
+                        <h3 class="fraud-main-title">천리마켓 사기예방 서비스</h3>
+                        <p class="fraud-sub-title">사기이력 조회로 안심 거래하세요</p>
+                    </div>
+                    <div class="fraud-counts">
+                        <div class="fraud-count-item">
+                            <span class="fraud-count-label">오늘 조회수</span>
+                            <span class="fraud-count-num" id="fraudCountToday">3,420</span>
+                        </div>
+                        <div class="fraud-count-item">
+                            <span class="fraud-count-label">누적 조회수</span>
+                            <span class="fraud-count-num" id="fraudCountTotal">133,420</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fraud-search-box">
+                    <label class="fraud-search-label">전화번호 / 계좌번호 조회</label>
+                    <div class="fraud-search-row">
+                        <input type="text" id="fraudInput" class="fraud-input"
+                            placeholder="휴대폰 번호 또는 계좌번호를 입력하세요 (- 없이)">
+                        <button class="fraud-btn" onclick="checkFraud()">조회하기</button>
+                    </div>
+                    <p id="fraudMsg" class="fraud-msg"></p>
+                </div>
+
+                <!-- 조회 결과 -->
+                <div id="fraudResult" class="fraud-result" style="display:none;">
+                    <div id="fraudResultSafe" class="fraud-result-safe" style="display:none;">
+                        <div class="fraud-result-icon">✅</div>
+                        <div>
+                            <p class="fraud-result-title">사기 이력이 없습니다</p>
+                            <p class="fraud-result-desc">조회된 번호에 등록된 사기 이력이 없습니다.<br>단, 이력 미등록 사기가 있을 수 있으니 안심결제를 이용해 주세요.</p>
+                        </div>
+                    </div>
+                    <div id="fraudResultDanger" class="fraud-result-danger" style="display:none;">
+                        <div class="fraud-result-icon">⚠️</div>
+                        <div>
+                            <p class="fraud-result-title">주의! 사기 이력이 있습니다</p>
+                            <p class="fraud-result-desc">해당 번호는 사기 신고 이력이 있습니다. 거래에 주의하시기 바랍니다.</p>
+                        </div>
+                    </div>
+                    <div class="fraud-result-actions">
+                        <button class="fraud-result-btn outline" onclick="resetFraud()">다시 조회하기</button>
+                        <a href="https://ecrm.police.go.kr" target="_blank" class="fraud-result-btn primary">경찰청 사이버범죄신고 바로가기</a>
+                    </div>
+                </div>
+
+                <!-- 실시간 모니터링 현황 -->
+                <div class="fraud-info-row">
+                    <div class="fraud-info-box">
+                        <h4 class="fraud-info-title">실시간 사기 모니터링 현황</h4>
+                        <table class="fraud-table">
+                            <thead>
+                                <tr><th>일시</th><th>사기 정보</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>2026-05-12 17:42</td><td>010-****-1234</td></tr>
+                                <tr><td>2026-05-12 16:15</td><td>010-****-5678</td></tr>
+                                <tr><td>2026-05-12 14:03</td><td>010-****-9012</td></tr>
+                                <tr><td>2026-05-11 22:30</td><td>010-****-3456</td></tr>
+                                <tr><td>2026-05-11 19:55</td><td>010-****-7890</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fraud-info-box">
+                        <h4 class="fraud-info-title">사기 예방 수칙</h4>
+                        <ul class="fraud-tips">
+                            <li>✔ 직거래 시 공공장소에서 만나세요</li>
+                            <li>✔ 선입금 요청은 무조건 의심하세요</li>
+                            <li>✔ 안심결제(에스크로)를 이용하세요</li>
+                            <li>✔ 거래 전 반드시 사기이력을 조회하세요</li>
+                            <li>✔ 피해 발생 시 즉시 경찰에 신고하세요</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <div class="support-divider"></div>
+
+            <!-- ===== 빠른 문의 ===== -->
             <div class="support-grid">
                 <div class="support-card" onclick="location.href='#faq'">
                     <div class="support-icon">📋</div>
@@ -22,12 +107,13 @@
                     <div class="support-icon">📞</div>
                     <p>전화 문의<br><small>1588-0000</small></p>
                 </div>
-                <div class="support-card">
+                <div class="support-card" onclick="location.href='/chat'">
                     <div class="support-icon">💬</div>
                     <p>1:1 문의</p>
                 </div>
             </div>
 
+            <!-- ===== FAQ ===== -->
             <h3 class="section-subtitle" id="faq">자주 묻는 질문</h3>
             <ul class="faq-list">
                 <li class="faq-item">
@@ -36,7 +122,16 @@
                         <span class="faq-arrow">▼</span>
                     </button>
                     <div class="faq-answer">
-                        앱 내 신고 기능을 이용하거나 고객센터로 문의해 주세요. 증거 자료(채팅 내역, 송금 영수증)를 함께 제출하시면 빠른 처리가 가능합니다.
+                        위 사기이력조회 서비스를 이용하거나, 경찰청 사이버범죄수사대(ecrm.police.go.kr)에 신고해 주세요. 채팅 내역과 송금 영수증을 증거로 보관하세요.
+                    </div>
+                </li>
+                <li class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        경매 낙찰 후 거래가 이루어지지 않으면 어떻게 되나요?
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        낙찰 후 48시간 이내 연락이 없으면 거래 불이행으로 처리되며, 해당 판매자는 서비스 이용이 제한될 수 있습니다. 신고 기능을 통해 접수해 주세요.
                     </div>
                 </li>
                 <li class="faq-item">
@@ -45,7 +140,7 @@
                         <span class="faq-arrow">▼</span>
                     </button>
                     <div class="faq-answer">
-                        판매목록 페이지에서 해당 게시글을 클릭한 후 수정 또는 삭제 버튼을 이용하세요.
+                        마이페이지 → 판매 내역에서 해당 상품을 선택한 후 수정 또는 삭제가 가능합니다.
                     </div>
                 </li>
                 <li class="faq-item">
@@ -54,12 +149,12 @@
                         <span class="faq-arrow">▼</span>
                     </button>
                     <div class="faq-answer">
-                        마이페이지 → 설정 → 회원 탈퇴 순으로 진행하실 수 있습니다. 탈퇴 시 모든 데이터가 삭제되며 복구가 불가능합니다.
+                        마이페이지 → 프로필 설정 → 하단 회원탈퇴 버튼을 이용하세요. 탈퇴 시 모든 데이터가 삭제되며 복구가 불가능합니다.
                     </div>
                 </li>
                 <li class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        안전 거래는 어떻게 이용하나요?
+                        안전 거래(에스크로)는 어떻게 이용하나요?
                         <span class="faq-arrow">▼</span>
                     </button>
                     <div class="faq-answer">
@@ -69,6 +164,8 @@
             </ul>
         </div>
     </main>
+
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
 
     <script>
         function toggleFaq(btn) {
@@ -80,6 +177,28 @@
                 answer.classList.add('open');
                 btn.querySelector('.faq-arrow').textContent = '▲';
             }
+        }
+
+        function checkFraud() {
+            const val = document.getElementById('fraudInput').value.replace(/\D/g, '');
+            const msg = document.getElementById('fraudMsg');
+            if (val.length < 10) {
+                msg.textContent = '올바른 번호를 입력해 주세요.';
+                msg.className = 'fraud-msg err';
+                return;
+            }
+            msg.textContent = '';
+            /* 실제 연동 전 UI 시뮬레이션 */
+            document.getElementById('fraudResult').style.display = 'block';
+            document.getElementById('fraudResultSafe').style.display = 'flex';
+            document.getElementById('fraudResultDanger').style.display = 'none';
+            document.getElementById('fraudInput').disabled = true;
+        }
+
+        function resetFraud() {
+            document.getElementById('fraudResult').style.display = 'none';
+            document.getElementById('fraudInput').disabled = false;
+            document.getElementById('fraudInput').value = '';
         }
     </script>
 </div>

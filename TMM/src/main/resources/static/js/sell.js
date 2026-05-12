@@ -1,27 +1,28 @@
-/* ===== 탭 전환 ===== */
-function switchSellTab(tab, btn) {
-    document.querySelectorAll('#tab-write, #tab-list').forEach(t => t.style.display = 'none');
-    document.getElementById('tab-' + tab).style.display = 'block';
-    document.querySelectorAll('.tab-bar:first-of-type .tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+/* ===== 인증 가드 ===== */
+function checkSellAuth() {
+    const user    = window.auth?.currentUser;
+    const guard   = document.getElementById('sellAuthGuard');
+    const content = document.getElementById('sellContent');
+    if (!guard || !content) return;
+    if (user) {
+        guard.style.display   = 'none';
+        content.style.display = 'block';
+    } else {
+        guard.style.display   = 'flex';
+        content.style.display = 'none';
+    }
 }
+window.addEventListener('firebase-ready', checkSellAuth);
+if (window.firebaseReady) checkSellAuth();
 
 function toggleAuctionFields(radio) {
     const isAuction = radio.value === 'auction';
-    document.getElementById('auctionFields').style.display = isAuction ? 'block' : 'none';
-    document.getElementById('normalPriceGroup').style.display = isAuction ? 'none' : 'block';
+    document.getElementById('auctionStartRow').style.display = isAuction ? 'flex' : 'none';
+    document.getElementById('auctionTimeRow').style.display  = isAuction ? 'flex' : 'none';
+    document.getElementById('normalPriceRow').style.display  = isAuction ? 'none' : 'flex';
 }
 
-function filterSales(status, btn) {
-    const parentTabBar = btn.closest('.tab-bar');
-    parentTabBar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.sales-item').forEach(item => {
-        item.style.display = (status === 'all' || item.dataset.status === status) ? 'flex' : 'none';
-    });
-}
-
-/* ===== 사진 미리보기 ===== */
+/* ===== 이미지 미리보기 (리스트형) ===== */
 const uploadedFiles = [];
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -29,27 +30,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!imgInput) return;
 
     imgInput.addEventListener('change', function (e) {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
+        Array.from(e.target.files).forEach(file => {
             if (uploadedFiles.length >= 10) return;
+            const idx = uploadedFiles.length;
             uploadedFiles.push(file);
             const reader = new FileReader();
-            reader.onload = function (ev) {
-                const idx = uploadedFiles.length - 1;
-                const wrap = document.createElement('div');
-                wrap.className = 'photo-preview-item';
-                wrap.innerHTML = `
-                    <img src="${ev.target.result}" alt="미리보기">
-                    <button class="photo-remove-btn" onclick="removePhoto(${idx})">✕</button>`;
-                document.getElementById('photoPreviewList').appendChild(wrap);
-                document.getElementById('photoCount').textContent = uploadedFiles.length + '/10';
-            };
+            reader.onload = ev => addPreviewItem(ev.target.result, idx);
             reader.readAsDataURL(file);
         });
+        document.getElementById('photoCount').textContent = uploadedFiles.length + '/10';
         this.value = '';
     });
 
-    /* 지역 초기값: 경기도 > 의정부시 > 신곡2동 */
     updateSigungu();
     const sigunguEl = document.getElementById('regionSigungu');
     if (sigunguEl) {
@@ -58,31 +50,107 @@ document.addEventListener('DOMContentLoaded', function () {
         const dongEl = document.getElementById('regionDong');
         if (dongEl) dongEl.value = '신곡2동';
     }
-
-    /* URL 파라미터로 탭 전환 */
-    const urlParams = new URLSearchParams(location.search);
-    if (urlParams.get('tab') === 'list') {
-        switchSellTab('list', document.getElementById('tabBtnList'));
-    }
 });
+
+function addPreviewItem(src, idx) {
+    const list = document.getElementById('img-preview-list');
+    const li = document.createElement('li');
+    li.className = 'img-preview-item';
+    li.dataset.idx = idx;
+    li.innerHTML = `<img src="${src}" alt="미리보기">
+        <button class="img-remove-btn" onclick="removePhoto(${idx})">✕</button>`;
+    list.appendChild(li);
+}
 
 function removePhoto(idx) {
     uploadedFiles.splice(idx, 1);
-    const list = document.getElementById('photoPreviewList');
-    list.querySelectorAll('.photo-preview-item').forEach(el => el.remove());
+    /* 전체 미리보기 재렌더 */
+    document.querySelectorAll('.img-preview-item').forEach(el => el.remove());
     uploadedFiles.forEach((file, i) => {
         const reader = new FileReader();
-        reader.onload = function (ev) {
-            const wrap = document.createElement('div');
-            wrap.className = 'photo-preview-item';
-            wrap.innerHTML = `
-                <img src="${ev.target.result}" alt="미리보기">
-                <button class="photo-remove-btn" onclick="removePhoto(${i})">✕</button>`;
-            list.appendChild(wrap);
-        };
+        reader.onload = ev => addPreviewItem(ev.target.result, i);
         reader.readAsDataURL(file);
     });
     document.getElementById('photoCount').textContent = uploadedFiles.length + '/10';
+}
+
+/* ===== 등록 ===== */
+function doSell() {
+    const title       = document.getElementById('sellTitle').value.trim();
+    const category    = document.getElementById('sellCategory').value;
+    const condition   = document.getElementById('sellCondition').value;
+    const sellType    = document.querySelector('input[name="sellType"]:checked')?.value;
+    const description = document.getElementById('sellDescription').value.trim();
+    const sido        = document.getElementById('regionSido').value;
+    const sigungu     = document.getElementById('regionSigungu').value;
+    const dong        = document.getElementById('regionDong').value;
+
+    function msg(text, ok) {
+        const el = document.getElementById('sellMsg');
+        el.textContent = text;
+        el.className = 'sell-msg' + (ok ? ' ok' : '');
+    }
+
+    if (!title)       return msg('상품 제목을 입력해 주세요.');
+    if (!category)    return msg('카테고리를 선택해 주세요.');
+    if (!condition)   return msg('상품 상태를 선택해 주세요.');
+    if (!description) return msg('상품 설명을 입력해 주세요.');
+    if (!sido || !sigungu || !dong) return msg('거래 지역을 모두 선택해 주세요.');
+
+    let priceInfo = {};
+    if (sellType === 'auction') {
+        const startPrice = parseInt(document.getElementById('sellStartPrice').value);
+        if (!startPrice || startPrice <= 0) return msg('경매 시작가를 입력해 주세요.');
+        const hours = parseInt(document.getElementById('sellAuctionTime').value);
+        const auctionEnd = new Date(Date.now() + hours * 3600 * 1000).toISOString();
+        priceInfo = { startPrice, currentPrice: startPrice, bidCount: 0, auctionEnd };
+    } else {
+        const price = parseInt(document.getElementById('sellPrice').value);
+        if (!price || price <= 0) return msg('판매 가격을 입력해 주세요.');
+        const nego = document.getElementById('sellNego').checked;
+        priceInfo = { price, nego };
+    }
+
+    if (!window.db || !window.auth?.currentUser) {
+        return msg('로그인이 필요합니다.');
+    }
+
+    const btn = document.querySelector('.btn-submit');
+    btn.disabled = true;
+    btn.textContent = '등록 중...';
+
+    const user = window.auth.currentUser;
+    const docRef = window.fs.doc(window.fs.collection(window.db, 'products'));
+    const data = {
+        id:          docRef.id,
+        title,
+        category,
+        condition,
+        type:        sellType,
+        description,
+        region:      `${sido} ${sigungu} ${dong}`,
+        status:      sellType === 'auction' ? '경매중' : '판매중',
+        sellerUid:   user.uid,
+        sellerNickname: user.displayName || '',
+        imageUrls:   [],
+        views:       0,
+        wishes:      0,
+        date:        new Date().toISOString(),
+        ...priceInfo
+    };
+
+    window.fs.setDoc(docRef, data)
+        .then(() => {
+            msg('등록이 완료되었습니다!', true);
+            btn.textContent = '등록하기';
+            btn.disabled = false;
+            setTimeout(() => location.href = '/product/' + docRef.id, 1000);
+        })
+        .catch(e => {
+            msg('오류가 발생했습니다: ' + e.message);
+            btn.textContent = '등록하기';
+            btn.disabled = false;
+        });
 }
 
 /* ===== 지역 셀렉트박스 ===== */
@@ -133,7 +201,7 @@ function updateSigungu() {
 
 function updateDong() {
     const sido = document.getElementById('regionSido').value;
-    const sg = document.getElementById('regionSigungu').value;
+    const sg   = document.getElementById('regionSigungu').value;
     const dong = document.getElementById('regionDong');
     dong.innerHTML = '<option value="">읍/면/동 선택</option>';
     if (sido && sg && regionData[sido]?.[sg]) {

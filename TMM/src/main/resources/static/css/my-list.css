@@ -1,0 +1,55 @@
+/* ===== 내 목록 ===== */
+.mylist-box {
+    max-width: 860px;
+}
+
+.list-empty {
+    text-align: center;
+    padding: 60px 0;
+    color: #bbb;
+    font-size: 14px;
+}
+
+/* ===== 판매목록 서브 탭 ===== */
+.sub-tab-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.sub-tab-btn {
+    padding: 6px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.sub-tab-btn.active,
+.sub-tab-btn:hover {
+    background: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+/* ===== 경매중 배지 ===== */
+.badge-auction { background: #fce4ec; color: #c62828; }
+
+/* ===== 찜 목록 그리드 ===== */
+.wish-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 썸네일 이미지 */
+.sales-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+}

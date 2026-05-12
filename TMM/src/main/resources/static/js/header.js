@@ -40,7 +40,16 @@ async function doLogin() {
 
     try {
         const internalEmail = userId.toLowerCase() + '@tmm.app';
-        await window.authFuncs.signInWithEmailAndPassword(window.auth, internalEmail, pw);
+        const cred = await window.authFuncs.signInWithEmailAndPassword(window.auth, internalEmail, pw);
+        /* Spring 세션 동기화 (채팅 등 서버 세션 필요 기능용) */
+        fetch('/api/auth/session', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                uid:      cred.user.uid,
+                nickname: cred.user.displayName || userId
+            })
+        });
         closeLoginModal();
     } catch (e) {
         const errorMap = {
@@ -58,6 +67,7 @@ async function doLogin() {
 async function doLogout() {
     if (!window.authFuncs) return;
     await window.authFuncs.signOut(window.auth);
+    fetch('/api/auth/session', { method: 'DELETE' });
 }
 
 function updateAuthUI(user) {
@@ -75,7 +85,7 @@ function updateAuthUI(user) {
         bar.innerHTML =
             `<button onclick="openLoginModal()">로그인</button>` +
             `<span class="utility-divider">|</span>` +
-            `<button onclick="location.href='/verify'">회원가입</button>`;
+            `<button onclick="location.href='/signup'">회원가입</button>`;
     }
 }
 

@@ -5,6 +5,7 @@
     <title>상품 상세 - 천리마켓</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/product.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <div class="app-container">
@@ -12,83 +13,117 @@
 
     <main class="main-content">
 
-        <div class="pd-breadcrumb" id="pdBreadcrumb">
+        <!-- 브레드크럼 -->
+        <div class="pd-breadcrumb">
             <a href="/">홈</a>
             <span>›</span>
             <span id="pdCatLabel">카테고리</span>
             <span>›</span>
             <span id="pdTitleShort">상품명</span>
+            <a href="/" class="pd-go-list">목록으로</a>
         </div>
 
-        <div class="pd-layout" id="pdLayout" style="display:none;">
+        <!-- 상품 상세 (JS로 채움) -->
+        <section id="item-detail" class="pd-center" style="display:none;">
 
-            <!-- 이미지 캐러셀 -->
-            <div class="pd-gallery">
-                <div class="pd-img-wrap">
-                    <div class="pd-img-placeholder" id="pdImgMain">(사진 없음)</div>
-                </div>
-                <div class="pd-img-dots" id="pdDots">
-                    <span class="pd-dot active"></span>
-                    <span class="pd-dot"></span>
-                </div>
-            </div>
-
-            <!-- 상품 정보 -->
-            <div class="pd-info">
-                <div class="pd-status-badge" id="pdStatusBadge"></div>
-                <h1 class="pd-title" id="pdTitle"></h1>
-                <div class="pd-price-row">
-                    <span class="pd-price" id="pdPrice"></span>
-                    <span class="pd-price-unit">원</span>
-                </div>
-
-                <!-- 경매 전용 -->
-                <div class="pd-bid-area" id="pdBidArea" style="display:none;">
-                    <div class="pd-bid-row"><span class="pd-bid-label">시작가</span><span class="pd-bid-start" id="pdStartPrice"></span></div>
-                    <div class="pd-bid-row"><span class="pd-bid-label">현재가</span><span class="pd-bid-current" id="pdCurrentPrice"></span></div>
-                    <div class="pd-bid-row"><span class="pd-bid-label">입찰 수</span><span id="pdBidCount"></span></div>
-                    <div class="pd-bid-row"><span class="pd-bid-label">남은 시간</span><span class="pd-bid-timer" id="pdAuctionTimer"></span></div>
-                </div>
-
-                <div class="pd-stats-row">
-                    <span class="pd-stat">♥ <span id="pdWishes">0</span></span>
-                    <span class="pd-stat-div">·</span>
-                    <span class="pd-stat">👁 <span id="pdViews">0</span></span>
-                    <span class="pd-stat-div">·</span>
-                    <span class="pd-stat" id="pdDateLabel"></span>
-                    <span class="pd-report" onclick="alert('신고가 접수되었습니다.')">🚨 신고하기</span>
-                </div>
-
-                <div class="pd-meta-table">
-                    <div class="pd-meta-row"><span class="pd-meta-key">상품상태</span><span class="pd-meta-val" id="pdCondition"></span></div>
-                    <div class="pd-meta-row"><span class="pd-meta-key">거래지역</span><span class="pd-meta-val" id="pdRegion"></span></div>
-                </div>
-
-                <div class="pd-description" id="pdDescription"></div>
-
-                <div class="pd-actions" id="pdActions">
-                    <button class="pd-btn-wish" id="pdWishBtn" onclick="toggleWish()">
-                        <span class="pd-wish-heart">♥</span> 찜 <span id="pdWishCount">0</span>
+            <div id="item-info">
+                <!-- 이미지 영역 -->
+                <div id="image-area">
+                    <button id="left-btn" class="pd-slide-btn" onclick="prevSlide()">
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <button class="pd-btn-chat" onclick="location.href='/chat'">💬 채팅하기</button>
-                    <button class="pd-btn-buy" id="pdBuyBtn">바로구매</button>
+                    <div id="pdImgMain"></div>
+                    <button id="right-btn" class="pd-slide-btn" onclick="nextSlide()">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <div id="pdDots"></div>
+                    <span id="pdTradeComplete" class="pd-trade-badge" style="display:none;">거래완료</span>
+                </div>
+
+                <!-- 정보 영역 -->
+                <div id="info-area">
+                    <div class="pd-title-row">
+                        <div id="pdStatusBadge" class="pd-status-badge"></div>
+                        <h1 id="pdTitle"></h1>
+                    </div>
+
+                    <div id="item-price">
+                        <span class="pd-price" id="pdPrice"></span>
+                        <span class="pd-price-unit">원</span>
+                    </div>
+
+                    <!-- 경매 전용 -->
+                    <div id="pdBidArea" style="display:none;" class="pd-bid-area">
+                        <div class="pd-bid-row"><span class="pd-bid-label">시작가</span><span id="pdStartPrice"></span></div>
+                        <div class="pd-bid-row"><span class="pd-bid-label">현재가</span><span class="pd-bid-current" id="pdCurrentPrice"></span></div>
+                        <div class="pd-bid-row"><span class="pd-bid-label">입찰 수</span><span id="pdBidCount"></span></div>
+                        <div class="pd-bid-row"><span class="pd-bid-label">남은 시간</span><span class="pd-bid-timer" id="pdAuctionTimer"></span></div>
+                    </div>
+
+                    <div id="item-stats">
+                        <div class="pd-stats-left">
+                            <span class="pd-stat"><i class="fa-regular fa-heart"></i> <span id="pdWishes">0</span></span>
+                            <span class="pd-stat"><i class="fa-regular fa-eye"></i> <span id="pdViews">0</span></span>
+                            <span class="pd-stat"><i class="fa-regular fa-clock"></i> <span id="pdDateLabel"></span></span>
+                        </div>
+                        <span class="pd-report" onclick="alert('신고가 접수되었습니다.')">
+                            <i class="fa-solid fa-siren"></i> 신고
+                        </span>
+                    </div>
+
+                    <div class="pd-meta-table">
+                        <div class="pd-meta-row"><span class="pd-meta-key">상품상태</span><span class="pd-meta-val" id="pdCondition"></span></div>
+                        <div class="pd-meta-row"><span class="pd-meta-key">거래지역</span><span class="pd-meta-val" id="pdRegion"></span></div>
+                    </div>
+
+                    <div id="item-description">
+                        <p id="pdDescription"></p>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- 판매자 프로필 + 찜/채팅 -->
+            <div class="pd-bottom-row">
+                <div id="user-profile">
+                    <div class="pd-seller-left">
+                        <img id="pdSellerImg" src="/images/common/user.png" alt="프로필">
+                        <div class="pd-seller-info">
+                            <span class="pd-seller-nickname" id="pdSellerNickname">판매자</span>
+                            <span class="pd-seller-region" id="pdSellerRegion"></span>
+                        </div>
+                    </div>
+                    <div class="rating-stars">
+                        <i class="fa-solid fa-star"></i>
+                        <span class="pd-rating" id="pdRating">0.0</span>
+                    </div>
+                </div>
+
+                <div id="heart-chatting">
+                    <button id="pdWishBtn" class="pd-heart-btn" onclick="toggleWish()">
+                        <i class="fa-regular fa-heart" id="pdWishIcon"></i>
+                        <span id="pdWishCount">0</span>
+                    </button>
+                    <button id="chatting-btn" onclick="location.href='/chat'">채팅하기</button>
+                    <button id="pdBuyBtn" class="pd-buy-btn">바로구매</button>
+                </div>
+            </div>
+
+        </section>
 
         <!-- 비슷한 상품 -->
-        <div class="pd-similar" id="pdSimilar" style="display:none;">
+        <section id="similar-item" class="pd-center" style="display:none;">
             <div class="pd-similar-header">
-                <h3 class="pd-similar-title">이 상품과 비슷해요</h3>
-                <span class="pd-similar-page" id="pdSimilarPage"></span>
+                <h3>이 상품과 비슷해요</h3>
+                <span id="pdSimilarPage"></span>
             </div>
             <div class="pd-similar-scroll-wrap">
-                <button class="pd-similar-arrow left" onclick="scrollSimilar(-1)">‹</button>
-                <div class="pd-similar-grid" id="pdSimilarGrid"></div>
-                <button class="pd-similar-arrow right" onclick="scrollSimilar(1)">›</button>
+                <button class="pd-similar-arrow" onclick="scrollSimilar(-1)">‹</button>
+                <div id="pdSimilarGrid" class="pd-similar-grid"></div>
+                <button class="pd-similar-arrow" onclick="scrollSimilar(1)">›</button>
             </div>
-        </div>
+        </section>
 
+        <!-- 에러 -->
         <div class="pd-error" id="pdError" style="display:none;">
             <p>상품을 찾을 수 없습니다.</p>
             <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="location.href='/'">홈으로</button>
