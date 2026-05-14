@@ -36,6 +36,18 @@
 }
 .filter-reset-btn:hover { border-color: #007bff; color: #007bff; }
 
+.filter-right { display: flex; align-items: center; gap: 8px; }
+.filter-sort-label { font-size: 13px; color: #666; white-space: nowrap; }
+
+.distance-hint {
+    margin-top: 10px;
+    padding: 7px 12px;
+    background: #e8f4ff;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #007bff;
+}
+
 /* 섹션 탭 */
 .filter-section-tabs {
     display: flex;
