@@ -33,6 +33,19 @@
                         </select>
                         <button class="filter-reset-btn" onclick="resetFilter()">초기화</button>
                     </div>
+                    <div class="filter-right">
+                        <span class="filter-sort-label">정렬</span>
+                        <select class="filter-select" id="sortSelect" onchange="applyFilter()">
+                            <option value="latest">최신순</option>
+                            <option value="price-asc">가격 낮은순</option>
+                            <option value="price-desc">가격 높은순</option>
+                            <option value="time-asc">마감 임박순</option>
+                            <option value="distance">거리순</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="distanceHint" class="distance-hint" style="display:none;">
+                    📍 거리순은 지역 필터를 선택하면 해당 지역 상품을 먼저 보여줍니다.
                 </div>
                 <div class="filter-section-tabs">
                     <button class="fsection-tab active" onclick="showSection('all', this)">전체</button>
