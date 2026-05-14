@@ -13,13 +13,15 @@
 
     <main class="main-content">
 
-        <div id="sellAuthGuard" class="auth-guard" style="display:none;">
+        <div id="sellAuthGuard" class="auth-guard"
+             th:style="${sessionUid == null} ? 'display:flex' : 'display:none'">
             <span class="auth-guard-icon">🔒</span>
             <p>판매 등록은 로그인 후 이용할 수 있습니다.</p>
             <button class="btn-primary" onclick="openLoginModal()">로그인하기</button>
         </div>
 
-        <div id="sellContent" class="sell-container" style="display:none;">
+        <div id="sellContent" class="sell-container"
+             th:style="${sessionUid != null} ? 'display:block' : 'display:none'">
             <h2 class="sell-title">중고 상품 등록</h2>
 
             <form class="sell-form" onsubmit="return false;">
