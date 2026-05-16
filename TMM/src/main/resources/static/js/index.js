@@ -41,18 +41,30 @@ function switchCategory(cat, btn) {
 }
 
 /* ===== 경매 타이머 ===== */
-function tickTimers() {
-    document.querySelectorAll('.auction-timer').forEach(el => {
-        const text = el.textContent.replace('🕐 ', '');
+function formatAuctionRemain(sec) {
+    if (sec <= 0)     return '🕐 종료';
+    if (sec <= 600)   return '🕐 10분 미만';
+    if (sec <= 3600)  return `🕐 ${Math.floor(sec / 60)}분 남음`;
+    if (sec <= 86400) return `🕐 ${Math.floor(sec / 3600)}시간 남음`;
+    return `🕐 ${Math.floor(sec / 86400)}일 남음`;
+}
+
+function initTimerEnds() {
+    document.querySelectorAll('.auction-timer:not([data-end])').forEach(el => {
+        const text = el.textContent.replace('🕐 ', '').trim();
+        if (text === '종료') return;
         const parts = text.split(':').map(Number);
         if (parts.length === 3) {
-            let [h, m, s] = parts;
-            s--;
-            if (s < 0) { s = 59; m--; }
-            if (m < 0) { m = 59; h--; }
-            if (h < 0) { el.textContent = '🕐 종료'; return; }
-            el.textContent = `🕐 ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            const totalSec = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            el.dataset.end = new Date(Date.now() + totalSec * 1000).toISOString();
         }
+    });
+}
+
+function tickTimers() {
+    document.querySelectorAll('.auction-timer[data-end]').forEach(el => {
+        const sec = Math.max(0, Math.floor((new Date(el.dataset.end) - Date.now()) / 1000));
+        el.textContent = formatAuctionRemain(sec);
     });
 }
 setInterval(tickTimers, 1000);
@@ -79,13 +91,17 @@ function relativeDate(dateStr) {
 
 function createProductCard(product) {
     const card = document.createElement('div');
-    card.className = 'product-card';
-    const price = product.type === 'auction' ? product.currentPrice : product.price;
+    const isAuction = product.type === 'auction';
+    card.className = 'product-card' + (isAuction ? ' auction' : '');
+    const price = isAuction ? product.currentPrice : product.price;
     const thumb = product.imageUrls?.[0]
         ? `<img src="${product.imageUrls[0]}" alt="${product.title}">`
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+    const timerHtml = isAuction && product.auctionEnd
+        ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
+        : '';
     card.innerHTML = `
-        <div class="product-image">${thumb}</div>
+        <div class="product-image">${thumb}${timerHtml}</div>
         <div class="product-info">
             <h3 class="product-title">${product.title}</h3>
             <div class="product-details">
@@ -217,6 +233,7 @@ function loadProducts() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    initTimerEnds();
     if (window.db) loadProducts();
     else window.addEventListener('firebase-ready', loadProducts);
 });

@@ -160,18 +160,14 @@
                         <li class="form-item" id="auctionTimeRow" style="display:none;">
                             <div class="label-area">
                                 <span class="required">*</span>
-                                <span class="form-label">경매 시간</span>
+                                <span class="form-label">경매 기간</span>
                             </div>
                             <div class="field-area">
                                 <div class="price-input-wrap">
                                     <select class="form-control form-select" id="sellAuctionTime" style="max-width:200px;">
-                                        <option value="1">1시간</option>
-                                        <option value="3">3시간</option>
-                                        <option value="6">6시간</option>
-                                        <option value="12">12시간</option>
-                                        <option value="24" selected>24시간</option>
-                                        <option value="48">48시간</option>
-                                        <option value="72">72시간</option>
+                                        <option value="1" selected>1일</option>
+                                        <option value="7">7일</option>
+                                        <option value="30">30일</option>
                                     </select>
                                     <span class="price-unit">후 종료</span>
                                 </div>
@@ -239,6 +235,17 @@
                 </form>
         </div>
     </main>
+
+    <!-- 등록 확인 모달 -->
+    <div id="sellConfirmOverlay" class="sell-confirm-overlay" style="display:none;">
+        <div class="sell-confirm-box">
+            <p class="sell-confirm-msg">등록한 뒤에는 수정이나 삭제하실 수 없습니다.<br>등록하시겠습니까?</p>
+            <div class="sell-confirm-actions">
+                <button class="btn-cancel" onclick="closeSellConfirm()">취소</button>
+                <button class="btn-submit" onclick="doSellConfirmed()">확인</button>
+            </div>
+        </div>
+    </div>
 
     <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
     <script th:src="@{/js/sell.js}"></script>

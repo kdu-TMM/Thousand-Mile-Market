@@ -75,6 +75,8 @@ function removePhoto(idx) {
 }
 
 /* ===== 등록 ===== */
+let _pendingSellData = null;
+
 function doSell() {
     const title       = document.getElementById('sellTitle').value.trim();
     const category    = document.getElementById('sellCategory').value;
@@ -97,12 +99,14 @@ function doSell() {
     if (!description) return msg('상품 설명을 입력해 주세요.');
     if (!sido || !sigungu || !dong) return msg('거래 지역을 모두 선택해 주세요.');
 
+    if (!window.db || !window.auth?.currentUser) return msg('로그인이 필요합니다.');
+
     let priceInfo = {};
     if (sellType === 'auction') {
         const startPrice = parseInt(document.getElementById('sellStartPrice').value);
         if (!startPrice || startPrice <= 0) return msg('경매 시작가를 입력해 주세요.');
-        const hours = parseInt(document.getElementById('sellAuctionTime').value);
-        const auctionEnd = new Date(Date.now() + hours * 3600 * 1000).toISOString();
+        const days = parseInt(document.getElementById('sellAuctionTime').value);
+        const auctionEnd = new Date(Date.now() + days * 86400 * 1000).toISOString();
         priceInfo = { startPrice, currentPrice: startPrice, bidCount: 0, auctionEnd };
     } else {
         const price = parseInt(document.getElementById('sellPrice').value);
@@ -111,33 +115,49 @@ function doSell() {
         priceInfo = { price, nego };
     }
 
-    if (!window.db || !window.auth?.currentUser) {
-        return msg('로그인이 필요합니다.');
-    }
-
-    const btn = document.querySelector('.btn-submit');
-    btn.disabled = true;
-    btn.textContent = '등록 중...';
-
     const user = window.auth.currentUser;
     const docRef = window.fs.doc(window.fs.collection(window.db, 'products'));
-    const data = {
-        id:          docRef.id,
-        title,
-        category,
-        condition,
-        type:        sellType,
-        description,
-        region:      `${sido} ${sigungu} ${dong}`,
-        status:      sellType === 'auction' ? '경매중' : '판매중',
-        sellerUid:   user.uid,
-        sellerNickname: user.displayName || '',
-        imageUrls:   [],
-        views:       0,
-        wishes:      0,
-        date:        new Date().toISOString(),
-        ...priceInfo
+    _pendingSellData = {
+        docRef,
+        data: {
+            id:             docRef.id,
+            title, category, condition,
+            type:           sellType,
+            description,
+            region:         `${sido} ${sigungu} ${dong}`,
+            status:         sellType === 'auction' ? '경매중' : '판매중',
+            sellerUid:      user.uid,
+            sellerNickname: user.displayName || '',
+            imageUrls:      [],
+            views: 0, wishes: 0,
+            date:           new Date().toISOString(),
+            ...priceInfo
+        }
     };
+
+    document.getElementById('sellConfirmOverlay').style.display = 'flex';
+}
+
+function closeSellConfirm() {
+    document.getElementById('sellConfirmOverlay').style.display = 'none';
+    _pendingSellData = null;
+}
+
+function doSellConfirmed() {
+    if (!_pendingSellData) return;
+    const { docRef, data } = _pendingSellData;
+    _pendingSellData = null;
+    document.getElementById('sellConfirmOverlay').style.display = 'none';
+
+    function msg(text, ok) {
+        const el = document.getElementById('sellMsg');
+        el.textContent = text;
+        el.className = 'sell-msg' + (ok ? ' ok' : '');
+    }
+
+    const btn = document.querySelector('.btn-submit:not(#sellConfirmOverlay .btn-submit)');
+    btn.disabled = true;
+    btn.textContent = '등록 중...';
 
     window.fs.setDoc(docRef, data)
         .then(() => {
