@@ -185,11 +185,14 @@ function getSortedProducts(products) {
 function applyAllItemsFilter() {
     const region   = document.getElementById('filterRegion')?.value || '';
     const category = document.getElementById('filterCategory')?.value || '';
+    const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
     const filtered = allProducts.filter(p => {
         const matchRegion   = !region   || p.region.includes(region);
         const matchCategory = !category || p.category === category;
-        return matchRegion && matchCategory;
+        const matchSearch   = !q || p.title.toLowerCase().includes(q)
+                                 || (p.description?.toLowerCase().includes(q));
+        return matchRegion && matchCategory && matchSearch;
     });
 
     filteredProducts = getSortedProducts(filtered);
@@ -234,6 +237,16 @@ function loadProducts() {
 
 document.addEventListener('DOMContentLoaded', function () {
     initTimerEnds();
+
+    const q = new URLSearchParams(location.search).get('q')?.trim();
+    if (q) {
+        const input = document.getElementById('searchInput');
+        if (input) input.value = q;
+        /* 검색 시 전체 물품 섹션만 표시 */
+        const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
+        if (allTab) showSection('all-items', allTab);
+    }
+
     if (window.db) loadProducts();
     else window.addEventListener('firebase-ready', loadProducts);
 });

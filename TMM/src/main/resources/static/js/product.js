@@ -1,4 +1,4 @@
-const productId = parseInt(location.pathname.split('/').pop());
+const productId = location.pathname.split('/').pop();
 let allProducts = [];
 let currentProduct = null;
 let wished = false;
@@ -40,7 +40,7 @@ function loadProduct() {
             .then(r => r.json())
             .then(data => {
                 allProducts    = data;
-                currentProduct = data.find(p => p.id === productId);
+                currentProduct = data.find(p => String(p.id) === productId);
                 if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);

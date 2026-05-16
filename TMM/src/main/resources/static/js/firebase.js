@@ -4,7 +4,8 @@ import { getFirestore, collection, getDocs,
          query, where, limit, orderBy,
          onSnapshot, serverTimestamp,
          updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
-import { getStorage }                             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
+import { getStorage, ref, uploadBytes,
+         getDownloadURL }                          from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          onAuthStateChanged, updateProfile,
@@ -22,9 +23,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-window.db         = getFirestore(app);
-window.storage    = getStorage(app);
-window.auth       = getAuth(app);
+window.db           = getFirestore(app);
+window.storage      = getStorage(app);
+window.auth         = getAuth(app);
+window.storageUtils = { ref, uploadBytes, getDownloadURL };
 
 /* Firestore 유틸 — 일반 JS 파일에서 window.fs.* 로 사용 */
 window.fs = {
