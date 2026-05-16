@@ -27,12 +27,42 @@
                         </select>
                         <select class="filter-select" id="filterCategory" onchange="applyFilter()">
                             <option value="">전체 카테고리</option>
-                            <option>디지털/가전</option><option>의류/잡화</option>
-                            <option>가구/인테리어</option><option>도서/음반</option>
-                            <option>스포츠/레저</option><option>기타</option>
+                            <option>디지털기기</option>
+                            <option>생활가전</option>
+                            <option>가구/인테리어</option>
+                            <option>생활/주방</option>
+                            <option>유아동</option>
+                            <option>유아도서</option>
+                            <option>여성의류</option>
+                            <option>여성잡화</option>
+                            <option>남성패션/잡화</option>
+                            <option>뷰티/미용</option>
+                            <option>스포츠/레저</option>
+                            <option>취미/게임/음반</option>
+                            <option>도서</option>
+                            <option>티켓/교환권</option>
+                            <option>e쿠폰</option>
+                            <option>가공식품</option>
+                            <option>건강기능식품</option>
+                            <option>반려동물용품</option>
+                            <option>식물</option>
+                            <option>기타 중고물품</option>
                         </select>
                         <button class="filter-reset-btn" onclick="resetFilter()">초기화</button>
                     </div>
+                    <div class="filter-right">
+                        <span class="filter-sort-label">정렬</span>
+                        <select class="filter-select" id="sortSelect" onchange="applyFilter()">
+                            <option value="latest">최신순</option>
+                            <option value="price-asc">가격 낮은순</option>
+                            <option value="price-desc">가격 높은순</option>
+                            <option value="time-asc">마감 임박순</option>
+                            <option value="distance">거리순</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="distanceHint" class="distance-hint" style="display:none;">
+                    📍 거리순은 지역 필터를 선택하면 해당 지역 상품을 먼저 보여줍니다.
                 </div>
                 <div class="filter-section-tabs">
                     <button class="fsection-tab active" onclick="showSection('all', this)">전체</button>
@@ -95,51 +125,65 @@
                 <h2 class="product-section-title">📦 카테고리별 중고 물품</h2>
                 <div class="category-tab-bar">
                     <button class="category-tab active" onclick="switchCategory('all', this)">전체</button>
-                    <button class="category-tab" onclick="switchCategory('digital', this)">디지털/가전</button>
-                    <button class="category-tab" onclick="switchCategory('fashion', this)">의류/잡화</button>
-                    <button class="category-tab" onclick="switchCategory('furniture', this)">가구/인테리어</button>
-                    <button class="category-tab" onclick="switchCategory('book', this)">도서/음반</button>
-                    <button class="category-tab" onclick="switchCategory('sports', this)">스포츠/레저</button>
-                    <button class="category-tab" onclick="switchCategory('etc', this)">기타</button>
+                    <button class="category-tab" onclick="switchCategory('디지털기기', this)">디지털기기</button>
+                    <button class="category-tab" onclick="switchCategory('생활가전', this)">생활가전</button>
+                    <button class="category-tab" onclick="switchCategory('가구/인테리어', this)">가구/인테리어</button>
+                    <button class="category-tab" onclick="switchCategory('생활/주방', this)">생활/주방</button>
+                    <button class="category-tab" onclick="switchCategory('유아동', this)">유아동</button>
+                    <button class="category-tab" onclick="switchCategory('유아도서', this)">유아도서</button>
+                    <button class="category-tab" onclick="switchCategory('여성의류', this)">여성의류</button>
+                    <button class="category-tab" onclick="switchCategory('여성잡화', this)">여성잡화</button>
+                    <button class="category-tab" onclick="switchCategory('남성패션/잡화', this)">남성패션/잡화</button>
+                    <button class="category-tab" onclick="switchCategory('뷰티/미용', this)">뷰티/미용</button>
+                    <button class="category-tab" onclick="switchCategory('스포츠/레저', this)">스포츠/레저</button>
+                    <button class="category-tab" onclick="switchCategory('취미/게임/음반', this)">취미/게임/음반</button>
+                    <button class="category-tab" onclick="switchCategory('도서', this)">도서</button>
+                    <button class="category-tab" onclick="switchCategory('티켓/교환권', this)">티켓/교환권</button>
+                    <button class="category-tab" onclick="switchCategory('e쿠폰', this)">e쿠폰</button>
+                    <button class="category-tab" onclick="switchCategory('가공식품', this)">가공식품</button>
+                    <button class="category-tab" onclick="switchCategory('건강기능식품', this)">건강기능식품</button>
+                    <button class="category-tab" onclick="switchCategory('반려동물용품', this)">반려동물용품</button>
+                    <button class="category-tab" onclick="switchCategory('식물', this)">식물</button>
+                    <button class="category-tab" onclick="switchCategory('기타 중고물품', this)">기타 중고물품</button>
                 </div>
                 <div class="product-grid" id="categoryGrid">
-                    <div class="product-card" data-category="digital" onclick="goProduct(9,'갤럭시 S24','720,000')">
+                    <div class="product-card" data-category="디지털기기" onclick="goProduct(9,'갤럭시 S24','720,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">갤럭시 S24</h3><div class="product-details"><span class="product-price">720,000</span><span class="product-date">방금 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="fashion" onclick="goProduct(7,'나이키 에어맥스 95','85,000')">
+                    <div class="product-card" data-category="남성패션/잡화" onclick="goProduct(7,'나이키 에어맥스 95','85,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">나이키 에어맥스 95</h3><div class="product-details"><span class="product-price">85,000</span><span class="product-date">5분 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="furniture" onclick="goProduct(8,'이케아 책상','55,000')">
+                    <div class="product-card" data-category="가구/인테리어" onclick="goProduct(8,'이케아 책상','55,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">이케아 책상</h3><div class="product-details"><span class="product-price">55,000</span><span class="product-date">20분 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="book" onclick="goProduct(10,'개발 서적 묶음','30,000')">
+                    <div class="product-card" data-category="도서" onclick="goProduct(10,'개발 서적 묶음','30,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">개발 서적 묶음</h3><div class="product-details"><span class="product-price">30,000</span><span class="product-date">1시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="sports" onclick="goProduct(11,'MTB 자전거','180,000')">
+                    <div class="product-card" data-category="스포츠/레저" onclick="goProduct(11,'MTB 자전거','180,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">자전거 (MTB)</h3><div class="product-details"><span class="product-price">180,000</span><span class="product-date">2시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="etc" onclick="goProduct(1,'레고 클래식 세트','40,000')">
+                    <div class="product-card" data-category="취미/게임/음반" onclick="goProduct(1,'레고 클래식 세트','40,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">레고 클래식 세트</h3><div class="product-details"><span class="product-price">40,000</span><span class="product-date">3시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="digital" onclick="goProduct(14,'애플워치 SE 2','220,000')">
+                    <div class="product-card" data-category="디지털기기" onclick="goProduct(14,'애플워치 SE 2','220,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">애플워치 SE 2</h3><div class="product-details"><span class="product-price">220,000</span><span class="product-date">4시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="fashion" onclick="goProduct(15,'아디다스 울트라부스트','60,000')">
+                    <div class="product-card" data-category="남성패션/잡화" onclick="goProduct(15,'아디다스 울트라부스트','60,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">아디다스 패딩 M</h3><div class="product-details"><span class="product-price">60,000</span><span class="product-date">5시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="digital" onclick="goProduct(12,'소니 WH-1000XM5','260,000')">
+                    <div class="product-card" data-category="디지털기기" onclick="goProduct(12,'소니 WH-1000XM5','260,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">소니 WH-1000XM5</h3><div class="product-details"><span class="product-price">260,000</span><span class="product-date">6시간 전</span></div></div>
                     </div>
-                    <div class="product-card" data-category="furniture" onclick="goProduct(13,'허먼밀러 의자','450,000')">
+                    <div class="product-card" data-category="가구/인테리어" onclick="goProduct(13,'허먼밀러 의자','450,000')">
                         <div class="product-image"><div class="img-placeholder"><span>📷</span><p>사진 없음</p></div></div>
                         <div class="product-info"><h3 class="product-title">허먼밀러 의자</h3><div class="product-details"><span class="product-price">450,000</span><span class="product-date">7시간 전</span></div></div>
                     </div>

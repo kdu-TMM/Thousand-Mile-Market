@@ -4,9 +4,18 @@
 <header th:fragment="header" class="header">
     <div class="header-utility-bar">
         <div class="utility-inner" id="utilityBar">
-            <button onclick="openLoginModal()">로그인</button>
-            <span class="utility-divider">|</span>
-            <button onclick="location.href='/signup'">회원가입</button>
+            <th:block th:if="${sessionUid != null}">
+                <span style="font-size:13px;color:#555;padding:0 4px" th:text="${sessionNickname} + '님'"></span>
+                <span class="utility-divider">|</span>
+                <button onclick="location.href='/mypage'">마이페이지</button>
+                <span class="utility-divider">|</span>
+                <button onclick="doLogout()">로그아웃</button>
+            </th:block>
+            <th:block th:unless="${sessionUid != null}">
+                <button onclick="openLoginModal()">로그인</button>
+                <span class="utility-divider">|</span>
+                <button onclick="location.href='/signup'">회원가입</button>
+            </th:block>
         </div>
     </div>
     <div class="header-top">

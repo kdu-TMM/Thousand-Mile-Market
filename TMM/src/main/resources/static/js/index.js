@@ -121,15 +121,67 @@ function loadMoreProducts() {
     }, 300);
 }
 
+/* ===== 정렬 ===== */
+function getProductPrice(p) {
+    return p.type === 'auction' ? (p.currentPrice ?? p.startPrice ?? 0) : (p.price ?? 0);
+}
+
+function regionMatchScore(productRegion, ref) {
+    if (!ref || !productRegion) return 0;
+    if (productRegion.includes(ref)) return 0;
+    if (productRegion.includes(ref.slice(0, 2))) return 1;
+    return 2;
+}
+
+function getSortedProducts(products) {
+    const sort = document.getElementById('sortSelect')?.value || 'latest';
+    const arr  = [...products];
+
+    switch (sort) {
+        case 'price-asc':
+            return arr.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+
+        case 'price-desc':
+            return arr.sort((a, b) => getProductPrice(b) - getProductPrice(a));
+
+        case 'time-asc': {
+            const FAR = new Date(8640000000000000);
+            return arr.sort((a, b) => {
+                const tA = a.auctionEnd ? new Date(a.auctionEnd) : FAR;
+                const tB = b.auctionEnd ? new Date(b.auctionEnd) : FAR;
+                return tA - tB;
+            });
+        }
+
+        case 'distance': {
+            const ref = document.getElementById('filterRegion')?.value || '';
+            return arr.sort((a, b) => {
+                const diff = regionMatchScore(a.region || '', ref) - regionMatchScore(b.region || '', ref);
+                return diff !== 0 ? diff : new Date(b.date) - new Date(a.date);
+            });
+        }
+
+        default: // 'latest'
+            return arr.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+}
+
 function applyAllItemsFilter() {
     const region   = document.getElementById('filterRegion')?.value || '';
     const category = document.getElementById('filterCategory')?.value || '';
 
-    filteredProducts = allProducts.filter(p => {
+    const filtered = allProducts.filter(p => {
         const matchRegion   = !region   || p.region.includes(region);
         const matchCategory = !category || p.category === category;
         return matchRegion && matchCategory;
     });
+
+    filteredProducts = getSortedProducts(filtered);
+
+    /* 거리순 힌트 */
+    const sort = document.getElementById('sortSelect')?.value || 'latest';
+    const hint = document.getElementById('distanceHint');
+    if (hint) hint.style.display = (sort === 'distance' && !region) ? 'block' : 'none';
 
     /* 그리드 초기화 */
     const grid = document.getElementById('mainGrid');
@@ -174,5 +226,6 @@ function applyFilter() { applyAllItemsFilter(); }
 function resetFilter() {
     document.getElementById('filterRegion').value = '';
     document.getElementById('filterCategory').value = '';
+    document.getElementById('sortSelect').value = 'latest';
     applyAllItemsFilter();
 }
