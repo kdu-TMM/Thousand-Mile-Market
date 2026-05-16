@@ -159,11 +159,19 @@ function startAuctionTimer(endStr) {
     function tick() {
         const sec = Math.max(0, Math.floor((new Date(endStr) - Date.now()) / 1000));
         if (sec === 0) { el.textContent = '경매 종료'; return; }
-        const h = Math.floor(sec / 3600);
-        const m = Math.floor((sec % 3600) / 60);
-        const s = sec % 60;
-        el.textContent =
-            `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (sec <= 600) {
+            el.textContent = '10분 미만';
+        } else if (sec <= 3600) {
+            el.textContent = `${Math.floor(sec / 60)}분 남음`;
+        } else if (sec <= 86400) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            el.textContent = m > 0 ? `${h}시간 ${m}분 남음` : `${h}시간 남음`;
+        } else {
+            const d = Math.floor(sec / 86400);
+            const h = Math.floor((sec % 86400) / 3600);
+            el.textContent = h > 0 ? `${d}일 ${h}시간 남음` : `${d}일 남음`;
+        }
         setTimeout(tick, 1000);
     }
     tick();
