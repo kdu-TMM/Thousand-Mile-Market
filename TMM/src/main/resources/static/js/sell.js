@@ -143,7 +143,19 @@ function closeSellConfirm() {
     _pendingSellData = null;
 }
 
-function doSellConfirmed() {
+async function uploadImages(uid, files) {
+    const { ref, uploadBytes, getDownloadURL } = window.storageUtils;
+    const urls = [];
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const path = `products/${uid}/${Date.now()}_${i}_${file.name}`;
+        const snap = await uploadBytes(ref(window.storage, path), file);
+        urls.push(await getDownloadURL(snap.ref));
+    }
+    return urls;
+}
+
+async function doSellConfirmed() {
     if (!_pendingSellData) return;
     const { docRef, data } = _pendingSellData;
     _pendingSellData = null;
@@ -155,9 +167,17 @@ function doSellConfirmed() {
         el.className = 'sell-msg' + (ok ? ' ok' : '');
     }
 
-    const btn = document.querySelector('.btn-submit:not(#sellConfirmOverlay .btn-submit)');
+    const btn = document.querySelector('.form-actions .btn-submit');
     btn.disabled = true;
     btn.textContent = '등록 중...';
+
+    if (uploadedFiles.length > 0 && window.storageUtils && window.storage) {
+        try {
+            data.imageUrls = await uploadImages(data.sellerUid, uploadedFiles);
+        } catch (e) {
+            console.warn('이미지 업로드 실패:', e);
+        }
+    }
 
     window.fs.setDoc(docRef, data)
         .then(() => {
