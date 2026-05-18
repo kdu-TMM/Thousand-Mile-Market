@@ -264,22 +264,50 @@ function doSecession() {
         });
 }
 
-function saveMypageSettings(e) {
-    const name   = document.getElementById('settingName').value.trim();
-    const bio    = document.getElementById('settingBio').value.trim();
-    const region = document.getElementById('settingRegion').value.trim();
+async function saveMypageSettings(e) {
+    const nickname = document.getElementById('settingName').value.trim();
+    const bio      = document.getElementById('settingBio').value.trim();
+    const region   = document.getElementById('settingRegion').value.trim();
+    const btn      = e.currentTarget;
 
-    if (name)   document.getElementById('mpName').textContent = name;
-    if (bio)    document.getElementById('mpBio').textContent = bio;
-    if (region) document.getElementById('mpRegion').textContent = region;
+    if (!nickname) { alert('닉네임을 입력해 주세요.'); return; }
+    if (!window.db || !window.auth?.currentUser) { alert('로그인이 필요합니다.'); return; }
 
-    const btn = e.currentTarget;
-    const orig = btn.textContent;
-    btn.textContent = '저장 완료!';
     btn.disabled = true;
-    setTimeout(() => {
-        btn.textContent = orig;
+    btn.textContent = '저장 중...';
+
+    try {
+        const uid = window.auth.currentUser.uid;
+
+        await window.fs.updateDoc(window.fs.doc(window.db, 'users', uid), {
+            nickname, bio, region
+        });
+
+        await window.authFuncs.updateProfile(window.auth.currentUser, { displayName: nickname });
+
+        /* Spring 세션 닉네임도 동기화 */
+        fetch('/api/auth/session', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ uid, nickname })
+        });
+
+        /* 상단 프로필 카드 즉시 반영 */
+        setText('mpName',   nickname);
+        setText('mpBio',    bio);
+        setText('mpRegion', region);
+        const avatar = document.getElementById('mpAvatar');
+        if (avatar) avatar.textContent = nickname[0].toUpperCase();
+
+        btn.textContent = '저장 완료!';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '저장';
+            switchMypageTab('Dashboard', document.querySelector('.mypage-tab'));
+        }, 800);
+    } catch (err) {
+        alert('저장 중 오류가 발생했습니다: ' + err.message);
         btn.disabled = false;
-        switchMypageTab('Dashboard', document.querySelector('.mypage-tab'));
-    }, 800);
+        btn.textContent = '저장';
+    }
 }
