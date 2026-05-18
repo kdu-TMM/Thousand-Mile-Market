@@ -30,6 +30,7 @@ function loadProduct() {
             ? currentProduct.currentPrice.toLocaleString() + '원'
             : currentProduct.price.toLocaleString() + '원';
         window.addRecentItem && window.addRecentItem(
+            currentProduct.id,
             currentProduct.title,
             priceStr,
             currentProduct.imageUrls?.[0] ?? null

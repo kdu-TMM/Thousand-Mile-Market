@@ -78,7 +78,7 @@ let isLoading = false;
 let scrollObserver = null;
 
 function goProduct(id, title, price) {
-    window.addRecentItem && window.addRecentItem(title, price + '원');
+    window.addRecentItem && window.addRecentItem(id, title, price + '원', null);
     location.href = '/product/' + id;
 }
 
@@ -109,7 +109,11 @@ function createProductCard(product) {
                 <span class="product-date">${relativeDate(product.date)}</span>
             </div>
         </div>`;
-    card.addEventListener('click', () => goProduct(product.id, product.title, price.toLocaleString()));
+    card.addEventListener('click', () => {
+        const imageUrl = product.imageUrls?.[0] ?? null;
+        window.addRecentItem && window.addRecentItem(product.id, product.title, price.toLocaleString() + '원', imageUrl);
+        location.href = '/product/' + product.id;
+    });
     return card;
 }
 
@@ -251,8 +255,12 @@ document.addEventListener('DOMContentLoaded', function () {
     else window.addEventListener('firebase-ready', loadProducts);
 });
 
-/* 필터 변경 시 전체 물품 섹션도 다시 필터링 */
-function applyFilter() { applyAllItemsFilter(); }
+/* 필터 변경 시 전체 물품 섹션으로 자동 전환 후 재필터링 */
+function applyFilter() {
+    const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
+    if (allTab && !allTab.classList.contains('active')) showSection('all-items', allTab);
+    applyAllItemsFilter();
+}
 function resetFilter() {
     document.getElementById('filterRegion').value = '';
     document.getElementById('filterCategory').value = '';

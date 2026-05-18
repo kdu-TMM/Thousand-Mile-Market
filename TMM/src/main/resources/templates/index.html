@@ -11,6 +11,11 @@
         <div th:replace="~{fragments/header :: header}"></div>
 
         <main class="main-content">
+            <script>
+                if (new URLSearchParams(location.search).get('q')) {
+                    document.write('<style>#section-popular,#section-category,#section-auction,.filter-section-tabs{display:none!important}<\/style>');
+                }
+            </script>
 
             <!-- ===== 필터 바 ===== -->
             <div class="filter-bar">
