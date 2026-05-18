@@ -54,4 +54,7 @@ public class PageController {
 
     @GetMapping("/migrate")
     public String migrate() { return "migrate"; }
+
+    @GetMapping("/admin")
+    public String admin() { return "admin"; }
 }
