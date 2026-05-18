@@ -16,11 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    window.addEventListener('firebase-ready', () => {
+    const handleAuth = () => {
         const user = window.auth?.currentUser;
         if (!user) { showLoginPrompt(); return; }
+        if (myUid) return;
         syncSession(user);
-    });
+    };
+
+    window.addEventListener('firebase-ready', handleAuth);
+    window.addEventListener('auth-changed', handleAuth);
 
     if (window.firebaseReady) {
         const user = window.auth?.currentUser;
