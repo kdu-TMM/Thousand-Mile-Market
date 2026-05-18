@@ -125,4 +125,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.key === 'Enter') doSearch();
         });
     }
+
+    ['loginUserId', 'loginPw'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    });
 });
