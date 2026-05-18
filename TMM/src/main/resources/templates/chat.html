@@ -24,13 +24,38 @@
             <!-- 왼쪽: 채팅방 목록 -->
             <aside class="chat-sidebar">
                 <div class="chat-sidebar-header">
-                    <h3>채팅 목록</h3>
-                    <div class="chat-search-box">
-                        <input type="text" id="nickSearch" placeholder="닉네임 검색"
-                               autocomplete="off" oninput="searchUser(this.value)">
+
+                    <!-- 대화 유형 드롭다운 -->
+                    <div class="chat-type-wrap">
+                        <button class="chat-type-btn" id="chatTypeBtn" onclick="toggleTypeMenu()">
+                            <span id="chatTypeLabel">전체 대화</span>
+                            <span class="chat-type-arrow" id="chatTypeArrow">▾</span>
+                        </button>
+                        <div id="chatTypeMenu" class="chat-type-menu hidden">
+                            <div class="chat-type-item" onclick="setTypeFilter('all')">전체 대화</div>
+                            <div class="chat-type-item" onclick="setTypeFilter('sell')">판매 대화</div>
+                            <div class="chat-type-item" onclick="setTypeFilter('buy')">구매 대화</div>
+                        </div>
                     </div>
-                    <ul id="searchResult" class="chat-search-result hidden"></ul>
+
+                    <!-- 닉네임 검색 -->
+                    <div class="chat-search-wrap">
+                        <div class="chat-search-box">
+                            <input type="text" id="nickSearch" placeholder="닉네임 검색"
+                                   autocomplete="off" oninput="searchUser(this.value)">
+                        </div>
+                        <ul id="searchResult" class="chat-search-result hidden"></ul>
+                    </div>
+
+                    <!-- 상태 필터 탭 -->
+                    <div class="chat-status-tabs">
+                        <button class="chat-stab active" onclick="setStatusFilter('all', this)">전체</button>
+                        <button class="chat-stab" onclick="setStatusFilter('waiting', this)">대기</button>
+                        <button class="chat-stab" onclick="setStatusFilter('active', this)">진행중</button>
+                        <button class="chat-stab" onclick="setStatusFilter('ended', this)">대화종료</button>
+                    </div>
                 </div>
+
                 <ul id="chatRoomList" class="chat-room-list">
                     <li class="chat-room-empty">채팅방이 없습니다.</li>
                 </ul>
@@ -38,12 +63,10 @@
 
             <!-- 오른쪽: 채팅 창 -->
             <section class="chat-window">
-                <!-- 채팅방 선택 전 -->
                 <div id="chatPlaceholder" class="chat-placeholder">
                     <p>채팅방을 선택하세요.</p>
                 </div>
 
-                <!-- 채팅 내용 -->
                 <div id="chatContent" class="chat-content" style="display:none;">
                     <div class="chat-window-header">
                         <div class="chat-header-info">
@@ -51,13 +74,11 @@
                             <span id="chatProductBadge" class="chat-product-badge" style="display:none;"></span>
                         </div>
                         <div class="chat-header-actions">
-                            <button id="completeBtn" class="chat-action-btn" onclick="completeTrade()" title="거래완료">
-                                ✅ 거래완료
-                            </button>
                             <div class="chat-dropdown-wrap">
-                                <button class="chat-action-btn" onclick="toggleDropdown()">⋮</button>
+                                <button class="chat-action-btn" onclick="toggleDropdown()">···</button>
                                 <div id="chatDropdown" class="chat-dropdown hidden">
-                                    <p onclick="leaveRoom()">나가기</p>
+                                    <p onclick="openEndConvModal()">대화 종료하기</p>
+                                    <p onclick="openLeaveRoomModal()" class="leave">대화방 나가기</p>
                                 </div>
                             </div>
                         </div>
@@ -75,16 +96,39 @@
         </div>
     </main>
 
+    <!-- 대화 종료 확인 모달 -->
+    <div id="endConvModal" class="chat-modal-overlay" style="display:none;">
+        <div class="chat-modal-box">
+            <p class="chat-modal-title">대화를 종료하시겠습니까?</p>
+            <p class="chat-modal-sub">구매 대화의 경우, 상대방도 종료하면<br>구매확정이 됩니다.</p>
+            <div class="chat-modal-btns">
+                <button class="chat-modal-btn" onclick="closeEndConvModal()">아니오</button>
+                <button class="chat-modal-btn confirm" onclick="confirmEndConv()">예</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 대화방 나가기 확인 모달 -->
+    <div id="leaveRoomModal" class="chat-modal-overlay" style="display:none;">
+        <div class="chat-modal-box">
+            <p class="chat-modal-title">대화내용이 삭제됩니다.</p>
+            <p class="chat-modal-sub">정말 나가시겠습니까?</p>
+            <div class="chat-modal-btns">
+                <button class="chat-modal-btn" onclick="closeLeaveRoomModal()">아니오</button>
+                <button class="chat-modal-btn danger" onclick="confirmLeaveRoom()">예</button>
+            </div>
+        </div>
+    </div>
+
     <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
 
-    <!-- Thymeleaf → JS 전달 -->
     <script th:inline="javascript">
-        const SERVER_UID      = /*[[${loginUid}]]*/      null;
-        const SERVER_NICKNAME = /*[[${loginNickname}]]*/ null;
-        const INIT_TARGET_UID      = /*[[${initTargetUid}]]*/ null;
+        const SERVER_UID           = /*[[${loginUid}]]*/           null;
+        const SERVER_NICKNAME      = /*[[${loginNickname}]]*/      null;
+        const INIT_TARGET_UID      = /*[[${initTargetUid}]]*/      null;
         const INIT_TARGET_NICKNAME = /*[[${initTargetNickname}]]*/ null;
-        const INIT_PRODUCT_ID      = /*[[${initProductId}]]*/ null;
-        const INIT_PRODUCT_NAME    = /*[[${initProductName}]]*/ null;
+        const INIT_PRODUCT_ID      = /*[[${initProductId}]]*/      null;
+        const INIT_PRODUCT_NAME    = /*[[${initProductName}]]*/    null;
     </script>
 
     <script th:src="@{/js/chat.js}"></script>

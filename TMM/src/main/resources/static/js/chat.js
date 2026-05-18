@@ -1,11 +1,14 @@
-﻿/* ===== 상태 ===== */
-let myUid          = null;
-let myNickname     = null;
-let currentRoomId  = null;
-let currentRoom    = null;
-let roomsUnsub     = null;
-let msgsUnsub      = null;
-let searchTimer    = null;
+/* ===== 상태 ===== */
+let myUid        = null;
+let myNickname   = null;
+let currentRoomId = null;
+let currentRoom  = null;
+let roomsUnsub   = null;
+let msgsUnsub    = null;
+let searchTimer  = null;
+let allRooms     = [];
+let typeFilter   = 'all';  // 'all' | 'sell' | 'buy'
+let statusFilter = 'all';  // 'all' | 'waiting' | 'active' | 'ended'
 
 /* ===== 초기화 ===== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,12 +52,12 @@ function syncSession(user) {
 
 function showLoginPrompt() {
     document.getElementById('chatLoginPrompt').style.display = 'flex';
-    document.getElementById('chatLayout').style.display    = 'none';
+    document.getElementById('chatLayout').style.display      = 'none';
 }
 
 function initChat() {
     document.getElementById('chatLoginPrompt').style.display = 'none';
-    document.getElementById('chatLayout').style.display    = 'flex';
+    document.getElementById('chatLayout').style.display      = 'flex';
     subscribeRooms();
 
     if (INIT_TARGET_UID && INIT_TARGET_UID !== myUid) {
@@ -74,22 +77,84 @@ function subscribeRooms() {
         orderBy('lastMessageAt', 'desc')
     );
 
-    roomsUnsub = onSnapshot(q, snap => {
-        const rooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderRoomList(rooms);
-    }, () => {
-        /* 인덱스 미활성 등 오류 시 orderBy 없이 클라이언트 정렬로 폴백 */
+    const handleSnap = snap => {
+        const prevStatus = currentRoomId
+            ? allRooms.find(r => r.id === currentRoomId)?.status
+            : null;
+
+        allRooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderRoomList(getFilteredRooms());
+
+        if (currentRoomId) {
+            const updated = allRooms.find(r => r.id === currentRoomId);
+            if (updated) {
+                if (updated.status === 'confirmed' && prevStatus !== 'confirmed') {
+                    appendSystemMessage('🎉 양측 모두 종료하여 구매확정이 완료되었습니다!');
+                }
+                currentRoom = updated;
+                syncInputState(updated);
+            }
+        }
+    };
+
+    roomsUnsub = onSnapshot(q, handleSnap, () => {
         const qFallback = query(
             collection(window.db, 'chatRooms'),
             where('participants', 'array-contains', myUid)
         );
         roomsUnsub = onSnapshot(qFallback, snap => {
-            const rooms = snap.docs
+            allRooms = snap.docs
                 .map(d => ({ id: d.id, ...d.data() }))
                 .sort((a, b) => tsMillis(b.lastMessageAt) - tsMillis(a.lastMessageAt));
-            renderRoomList(rooms);
+            renderRoomList(getFilteredRooms());
         }, err => console.error('채팅방 목록 오류:', err));
     });
+}
+
+/* ===== 필터 ===== */
+function getFilteredRooms() {
+    return allRooms.filter(room => {
+        if (typeFilter === 'buy'  && (!room.productId || room.buyerUid !== myUid)) return false;
+        if (typeFilter === 'sell' && (!room.productId || room.buyerUid === myUid)) return false;
+
+        const isEnded = room.status === 'ended' || room.status === 'confirmed';
+        if (statusFilter === 'waiting') return !isEnded && !room.lastMessage;
+        if (statusFilter === 'active')  return !isEnded && !!room.lastMessage;
+        if (statusFilter === 'ended')   return isEnded;
+        return true;
+    });
+}
+
+function toggleTypeMenu() {
+    const menu  = document.getElementById('chatTypeMenu');
+    const arrow = document.getElementById('chatTypeArrow');
+    const isHidden = menu.classList.contains('hidden');
+    menu.classList.toggle('hidden');
+    arrow.style.transform = isHidden ? 'rotate(180deg)' : '';
+}
+
+function setTypeFilter(type) {
+    typeFilter = type;
+    const labels = { all: '전체 대화', sell: '판매 대화', buy: '구매 대화' };
+    document.getElementById('chatTypeLabel').textContent = labels[type];
+    document.getElementById('chatTypeMenu').classList.add('hidden');
+    document.getElementById('chatTypeArrow').style.transform = '';
+    renderRoomList(getFilteredRooms());
+}
+
+function setStatusFilter(status, btn) {
+    statusFilter = status;
+    document.querySelectorAll('.chat-stab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderRoomList(getFilteredRooms());
+}
+
+/* ===== 채팅방 목록 렌더링 ===== */
+function getRoomStatusBadge(room) {
+    if (room.status === 'confirmed') return '<span class="room-badge confirmed">구매확정</span>';
+    if (room.status === 'ended')     return '<span class="room-badge ended">종료</span>';
+    if (!room.lastMessage)           return '<span class="room-badge waiting">대기</span>';
+    return '';
 }
 
 function renderRoomList(rooms) {
@@ -103,10 +168,10 @@ function renderRoomList(rooms) {
         const targetNickname = room.user1Uid === myUid ? room.user2Nickname : room.user1Nickname;
         const hasUnread      = room.unreadUids?.includes(myUid);
         const li = document.createElement('li');
-        li.className   = 'chat-room-item' + (room.id === currentRoomId ? ' active' : '');
+        li.className      = 'chat-room-item' + (room.id === currentRoomId ? ' active' : '');
         li.dataset.roomId = room.id;
-        li.onclick     = () => selectRoom(room);
-        li.innerHTML   = `
+        li.onclick        = () => selectRoom(room);
+        li.innerHTML = `
             <div class="chat-room-avatar">${(targetNickname || '?')[0]}</div>
             <div class="chat-room-meta">
                 <div class="chat-room-top">
@@ -117,7 +182,10 @@ function renderRoomList(rooms) {
                     <span class="chat-room-preview">${room.lastMessage || ''}</span>
                     ${hasUnread ? '<span class="chat-unread-badge">N</span>' : ''}
                 </div>
-                ${room.productName ? `<span class="chat-room-product">${room.productName}</span>` : ''}
+                <div class="chat-room-footer">
+                    ${room.productName ? `<span class="chat-room-product">${room.productName}</span>` : ''}
+                    ${getRoomStatusBadge(room)}
+                </div>
             </div>`;
         ul.appendChild(li);
     });
@@ -133,20 +201,30 @@ function selectRoom(room) {
 
     const targetNickname = room.user1Uid === myUid ? room.user2Nickname : room.user1Nickname;
     document.getElementById('chatPartnerName').textContent = targetNickname || '(알 수 없음)';
+
     const badge = document.getElementById('chatProductBadge');
     if (room.productName) {
-        badge.textContent    = room.productName;
-        badge.style.display  = 'inline-block';
+        badge.textContent   = room.productName;
+        badge.style.display = 'inline-block';
     } else {
-        badge.style.display  = 'none';
+        badge.style.display = 'none';
     }
 
     document.getElementById('chatPlaceholder').style.display = 'none';
     document.getElementById('chatContent').style.display     = 'flex';
     document.getElementById('chatMessages').innerHTML        = '';
 
+    syncInputState(room);
     markAsRead(room.id);
     subscribeMessages(room.id);
+}
+
+function syncInputState(room) {
+    const input   = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const isEnded = room.status === 'ended' || room.status === 'confirmed';
+    if (input)   { input.disabled = isEnded; input.placeholder = isEnded ? '종료된 대화방입니다.' : '메시지를 입력하세요 (Enter: 전송, Shift+Enter: 줄바꿈)'; }
+    if (sendBtn) sendBtn.disabled = isEnded;
 }
 
 /* ===== 메시지 실시간 구독 ===== */
@@ -167,9 +245,7 @@ function subscribeMessages(roomId) {
             scrollToBottom();
         } else {
             snap.docChanges().forEach(change => {
-                if (change.type === 'added') {
-                    appendMessage({ id: change.doc.id, ...change.doc.data() });
-                }
+                if (change.type === 'added') appendMessage({ id: change.doc.id, ...change.doc.data() });
             });
         }
     }, err => console.error('메시지 구독 오류:', err));
@@ -183,13 +259,16 @@ function markAsRead(roomId) {
     }).catch(() => {});
 }
 
-/* ===== 메시지 추가 (렌더링) ===== */
+/* ===== 메시지 렌더링 ===== */
 function appendMessage(msg, isHistory = false) {
     const isMine = msg.senderUid === myUid;
     const ul = document.getElementById('chatMessages');
     const li = document.createElement('li');
 
-    if (isMine) {
+    if (msg.type === 'system') {
+        li.className = 'chat-sys-msg';
+        li.innerHTML = `<span>${escHtml(msg.content)}</span>`;
+    } else if (isMine) {
         li.className = 'chat-msg chat-msg-me';
         li.innerHTML = `
             <div class="chat-bubble-wrap">
@@ -212,17 +291,25 @@ function appendMessage(msg, isHistory = false) {
     if (!isHistory) scrollToBottom();
 }
 
+function appendSystemMessage(text) {
+    const ul = document.getElementById('chatMessages');
+    if (!ul) return;
+    const li = document.createElement('li');
+    li.className = 'chat-sys-msg';
+    li.innerHTML = `<span>${escHtml(text)}</span>`;
+    ul.appendChild(li);
+    scrollToBottom();
+}
+
 /* ===== 메시지 전송 ===== */
 async function sendMessage() {
     const input = document.getElementById('chatInput');
     const text  = input.value.trim();
     if (!text || !currentRoomId || !currentRoom) return;
+    if (currentRoom.status === 'ended' || currentRoom.status === 'confirmed') return;
 
     const { collection, addDoc, doc, updateDoc, serverTimestamp, arrayUnion } = window.fs;
-    const otherUid = currentRoom.user1Uid === myUid
-        ? currentRoom.user2Uid
-        : currentRoom.user1Uid;
-
+    const otherUid = currentRoom.user1Uid === myUid ? currentRoom.user2Uid : currentRoom.user1Uid;
     input.value = '';
 
     try {
@@ -232,7 +319,6 @@ async function sendMessage() {
             content:        text,
             sentAt:         serverTimestamp()
         });
-
         await updateDoc(doc(window.db, 'chatRooms', currentRoomId), {
             lastMessage:   text,
             lastMessageAt: new Date(),
@@ -247,22 +333,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chatInput');
     if (!input) return;
     input.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 });
 
 /* ===== 채팅방 생성 or 열기 ===== */
 async function openOrCreateRoom(targetUid, targetNickname, productId, productName) {
-    const { collection, query, where, getDocs, addDoc, doc, serverTimestamp } = window.fs;
-    const key  = generateRoomKey(myUid, targetUid, productId);
-    const q    = query(
-        collection(window.db, 'chatRooms'),
-        where('roomKey', '==', key),
-        window.fs.limit(1)
-    );
+    const { collection, query, where, getDocs, addDoc } = window.fs;
+    const key = generateRoomKey(myUid, targetUid, productId);
+    const q   = query(collection(window.db, 'chatRooms'), where('roomKey', '==', key), window.fs.limit(1));
 
     try {
         const snap = await getDocs(q);
@@ -281,24 +360,25 @@ async function openOrCreateRoom(targetUid, targetNickname, productId, productNam
                 user2Nickname: targetNickname,
                 productId:     productId  || null,
                 productName:   productName || null,
+                buyerUid:      productId  ? myUid : null,
                 lastMessage:   '',
                 lastMessageAt: now,
                 unreadUids:    [],
+                status:        'active',
+                endedBy:       [],
                 createdAt:     now
             });
             room = {
-                id:            ref.id,
-                roomKey:       key,
-                participants:  [myUid, targetUid],
-                user1Uid:      myUid,      user1Nickname: myNickname,
-                user2Uid:      targetUid,  user2Nickname: targetNickname,
-                productId:     productId  || null,
-                productName:   productName || null,
-                lastMessage:   '',
-                unreadUids:    []
+                id: ref.id, roomKey: key,
+                participants: [myUid, targetUid],
+                user1Uid: myUid, user1Nickname: myNickname,
+                user2Uid: targetUid, user2Nickname: targetNickname,
+                productId: productId || null, productName: productName || null,
+                buyerUid: productId ? myUid : null,
+                lastMessage: '', unreadUids: [],
+                status: 'active', endedBy: []
             };
         }
-
         selectRoom(room);
     } catch (e) {
         console.error('채팅방 생성 실패:', e);
@@ -362,28 +442,85 @@ function searchUser(query) {
     }, 300);
 }
 
-/* ===== 거래완료 ===== */
-function completeTrade() {
-    if (!confirm('거래를 완료로 처리하시겠습니까?')) return;
-    alert('거래완료 처리되었습니다.');
-}
-
 /* ===== 드롭다운 ===== */
 function toggleDropdown() {
     document.getElementById('chatDropdown').classList.toggle('hidden');
 }
+
 document.addEventListener('click', e => {
     if (!e.target.closest('.chat-dropdown-wrap')) {
         document.getElementById('chatDropdown')?.classList.add('hidden');
     }
+    if (!e.target.closest('.chat-type-wrap')) {
+        document.getElementById('chatTypeMenu')?.classList.add('hidden');
+        const arrow = document.getElementById('chatTypeArrow');
+        if (arrow) arrow.style.transform = '';
+    }
 });
 
-function leaveRoom() {
-    if (!confirm('채팅방에서 나가시겠습니까?')) return;
+/* ===== 대화 종료 모달 ===== */
+function openEndConvModal() {
+    document.getElementById('chatDropdown').classList.add('hidden');
+    document.getElementById('endConvModal').style.display = 'flex';
+}
+function closeEndConvModal() {
+    document.getElementById('endConvModal').style.display = 'none';
+}
+
+async function confirmEndConv() {
+    closeEndConvModal();
+    if (!currentRoomId || !currentRoom) return;
+
+    const { doc, updateDoc, arrayUnion } = window.fs;
+    const endedBy  = Array.isArray(currentRoom.endedBy) ? currentRoom.endedBy : [];
+    if (endedBy.includes(myUid)) {
+        appendSystemMessage('이미 종료 요청을 하셨습니다.');
+        return;
+    }
+
+    const otherUid  = currentRoom.user1Uid === myUid ? currentRoom.user2Uid : currentRoom.user1Uid;
+    const bothEnded = endedBy.includes(otherUid);
+    const newStatus = bothEnded ? 'confirmed' : 'ended';
+
+    try {
+        await updateDoc(doc(window.db, 'chatRooms', currentRoomId), {
+            endedBy: arrayUnion(myUid),
+            status:  newStatus
+        });
+        if (!bothEnded) {
+            appendSystemMessage('대화 종료를 요청했습니다. 상대방도 종료하면 구매확정이 됩니다.');
+        }
+    } catch (e) {
+        console.error('대화 종료 실패:', e);
+    }
+}
+
+/* ===== 대화방 나가기 모달 ===== */
+function openLeaveRoomModal() {
+    document.getElementById('chatDropdown').classList.add('hidden');
+    document.getElementById('leaveRoomModal').style.display = 'flex';
+}
+function closeLeaveRoomModal() {
+    document.getElementById('leaveRoomModal').style.display = 'none';
+}
+
+async function confirmLeaveRoom() {
+    closeLeaveRoomModal();
+    if (!currentRoomId) return;
+
+    const { doc, updateDoc, arrayRemove } = window.fs;
+    try {
+        await updateDoc(doc(window.db, 'chatRooms', currentRoomId), {
+            participants: arrayRemove(myUid)
+        });
+    } catch (e) {
+        console.error('나가기 실패:', e);
+    }
+
     if (msgsUnsub) { msgsUnsub(); msgsUnsub = null; }
     currentRoomId = null;
     currentRoom   = null;
-    document.getElementById('chatContent').style.display    = 'none';
+    document.getElementById('chatContent').style.display     = 'none';
     document.getElementById('chatPlaceholder').style.display = 'flex';
 }
 
@@ -402,10 +539,10 @@ function formatTime(ts) {
     if (!ts) return '';
     const d = ts.toDate ? ts.toDate() : new Date(ts);
     if (isNaN(d)) return '';
-    const now    = new Date();
+    const now     = new Date();
     const diffDay = Math.floor((now - d) / 86400000);
     if (diffDay === 0) return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    if (diffDay < 7)  return ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
+    if (diffDay < 7)   return ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
     return `${d.getMonth()+1}/${d.getDate()}`;
 }
 
