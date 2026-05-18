@@ -236,7 +236,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
     display: flex; flex-direction: column; gap: 8px;
     z-index: 900;
 }
-@media (max-width: 1260px) { .quick-menu { left: auto; right: 8px; } }
+@media (max-width: 1260px) { .quick-menu { display: none; } }
 
 .quick-menu-box {
     width: 95px; background: #fff;

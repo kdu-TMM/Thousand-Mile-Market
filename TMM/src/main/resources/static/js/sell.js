@@ -1,15 +1,16 @@
 /* ===== 인증 가드 ===== */
 function checkSellAuth() {
-    const user    = window.auth?.currentUser;
     const guard   = document.getElementById('sellAuthGuard');
     const content = document.getElementById('sellContent');
     if (!guard || !content) return;
+
+    const user = window.auth?.currentUser;
     if (user) {
         guard.style.display   = 'none';
         content.style.display = 'block';
-    } else {
+    } else if (content.style.display !== 'block') {
+        /* 콘텐츠가 이미 표시 중(서버 세션으로 열린 경우)이면 건드리지 않음 */
         guard.style.display   = 'flex';
-        content.style.display = 'none';
     }
 }
 window.addEventListener('firebase-ready', checkSellAuth);
@@ -42,14 +43,6 @@ document.addEventListener('DOMContentLoaded', function () {
         this.value = '';
     });
 
-    updateSigungu();
-    const sigunguEl = document.getElementById('regionSigungu');
-    if (sigunguEl) {
-        sigunguEl.value = '의정부시';
-        updateDong();
-        const dongEl = document.getElementById('regionDong');
-        if (dongEl) dongEl.value = '신곡2동';
-    }
 });
 
 function addPreviewItem(src, idx) {
