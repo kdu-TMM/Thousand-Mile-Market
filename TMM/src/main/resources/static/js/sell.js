@@ -14,6 +14,7 @@ function checkSellAuth() {
     }
 }
 window.addEventListener('firebase-ready', checkSellAuth);
+window.addEventListener('auth-changed', checkSellAuth);
 if (window.firebaseReady) checkSellAuth();
 
 function toggleAuctionFields(radio) {

@@ -56,3 +56,7 @@ const _unsubInit = onAuthStateChanged(window.auth, () => {
     window.firebaseReady = true;
     window.dispatchEvent(new Event('firebase-ready'));
 });
+
+onAuthStateChanged(window.auth, (user) => {
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user } }));
+});
