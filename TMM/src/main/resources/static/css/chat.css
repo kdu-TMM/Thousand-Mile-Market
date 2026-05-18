@@ -379,10 +379,6 @@
 }
 .chat-send-btn:hover { background: #0056b3; }
 
-/* 채팅 페이지에서 퀵메뉴가 화면을 가리는 구간에 숨김 */
-@media (max-width: 1260px) {
-    .chat-main ~ .quick-menu { display: none !important; }
-}
 
 @media (max-width: 700px) {
     .chat-sidebar { width: 100%; max-width: 100%; position: absolute; z-index: 50; }
