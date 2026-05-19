@@ -5,6 +5,7 @@
     <title>마이페이지 - 천리마켓</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 <div class="app-container">
@@ -15,211 +16,183 @@
             <h2 class="page-title">마이페이지</h2>
 
             <!-- 프로필 카드 -->
-            <div class="mypage-profile">
-                <div class="mypage-avatar mp-skeleton" id="mpAvatar"></div>
-                <div class="mypage-profile-info">
-                    <p class="mypage-name mp-skeleton" id="mpName"></p>
-                    <p class="mypage-bio mp-skeleton" id="mpBio"></p>
-                    <p class="mypage-region">📍 <span class="mp-skeleton" id="mpRegion"></span></p>
-                    <p class="mypage-join mp-skeleton" id="mpJoin"></p>
+            <div class="mp-profile-card">
+                <div class="mp-avatar-wrap" onclick="triggerAvatarUpload()">
+                    <div class="mp-avatar mp-skeleton" id="mpAvatar"></div>
+                    <div class="mp-avatar-edit-hint">사진 변경</div>
+                    <input type="file" id="mpAvatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(this)">
                 </div>
-            </div>
-
-            <!-- 거래 평점 / 누적 거래 -->
-            <div class="mypage-rating-row">
-                <div class="mypage-rating-item">
-                    <span class="mypage-rating-label">거래 평점</span>
-                    <span class="mypage-rating-value"><span class="mp-skeleton" id="mpRatingValue"></span><span class="mypage-rating-sub">/ 5.0</span></span>
+                <div class="mp-profile-meta">
+                    <p class="mp-name mp-skeleton" id="mpName"></p>
+                    <p class="mp-bio mp-skeleton" id="mpBio"></p>
+                    <p class="mp-region mp-skeleton" id="mpRegion"></p>
                 </div>
-                <div class="mypage-rating-div"></div>
-                <div class="mypage-rating-item">
-                    <span class="mypage-rating-label">누적 거래</span>
-                    <span class="mypage-rating-value"><span class="mp-skeleton" id="mpTotalTrades"></span><span class="mypage-rating-sub">회</span></span>
-                </div>
-                <div class="mypage-tags" id="mpTags" style="display:none;">
-                    <span class="mypage-tag primary"># 친절해요</span>
-                    <span class="mypage-tag"># 응답이 빨라요</span>
+                <div class="mp-rating-card">
+                    <div class="mp-rating-item">
+                        <span class="mp-rating-label">거래 평점</span>
+                        <span class="mp-rating-val"><span class="mp-skeleton" id="mpRatingValue"></span><span class="mp-rating-max"> / 5.0</span></span>
+                        <div id="mpStars"></div>
+                    </div>
+                    <div class="mp-rating-div"></div>
+                    <div class="mp-rating-item">
+                        <span class="mp-rating-label">누적 거래</span>
+                        <span class="mp-rating-val"><span class="mp-skeleton" id="mpTotalTrades"></span><span class="mp-rating-max"> 회</span></span>
+                    </div>
                 </div>
             </div>
 
             <!-- 탭 바 -->
             <div class="mypage-tab-bar">
-                <button class="mypage-tab active" onclick="switchMypageTab('Dashboard', this)">대시보드</button>
-                <button class="mypage-tab" onclick="switchMypageTab('Info', this)">내 정보</button>
-                <button class="mypage-tab" onclick="switchMypageTab('Sales', this)">판매 내역</button>
-                <button class="mypage-tab" onclick="switchMypageTab('Order', this)">거래 내역</button>
-                <button class="mypage-tab" onclick="switchMypageTab('Settings', this)">프로필 설정</button>
-            </div>
-
-            <!-- ===== 대시보드 탭 ===== -->
-            <div id="mpTabDashboard" class="mypage-tab-panel">
-                <div class="mypage-stats">
-                    <div class="mypage-stat-item"><span class="mypage-stat-num mp-skeleton" id="mpStatSell"></span><span class="mypage-stat-label">판매 중</span></div>
-                    <div class="mypage-stat-item"><span class="mypage-stat-num mp-skeleton" id="mpStatWish"></span><span class="mypage-stat-label">찜한 상품</span></div>
-                    <div class="mypage-stat-item"><span class="mypage-stat-num mp-skeleton" id="mpStatBuy"></span><span class="mypage-stat-label">구매 내역</span></div>
-                    <div class="mypage-stat-item"><span class="mypage-stat-num mp-skeleton" id="mpStatAuction"></span><span class="mypage-stat-label">경매 참여</span></div>
-                </div>
-
-                <div class="mypage-menu-grid">
-                    <div class="mypage-menu-item" onclick="location.href='/sell?tab=list'"><div class="mypage-menu-icon">📦</div><p>판매 목록</p></div>
-                    <div class="mypage-menu-item" onclick="location.href='/my-list'"><div class="mypage-menu-icon">❤️</div><p>찜한 상품</p></div>
-                    <div class="mypage-menu-item" onclick="location.href='/my-list?tab=buy'"><div class="mypage-menu-icon">🛒</div><p>구매 내역</p></div>
-                    <div class="mypage-menu-item" onclick="location.href='/chat'"><div class="mypage-menu-icon">💬</div><p>대화 목록</p></div>
-                </div>
+                <button class="mypage-tab active" onclick="switchMypageTab('Info', this)">내 정보</button>
+                <button class="mypage-tab" onclick="switchMypageTab('Trade', this)">거래</button>
+                <button class="mypage-tab" onclick="switchMypageTab('Secession', this)">회원탈퇴</button>
             </div>
 
             <!-- ===== 내 정보 탭 ===== -->
-            <div id="mpTabInfo" class="mypage-tab-panel" style="display:none;">
-                <div class="info-card">
-                    <div class="info-section-title">기본 정보</div>
-                    <div class="info-row">
-                        <span class="info-label">아이디</span>
-                        <span class="info-value" id="infoUserId">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">닉네임</span>
-                        <span class="info-value" id="infoNickname">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">이름</span>
-                        <span class="info-value" id="infoName">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">전화번호</span>
-                        <span class="info-value" id="infoPhone">-</span>
+            <div id="mpTabInfo" class="mypage-tab-panel">
+                <div class="mp-info-form" id="mpInfoForm">
+                    <div class="mp-info-loading" id="mpInfoLoading">불러오는 중...</div>
+
+                    <div class="mp-field">
+                        <label class="mp-field-label">아이디</label>
+                        <div class="mp-field-input-wrap">
+                            <input type="text" id="infoUserId" class="mp-field-input readonly" readonly placeholder="-">
+                        </div>
                     </div>
 
-                    <div class="info-section-title" style="margin-top:28px;">부가 정보</div>
-                    <div class="info-row">
-                        <span class="info-label">거래 지역</span>
-                        <span class="info-value" id="infoRegion">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">한 줄 소개</span>
-                        <span class="info-value" id="infoBio">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">가입일</span>
-                        <span class="info-value" id="infoCreatedAt">-</span>
+                    <div class="mp-field">
+                        <label class="mp-field-label">닉네임</label>
+                        <div class="mp-field-input-wrap">
+                            <input type="text" id="settingNickname" class="mp-field-input" placeholder="닉네임을 입력하세요">
+                            <button class="mp-check-btn" onclick="checkNicknameDup()">중복확인</button>
+                        </div>
+                        <p class="mp-field-msg" id="nicknameMsg"></p>
                     </div>
 
-                    <p class="info-edit-hint">정보 수정은 <button class="info-edit-link" onclick="switchMypageTab('Settings', document.querySelectorAll('.mypage-tab')[4])">프로필 설정</button>에서 할 수 있습니다.</p>
+                    <div class="mp-field">
+                        <label class="mp-field-label">한 줄 소개</label>
+                        <div class="mp-field-input-wrap">
+                            <textarea id="settingBio" class="mp-field-textarea" placeholder="자신을 소개해 주세요."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mp-field">
+                        <label class="mp-field-label">전화번호</label>
+                        <div class="mp-field-input-wrap">
+                            <input type="tel" id="settingPhone" class="mp-field-input" placeholder="010-0000-0000">
+                            <button class="mp-check-btn" onclick="requestPhoneVerify()">재인증</button>
+                        </div>
+                        <p class="mp-field-msg" id="phoneMsg"></p>
+                    </div>
+
+                    <div class="mp-field">
+                        <label class="mp-field-label">거래 지역</label>
+                        <div class="mp-field-input-wrap">
+                            <input type="text" id="settingRegion" class="mp-field-input" placeholder="예) 경기도 의정부시">
+                        </div>
+                    </div>
+
+                    <div class="mp-field">
+                        <label class="mp-field-label">가입일</label>
+                        <div class="mp-field-input-wrap">
+                            <input type="text" id="infoCreatedAt" class="mp-field-input readonly" readonly placeholder="-">
+                        </div>
+                    </div>
+
+                    <div class="mp-form-actions">
+                        <button class="btn-primary" style="width:auto;padding:11px 36px;" onclick="saveMypageSettings(event)">저장</button>
+                    </div>
+
+                    <div id="mpInfoError" class="info-error" style="display:none;">정보를 불러오지 못했습니다.</div>
+
+                    <!-- 비밀번호 변경 -->
+                    <div class="mp-pw-section">
+                        <div class="mp-pw-header" onclick="togglePwSection()">
+                            <span>비밀번호 변경</span>
+                            <span class="mp-pw-arrow" id="mpPwArrow">▾</span>
+                        </div>
+                        <div class="mp-pw-form" id="mpPwForm" style="display:none;">
+                            <div class="mp-field">
+                                <label class="mp-field-label">현재 비밀번호</label>
+                                <div class="mp-field-input-wrap">
+                                    <input type="password" id="currentPw" class="mp-field-input" placeholder="현재 비밀번호">
+                                </div>
+                            </div>
+                            <div class="mp-field">
+                                <label class="mp-field-label">새 비밀번호</label>
+                                <div class="mp-field-input-wrap">
+                                    <input type="password" id="newPw" class="mp-field-input" placeholder="8~16자, 영문·숫자·특수문자(!@#-)">
+                                </div>
+                            </div>
+                            <div class="mp-field">
+                                <label class="mp-field-label">새 비밀번호 확인</label>
+                                <div class="mp-field-input-wrap">
+                                    <input type="password" id="newPwConfirm" class="mp-field-input" placeholder="새 비밀번호 재입력">
+                                </div>
+                            </div>
+                            <p class="mp-field-msg" id="pwChangeMsg"></p>
+                            <div class="mp-form-actions">
+                                <button class="btn-primary" style="width:auto;padding:10px 28px;" onclick="changePassword(event)">비밀번호 변경</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <div id="infoLoading" class="info-loading">불러오는 중...</div>
-                <div id="infoError" class="info-error" style="display:none;">정보를 불러오지 못했습니다.</div>
             </div>
 
-            <!-- ===== 판매 내역 탭 ===== -->
-            <div id="mpTabSales" class="mypage-tab-panel" style="display:none;">
-                <div class="mypage-sales-summary">
-                    <div class="mypage-summary-card">
-                        <span class="mypage-summary-label">판매 중</span>
-                        <span class="mypage-summary-num on">5 건</span>
+            <!-- ===== 거래 탭 ===== -->
+            <div id="mpTabTrade" class="mypage-tab-panel" style="display:none;">
+                <div class="mp-sub-tab-bar">
+                    <button class="mp-sub-tab active" onclick="switchTradeTab('buy', this)">구매</button>
+                    <button class="mp-sub-tab" onclick="switchTradeTab('sell', this)">판매</button>
+                </div>
+
+                <!-- 구매 패널 -->
+                <div id="tradeBuyPanel">
+                    <div class="mp-filter-tabs" id="buyFilterTabs">
+                        <button class="mp-filter-tab active" onclick="switchBuyFilter('ongoing', this)">구매 중</button>
+                        <button class="mp-filter-tab" onclick="switchBuyFilter('done', this)">거래 완료</button>
+                        <button class="mp-filter-tab" onclick="switchBuyFilter('auction', this)">참여 경매</button>
                     </div>
-                    <div class="mypage-summary-card">
-                        <span class="mypage-summary-label">거래 대기</span>
-                        <span class="mypage-summary-num reserved">2 건</span>
-                    </div>
-                    <div class="mypage-summary-card">
-                        <span class="mypage-summary-label">판매 완료</span>
-                        <span class="mypage-summary-num done">12 건</span>
+                    <div id="buyList" class="mp-trade-list">
+                        <p class="order-empty">불러오는 중...</p>
                     </div>
                 </div>
 
-                <ul class="sales-list">
-                    <li class="sales-item">
-                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
-                        <div class="sales-info">
-                            <p class="sales-name">아이폰 15 Pro 256GB</p>
-                            <p class="sales-price">950,000원</p>
-                            <p class="sales-date">2026.04.19 · 경기도 의정부시 신곡2동</p>
-                        </div>
-                        <span class="badge badge-on">판매중</span>
-                    </li>
-                    <li class="sales-item">
-                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
-                        <div class="sales-info">
-                            <p class="sales-name">빈티지 필름 카메라</p>
-                            <p class="sales-price sales-price-bid">현재가 132,000원</p>
-                            <p class="sales-date">남은 시간 <strong class="auction-remain">11:32:05</strong></p>
-                        </div>
-                        <span class="badge badge-auction">경매중</span>
-                    </li>
-                    <li class="sales-item">
-                        <div class="sales-thumb"><div class="img-placeholder sm"><span>📷</span></div></div>
-                        <div class="sales-info">
-                            <p class="sales-name">나이키 에어맥스 95</p>
-                            <p class="sales-price">85,000원</p>
-                            <p class="sales-date">2026.04.15</p>
-                        </div>
-                        <span class="badge badge-done">판매완료</span>
-                    </li>
-                </ul>
+                <!-- 판매 패널 -->
+                <div id="tradeSellPanel" style="display:none;">
+                    <div class="mp-filter-tabs" id="sellFilterTabs">
+                        <button class="mp-filter-tab active" onclick="switchSellFilter('active', this)">판매 중</button>
+                        <button class="mp-filter-tab" onclick="switchSellFilter('done', this)">판매 완료</button>
+                        <button class="mp-filter-tab" onclick="switchSellFilter('expired', this)">만료</button>
+                    </div>
+                    <div id="sellList" class="mp-trade-list">
+                        <p class="order-empty">불러오는 중...</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- ===== 거래 내역 탭 ===== -->
-            <div id="mpTabOrder" class="mypage-tab-panel" style="display:none;">
-                <div class="order-search-row">
-                    <input type="text" id="orderKeyword" class="order-search-input" placeholder="상품명 검색">
-                    <div class="order-type-tabs">
-                        <button class="order-type-btn active" onclick="switchOrderType('buy', this)">구매 내역</button>
-                        <button class="order-type-btn" onclick="switchOrderType('sell', this)">판매 내역</button>
-                        <button class="order-type-btn" onclick="switchOrderType('auction', this)">경매 참여</button>
-                    </div>
-                </div>
-                <div id="orderList" class="order-list">
-                    <p class="order-empty">데이터를 불러오는 중...</p>
-                </div>
-                <div id="orderPagination" class="order-pagination"></div>
-            </div>
-
-            <!-- ===== 프로필 설정 탭 ===== -->
-            <div id="mpTabSettings" class="mypage-tab-panel" style="display:none;">
-                <div class="mypage-settings-form">
-                    <div class="mypage-field">
-                        <label class="mypage-field-label">닉네임</label>
-                        <input type="text" id="settingName" value="" class="mypage-field-input">
-                    </div>
-                    <div class="mypage-field">
-                        <label class="mypage-field-label">한 줄 소개</label>
-                        <textarea id="settingBio" rows="3" class="mypage-field-input"></textarea>
-                    </div>
-                    <div class="mypage-field">
-                        <label class="mypage-field-label">거래 지역</label>
-                        <input type="text" id="settingRegion" value="" class="mypage-field-input">
-                    </div>
-                    <div class="mypage-settings-actions">
-                        <button class="btn-primary" style="width:auto;padding:10px 32px;" onclick="saveMypageSettings(event)">저장</button>
-                        <button class="btn-secondary" style="width:auto;padding:10px 24px;" onclick="switchMypageTab('Dashboard', document.querySelector('.mypage-tab'))">취소</button>
-                    </div>
-                </div>
-
-                <!-- 회원탈퇴 -->
+            <!-- ===== 회원탈퇴 탭 ===== -->
+            <div id="mpTabSecession" class="mypage-tab-panel" style="display:none;">
                 <div class="secession-section">
                     <h4 class="secession-title">회원 탈퇴</h4>
                     <p class="secession-desc">탈퇴하시면 모든 거래 내역, 찜 목록, 등록 상품이 삭제되며 복구가 불가능합니다.</p>
-
                     <div class="secession-reasons">
                         <label><input type="checkbox" class="secession-check"> 사용 빈도가 낮고 개인정보 및 보안 우려</label>
                         <label><input type="checkbox" class="secession-check"> 비매너 사용자로 인한 불편 (사기 등)</label>
                         <label><input type="checkbox" class="secession-check"> 서비스 기능 불편 (상품등록/거래 등)</label>
                         <label><input type="checkbox" class="secession-check"> 기타</label>
                     </div>
-
                     <div class="secession-terms">
                         <p><strong>탈퇴 유의사항</strong></p>
                         <p>① 탈퇴 요청일로부터 30일 이내에 동일한 아이디·전화번호로 재가입 불가합니다.</p>
                         <p>② 탈퇴 요청 후 72시간(3일) 이내 동일 계정으로 로그인 시 탈퇴 신청이 자동 철회됩니다.</p>
                         <p>③ 전자금융거래기록은 관련 법에 따라 5년간 보관 후 삭제됩니다.</p>
                     </div>
-
                     <div class="secession-pw-row">
                         <label class="secession-pw-label">비밀번호 확인</label>
                         <input type="password" id="secessionPw" class="secession-pw-input" placeholder="현재 비밀번호를 입력해 주세요">
                     </div>
                     <p id="secessionMsg" class="secession-msg"></p>
-
                     <div class="secession-actions">
                         <button class="secession-btn" onclick="doSecession()">회원 탈퇴하기</button>
                     </div>
@@ -228,6 +201,24 @@
 
         </div>
     </main>
+
+    <!-- 별점 리뷰 모달 -->
+    <div id="ratingModal" class="mp-modal-overlay" style="display:none;" onclick="closeRatingModal(event)">
+        <div class="mp-modal-box">
+            <button class="mp-modal-close" onclick="document.getElementById('ratingModal').style.display='none'">✕</button>
+            <h3 class="mp-modal-title">거래 후기 남기기</h3>
+            <div class="mp-stars-input">
+                <i class="rating-star fa-regular fa-star" onclick="selectStar(1)"></i>
+                <i class="rating-star fa-regular fa-star" onclick="selectStar(2)"></i>
+                <i class="rating-star fa-regular fa-star" onclick="selectStar(3)"></i>
+                <i class="rating-star fa-regular fa-star" onclick="selectStar(4)"></i>
+                <i class="rating-star fa-regular fa-star" onclick="selectStar(5)"></i>
+            </div>
+            <textarea id="ratingComment" class="mp-modal-textarea" placeholder="후기를 남겨주세요. (선택)"></textarea>
+            <p id="ratingMsg" class="rating-msg"></p>
+            <button class="rating-submit-btn" onclick="submitRating()">등록하기</button>
+        </div>
+    </div>
 
     <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
     <script th:src="@{/js/mypage.js}"></script>

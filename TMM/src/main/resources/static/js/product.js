@@ -27,6 +27,7 @@ function loadProduct() {
         renderProduct(currentProduct);
         renderSimilar(currentProduct);
         trackView(String(productId));
+        checkWishState();
         const priceStr = currentProduct.type === 'auction'
             ? currentProduct.currentPrice.toLocaleString() + '원'
             : currentProduct.price.toLocaleString() + '원';
@@ -46,6 +47,13 @@ function loadProduct() {
                 if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
+                const priceStr = currentProduct.type === 'auction'
+                    ? currentProduct.currentPrice.toLocaleString() + '원'
+                    : currentProduct.price.toLocaleString() + '원';
+                window.addRecentItem && window.addRecentItem(
+                    currentProduct.id, currentProduct.title, priceStr,
+                    currentProduct.imageUrls?.[0] ?? null
+                );
             });
     });
 }
@@ -179,15 +187,57 @@ function startAuctionTimer(endStr) {
     tick();
 }
 
-function toggleWish() {
-    wished = !wished;
-    const cnt    = parseInt(document.getElementById('pdWishCount').textContent);
-    const icon   = document.getElementById('pdWishIcon');
-    const btn    = document.getElementById('pdWishBtn');
-    document.getElementById('pdWishCount').textContent = wished ? cnt + 1 : cnt - 1;
-    btn.classList.toggle('active', wished);
-    if (icon) {
-        icon.className = wished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+function checkWishState() {
+    if (!currentProduct || !window.auth?.currentUser) return;
+    const uid     = window.auth.currentUser.uid;
+    const wishers = currentProduct.wishers || [];
+    wished = wishers.includes(uid);
+    const btn  = document.getElementById('pdWishBtn');
+    const icon = document.getElementById('pdWishIcon');
+    if (btn)  btn.classList.toggle('active', wished);
+    if (icon) icon.className = wished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+}
+
+async function toggleWish() {
+    if (!window.db || !window.auth?.currentUser) {
+        alert('로그인 후 찜할 수 있습니다.');
+        return;
+    }
+    if (!currentProduct) return;
+
+    const uid = window.auth.currentUser.uid;
+    const btn  = document.getElementById('pdWishBtn');
+    const icon = document.getElementById('pdWishIcon');
+    btn.disabled = true;
+
+    try {
+        const ref  = window.fs.doc(window.db, 'products', String(productId));
+        const snap = await window.fs.getDoc(ref);
+        if (!snap.exists()) return;
+
+        const data    = snap.data();
+        let wishers   = data.wishers || [];
+        const already = wishers.includes(uid);
+
+        if (already) {
+            wishers = wishers.filter(u => u !== uid);
+        } else {
+            wishers = [...wishers, uid];
+        }
+
+        const newCount = Math.max(0, wishers.length);
+        await window.fs.updateDoc(ref, { wishers, wishes: newCount });
+
+        currentProduct.wishers = wishers;
+        wished = !already;
+        document.getElementById('pdWishCount').textContent = newCount;
+        document.getElementById('pdWishes').textContent    = newCount;
+        btn.classList.toggle('active', wished);
+        if (icon) icon.className = wished ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+    } catch (e) {
+        alert('오류: ' + e.message);
+    } finally {
+        btn.disabled = false;
     }
 }
 
@@ -315,3 +365,7 @@ async function submitReport() {
         btn.textContent = '신고하기';
     }
 }
+
+/* ===== 초기화 ===== */
+window.addEventListener('firebase-ready', loadProduct);
+if (window.firebaseReady) loadProduct();

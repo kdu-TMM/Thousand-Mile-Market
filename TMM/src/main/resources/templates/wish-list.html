@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>찜 목록 - 천리마켓</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/wish-list.css}">
+</head>
+<body>
+<div class="app-container">
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <main class="main-content">
+        <div class="page-box">
+            <h2 class="page-title">찜 목록</h2>
+
+            <div id="wlAuthGuard" class="auth-guard" style="display:none;">
+                <span class="auth-guard-icon">🔒</span>
+                <p>찜 목록은 로그인 후 이용할 수 있습니다.</p>
+                <button class="btn-primary" onclick="openLoginModal()">로그인하기</button>
+            </div>
+
+            <div id="wlContent" style="display:none;">
+                <div id="wlGrid" class="product-grid wl-grid"></div>
+                <p id="wlEmpty" class="wl-empty" style="display:none;">
+                    찜한 상품이 없습니다.<br>
+                    <a href="/" class="wl-browse-link">상품 둘러보기 →</a>
+                </p>
+            </div>
+
+            <p id="wlLoading" class="wl-empty">불러오는 중...</p>
+        </div>
+    </main>
+
+    <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script th:src="@{/js/wish-list.js}"></script>
+</div>
+</body>
+</html>

@@ -25,6 +25,9 @@ public String index() {
     @GetMapping("/my-list")
     public String myList() { return "my-list"; }
 
+    @GetMapping("/wish-list")
+    public String wishList() { return "wish-list"; }
+
     @GetMapping("/chat")
     public String chat(HttpSession session, Model model,
                        @RequestParam(required = false) String targetUid,

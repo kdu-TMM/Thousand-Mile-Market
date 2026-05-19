@@ -1,0 +1,110 @@
+.wl-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 860px) { .wl-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .wl-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.wl-empty {
+    text-align: center;
+    padding: 80px 0 60px;
+    color: #bbb;
+    font-size: 14px;
+    line-height: 2;
+}
+.wl-browse-link {
+    color: #007bff;
+    font-weight: 700;
+    text-decoration: none;
+}
+.wl-browse-link:hover { text-decoration: underline; }
+
+/* ===== 카드 ===== */
+.wl-card {
+    position: relative;
+    transition: all 0.2s;
+}
+.wl-removing {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.wl-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: #f0f0f0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.wl-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+}
+.wl-no-img {
+    font-size: 32px;
+    color: #ccc;
+}
+
+.wl-status {
+    position: absolute;
+    top: 8px; left: 8px;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px;
+}
+.wl-status.on       { background: #e3f2fd; color: #1565c0; }
+.wl-status.reserved { background: #fff3e0; color: #e65100; }
+.wl-status.auction  { background: #fce4ec; color: #c62828; }
+.wl-status.done     { background: rgba(0,0,0,0.45); color: #fff; }
+
+.wl-info {
+    padding: 10px 12px 12px;
+}
+.wl-title {
+    font-size: 13px; font-weight: 600; color: #222;
+    margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wl-price {
+    font-size: 14px; font-weight: 800; color: #111;
+    margin-bottom: 3px;
+}
+.wl-region {
+    font-size: 11px; color: #aaa;
+}
+
+/* ===== 찜 해제 버튼 ===== */
+.wl-unwish-btn {
+    position: absolute;
+    bottom: 52px; right: 10px;
+    background: rgba(255,255,255,0.92);
+    border: none;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 15px;
+    color: #e53935;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 2;
+}
+.wl-card:hover .wl-unwish-btn { opacity: 1; }
+.wl-unwish-btn:hover { background: #e53935; color: #fff; }
+.wl-unwish-btn:disabled { opacity: 0.4; cursor: default; }
+
+/* ===== 로그인 가드 ===== */
+.auth-guard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 80px 0;
+    font-size: 15px;
+    color: #888;
+}
+.auth-guard-icon { font-size: 36px; }

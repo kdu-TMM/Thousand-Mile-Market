@@ -10,6 +10,8 @@ import { getStorage, ref, uploadBytes,
 import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          onAuthStateChanged, updateProfile,
+         updatePassword, reauthenticateWithCredential,
+         EmailAuthProvider,
          RecaptchaVerifier, signInWithPhoneNumber,
          initializeRecaptchaConfig }             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
 
@@ -45,6 +47,9 @@ window.authFuncs = {
     signOut,
     onAuthStateChanged,
     updateProfile,
+    updatePassword,
+    reauthenticateWithCredential,
+    EmailAuthProvider,
     RecaptchaVerifier,
     signInWithPhoneNumber
 };

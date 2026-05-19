@@ -19,11 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    const handleAuth = () => {
-        const user = window.auth?.currentUser;
+    const handleAuth = (e) => {
+        const user = e?.detail?.user ?? window.auth?.currentUser;
         if (!user) { showLoginPrompt(); return; }
         if (myUid) return;
-        syncSession(user);
+        startChat(user);
     };
 
     window.addEventListener('firebase-ready', handleAuth);
@@ -31,23 +31,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (window.firebaseReady) {
         const user = window.auth?.currentUser;
-        if (user) syncSession(user);
+        if (user) startChat(user);
         else showLoginPrompt();
     }
 });
 
-function syncSession(user) {
+function startChat(user) {
+    myUid      = user.uid;
+    myNickname = user.displayName || user.email || '사용자';
+    initChat();
+
+    /* Spring 세션 백그라운드 동기화 (실패해도 채팅에 영향 없음) */
     fetch('/api/auth/session', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ uid: user.uid, nickname: user.displayName || user.email })
-    }).then(res => {
-        if (res.ok) {
-            myUid      = user.uid;
-            myNickname = user.displayName || user.email || '사용자';
-            initChat();
-        } else showLoginPrompt();
-    }).catch(() => showLoginPrompt());
+    }).catch(() => {});
 }
 
 function showLoginPrompt() {
