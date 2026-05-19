@@ -254,17 +254,6 @@
 }
 #chatting-btn:hover { background: #e07800; }
 
-.pd-buy-btn {
-    padding: 10px 20px;
-    background: #e53935; border: none;
-    border-radius: 10px;
-    color: #fff; font-size: 14px; font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-.pd-buy-btn:hover { background: #c62828; }
-.pd-buy-btn.auction { background: #7c4dff; }
-.pd-buy-btn.auction:hover { background: #651fff; }
 
 /* ===== 비슷한 상품 ===== */
 #similar-item {

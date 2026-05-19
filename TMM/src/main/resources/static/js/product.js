@@ -128,9 +128,6 @@ function renderProduct(p) {
         document.getElementById('pdCurrentPrice').textContent = p.currentPrice.toLocaleString() + '원';
         document.getElementById('pdBidCount').textContent     = p.bidCount + '명';
         startAuctionTimer(p.auctionEnd);
-        const buyBtn = document.getElementById('pdBuyBtn');
-        buyBtn.textContent = '입찰하기';
-        buyBtn.classList.add('auction');
     } else {
         document.getElementById('pdPrice').textContent = p.price.toLocaleString();
     }

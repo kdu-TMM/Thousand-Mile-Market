@@ -340,7 +340,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function openOrCreateRoom(targetUid, targetNickname, productId, productName) {
     const { collection, query, where, getDocs, addDoc } = window.fs;
     const key = generateRoomKey(myUid, targetUid, productId);
-    const q   = query(collection(window.db, 'chatRooms'), where('roomKey', '==', key), window.fs.limit(1));
+    const q   = query(
+        collection(window.db, 'chatRooms'),
+        where('roomKey', '==', key),
+        where('participants', 'array-contains', myUid),
+        window.fs.limit(1)
+    );
 
     try {
         const snap = await getDocs(q);
