@@ -219,3 +219,67 @@ function renderSimilar(p) {
 function scrollSimilar(dir) {
     document.getElementById('pdSimilarGrid').scrollBy({ left: dir * 800, behavior: 'smooth' });
 }
+
+/* ===== 신고 ===== */
+function openReportModal() {
+    document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
+    document.getElementById('reportDetail').style.display = 'none';
+    document.getElementById('reportDetail').value = '';
+    document.getElementById('reportMsg').textContent = '';
+    document.getElementById('reportMsg').className = 'report-msg';
+    document.getElementById('reportModal').style.display = 'flex';
+}
+
+function closeReportModal(e) {
+    if (e && e.target !== document.getElementById('reportModal')) return;
+    document.getElementById('reportModal').style.display = 'none';
+}
+
+function toggleReportDetail(show) {
+    document.getElementById('reportDetail').style.display = show ? 'block' : 'none';
+}
+
+document.addEventListener('change', e => {
+    if (e.target.name === 'reportReason') {
+        toggleReportDetail(e.target.value === '기타');
+    }
+});
+
+async function submitReport() {
+    const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
+    const detail = document.getElementById('reportDetail').value.trim();
+    const msg    = document.getElementById('reportMsg');
+
+    msg.className = 'report-msg';
+    if (!reason) { msg.textContent = '신고 사유를 선택해 주세요.'; return; }
+    if (reason === '기타' && !detail) { msg.textContent = '신고 내용을 입력해 주세요.'; return; }
+    if (!window.db || !window.auth?.currentUser) { msg.textContent = '로그인 후 신고할 수 있습니다.'; return; }
+    if (!currentProduct) return;
+
+    const user = window.auth.currentUser;
+    const btn  = document.querySelector('.report-submit-btn');
+    btn.disabled = true;
+    btn.textContent = '신고 중...';
+
+    try {
+        await window.fs.addDoc(window.fs.collection(window.db, 'reports'), {
+            targetType:       'product',
+            targetId:         currentProduct.id,
+            targetTitle:      currentProduct.title,
+            reason,
+            detail:           reason === '기타' ? detail : '',
+            reporterUid:      user.uid,
+            reporterNickname: user.displayName || user.email,
+            status:           '검토중',
+            createdAt:        window.fs.serverTimestamp()
+        });
+        msg.textContent = '신고가 접수되었습니다.';
+        msg.className = 'report-msg ok';
+        setTimeout(() => { document.getElementById('reportModal').style.display = 'none'; }, 1200);
+    } catch (e) {
+        msg.textContent = '오류가 발생했습니다: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '신고하기';
+    }
+}
