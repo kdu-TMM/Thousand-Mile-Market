@@ -24,11 +24,11 @@ function showSection(type, btn) {
 }
 
 /* ===== 필터 ===== */
-function applyFilter() {}
-
-function resetFilter() {
-    document.getElementById('filterRegion').value = '';
-    document.getElementById('filterCategory').value = '';
+function getFilterRegion() {
+    const dong    = document.getElementById('filterDong')?.value    || '';
+    const sigungu = document.getElementById('filterSigungu')?.value || '';
+    const sido    = document.getElementById('filterSido')?.value    || '';
+    return dong || sigungu || sido;
 }
 
 /* ===== 카테고리 탭 ===== */
@@ -174,7 +174,7 @@ function getSortedProducts(products) {
         }
 
         case 'distance': {
-            const ref = document.getElementById('filterRegion')?.value || '';
+            const ref = getFilterRegion();
             return arr.sort((a, b) => {
                 const diff = regionMatchScore(a.region || '', ref) - regionMatchScore(b.region || '', ref);
                 return diff !== 0 ? diff : new Date(b.date) - new Date(a.date);
@@ -187,7 +187,7 @@ function getSortedProducts(products) {
 }
 
 function applyAllItemsFilter() {
-    const region   = document.getElementById('filterRegion')?.value || '';
+    const region   = getFilterRegion();
     const category = document.getElementById('filterCategory')?.value || '';
     const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
@@ -262,8 +262,151 @@ function applyFilter() {
     applyAllItemsFilter();
 }
 function resetFilter() {
-    document.getElementById('filterRegion').value = '';
+    document.getElementById('filterSido').value = '';
+    const sigunguEl = document.getElementById('filterSigungu');
+    sigunguEl.innerHTML = '<option value="">시/군/구</option>';
+    sigunguEl.style.display = 'none';
+    const dongEl = document.getElementById('filterDong');
+    dongEl.innerHTML = '<option value="">읍/면/동</option>';
+    dongEl.style.display = 'none';
     document.getElementById('filterCategory').value = '';
     document.getElementById('sortSelect').value = 'latest';
     applyAllItemsFilter();
 }
+
+/* ===== 지역 필터 연동 ===== */
+function updateFilterSigungu() {
+    const sido      = document.getElementById('filterSido').value;
+    const sigunguEl = document.getElementById('filterSigungu');
+    const dongEl    = document.getElementById('filterDong');
+
+    dongEl.innerHTML     = '<option value="">읍/면/동</option>';
+    dongEl.style.display = 'none';
+    sigunguEl.innerHTML  = '<option value="">시/군/구</option>';
+
+    if (sido && filterRegionData[sido] && Object.keys(filterRegionData[sido]).length) {
+        Object.keys(filterRegionData[sido]).forEach(sg => {
+            sigunguEl.innerHTML += `<option value="${sg}">${sg}</option>`;
+        });
+        sigunguEl.style.display = '';
+    } else {
+        sigunguEl.style.display = 'none';
+    }
+    applyFilter();
+}
+
+function updateFilterDong() {
+    const sido    = document.getElementById('filterSido').value;
+    const sigungu = document.getElementById('filterSigungu').value;
+    const dongEl  = document.getElementById('filterDong');
+
+    dongEl.innerHTML = '<option value="">읍/면/동</option>';
+    if (sido && sigungu && filterRegionData[sido]?.[sigungu]?.length) {
+        filterRegionData[sido][sigungu].forEach(d => {
+            dongEl.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        dongEl.style.display = '';
+    } else {
+        dongEl.style.display = 'none';
+    }
+    applyFilter();
+}
+
+const filterRegionData = {
+    '서울특별시': {
+        '강남구': [], '강서구': [], '관악구': [], '광진구': [], '구로구': [],
+        '금천구': [], '노원구': [], '도봉구': [], '동대문구': [], '동작구': [],
+        '마포구': [], '서대문구': [], '서초구': [], '성동구': [], '성북구': [],
+        '송파구': [], '양천구': [], '영등포구': [], '용산구': [], '은평구': [],
+        '종로구': [], '중구': [], '중랑구': []
+    },
+    '경기도': {
+        '의정부시': ['신곡1동','신곡2동','의정부1동','의정부2동','의정부3동','호원1동','호원2동','장암동','녹양동','가능동','흥선동','효자동','민락동','낙양동'],
+        '수원시':   ['장안구','권선구','팔달구','영통구'],
+        '성남시':   ['수정구','중원구','분당구'],
+        '고양시':   ['덕양구','일산동구','일산서구'],
+        '용인시':   ['처인구','기흥구','수지구'],
+        '부천시':   ['원미구','소사구','오정구'],
+        '안산시':   ['단원구','상록구'],
+        '남양주시': ['화도읍','오남읍','진건읍','별내면','퇴계원면'],
+        '화성시':   ['봉담읍','향남읍','남양읍','우정읍','장안면'],
+        '평택시':   ['평택동','비전1동','비전2동','통복동','중앙동'],
+        '안양시': [], '시흥시': [], '파주시': [], '김포시': [], '광주시': [],
+        '광명시': [], '하남시': [], '오산시': [], '안성시': [], '이천시': [],
+        '포천시': [], '양주시': [], '구리시': [], '여주시': [], '동두천시': [],
+        '과천시': [], '의왕시': [], '군포시': [],
+        '가평군': [], '양평군': [], '연천군': []
+    },
+    '인천광역시': {
+        '남동구': ['구월1동','구월2동','구월3동','구월4동','간석1동','간석2동','간석3동','간석4동','만수1동','만수2동','만수3동','만수4동','논현1동','논현고잔동','논현2동'],
+        '연수구': ['옥련1동','옥련2동','선학동','연수1동','연수2동','연수3동','청학동','동춘1동','동춘2동','동춘3동','송도1동','송도2동','송도3동','송도4동'],
+        '부평구': ['부평1동','부평2동','부평3동','부평4동','부평5동','부평6동','십정1동','십정2동','산곡1동','산곡2동','산곡3동','산곡4동','갈산1동','갈산2동','삼산1동','삼산2동'],
+        '계양구': [], '미추홀구': [], '서구': [], '동구': [], '중구': [],
+        '강화군': [], '옹진군': []
+    },
+    '부산광역시': {
+        '해운대구': ['우동','중동','좌동','송정동','반여1동','반여2동','반여3동','반여4동','반송1동','반송2동','석대동','재송1동','재송2동'],
+        '수영구':   ['남천1동','남천2동','수영동','망미1동','망미2동','광안1동','광안2동','광안3동','광안4동'],
+        '사상구':   ['삼락동','모라1동','모라3동','덕포1동','덕포2동','괘법동','감전동','주례1동','주례2동','주례3동','학장동','엄궁동'],
+        '강서구': [], '금정구': [], '남구': [], '동구': [], '동래구': [],
+        '부산진구': [], '북구': [], '사하구': [], '서구': [], '연제구': [],
+        '영도구': [], '중구': [], '기장군': []
+    },
+    '대구광역시': {
+        '달서구': [], '달성군': [], '동구': [], '북구': [], '서구': [],
+        '남구': [], '중구': [], '수성구': []
+    },
+    '광주광역시': {
+        '광산구': [], '남구': [], '동구': [], '북구': [], '서구': []
+    },
+    '대전광역시': {
+        '대덕구': [], '동구': [], '서구': [], '유성구': [], '중구': []
+    },
+    '울산광역시': {
+        '남구': [], '동구': [], '북구': [], '중구': [], '울주군': []
+    },
+    '세종특별자치시': {},
+    '강원도': {
+        '춘천시': [], '원주시': [], '강릉시': [], '동해시': [], '태백시': [],
+        '속초시': [], '삼척시': [], '홍천군': [], '횡성군': [], '영월군': [],
+        '평창군': [], '정선군': [], '철원군': [], '화천군': [], '양구군': [],
+        '인제군': [], '고성군': [], '양양군': []
+    },
+    '충청북도': {
+        '청주시': [], '충주시': [], '제천시': [], '보은군': [], '옥천군': [],
+        '영동군': [], '증평군': [], '진천군': [], '괴산군': [], '음성군': [], '단양군': []
+    },
+    '충청남도': {
+        '천안시': [], '공주시': [], '보령시': [], '아산시': [], '서산시': [],
+        '논산시': [], '계룡시': [], '당진시': [], '금산군': [], '부여군': [],
+        '서천군': [], '청양군': [], '홍성군': [], '예산군': [], '태안군': []
+    },
+    '전라북도': {
+        '전주시': [], '군산시': [], '익산시': [], '정읍시': [], '남원시': [],
+        '김제시': [], '완주군': [], '진안군': [], '무주군': [], '장수군': [],
+        '임실군': [], '순창군': [], '고창군': [], '부안군': []
+    },
+    '전라남도': {
+        '목포시': [], '여수시': [], '순천시': [], '나주시': [], '광양시': [],
+        '담양군': [], '곡성군': [], '구례군': [], '고흥군': [], '보성군': [],
+        '화순군': [], '장흥군': [], '강진군': [], '해남군': [], '영암군': [],
+        '무안군': [], '함평군': [], '영광군': [], '장성군': [], '완도군': [],
+        '진도군': [], '신안군': []
+    },
+    '경상북도': {
+        '포항시': [], '경주시': [], '김천시': [], '안동시': [], '구미시': [],
+        '영주시': [], '영천시': [], '상주시': [], '문경시': [], '경산시': [],
+        '의성군': [], '청송군': [], '영양군': [], '영덕군': [], '청도군': [],
+        '고령군': [], '성주군': [], '칠곡군': [], '예천군': [], '봉화군': [],
+        '울진군': [], '울릉군': []
+    },
+    '경상남도': {
+        '창원시': [], '진주시': [], '통영시': [], '사천시': [], '김해시': [],
+        '밀양시': [], '거제시': [], '양산시': [], '의령군': [], '함안군': [],
+        '창녕군': [], '고성군': [], '남해군': [], '하동군': [], '산청군': [],
+        '함양군': [], '거창군': [], '합천군': []
+    },
+    '제주특별자치도': {
+        '제주시': [], '서귀포시': []
+    }
+};
