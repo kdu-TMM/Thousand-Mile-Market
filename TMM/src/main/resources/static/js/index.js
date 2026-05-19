@@ -95,7 +95,7 @@ function createProductCard(product) {
     card.className = 'product-card' + (isAuction ? ' auction' : '');
     const price = isAuction ? product.currentPrice : product.price;
     const thumb = product.imageUrls?.[0]
-        ? `<img src="${product.imageUrls[0]}" alt="${product.title}">`
+        ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
     const timerHtml = isAuction && product.auctionEnd
         ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
