@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class PageController {
 
-    @GetMapping("/")
-    public String index() { return "index"; }
+@GetMapping("/")
+public String index() {
+    System.out.println("==== / 컨트롤러 들어옴 ====");
+    return "index";
+}
 
     @GetMapping("/sell")
     public String sell() { return "sell"; }
@@ -28,6 +31,10 @@ public class PageController {
                        @RequestParam(required = false) String targetNickname,
                        @RequestParam(required = false) String productId,
                        @RequestParam(required = false) String productName) {
+
+        System.out.println("==== /chat 컨트롤러 들어옴 ====");
+
+        
         model.addAttribute("loginUid",      session.getAttribute("uid"));
         model.addAttribute("loginNickname", session.getAttribute("nickname"));
         model.addAttribute("initTargetUid",      targetUid);
