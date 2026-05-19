@@ -26,6 +26,7 @@ function loadProduct() {
         currentProduct = docSnap.data();
         renderProduct(currentProduct);
         renderSimilar(currentProduct);
+        trackView(String(productId));
         const priceStr = currentProduct.type === 'auction'
             ? currentProduct.currentPrice.toLocaleString() + '원'
             : currentProduct.price.toLocaleString() + '원';
@@ -245,6 +246,24 @@ document.addEventListener('change', e => {
     }
 });
 
+/* ===== 조회수 ===== */
+function trackView(pid) {
+    const user = window.auth?.currentUser;
+    if (!user) return;
+
+    const key = `tmm_viewed_${pid}_${new Date().toDateString()}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, '1');
+
+    const viewsEl = document.getElementById('pdViews');
+    if (viewsEl) viewsEl.textContent = (parseInt(viewsEl.textContent) || 0) + 1;
+
+    window.fs.updateDoc(
+        window.fs.doc(window.db, 'products', pid),
+        { views: window.fs.increment(1) }
+    ).catch(() => {});
+}
+
 async function submitReport() {
     const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
     const detail = document.getElementById('reportDetail').value.trim();
@@ -262,6 +281,19 @@ async function submitReport() {
     btn.textContent = '신고 중...';
 
     try {
+        const dupSnap = await window.fs.getDocs(
+            window.fs.query(
+                window.fs.collection(window.db, 'reports'),
+                window.fs.where('reporterUid', '==', user.uid),
+                window.fs.where('targetId',    '==', currentProduct.id),
+                window.fs.limit(1)
+            )
+        );
+        if (!dupSnap.empty) {
+            msg.textContent = '이미 신고한 상품입니다.';
+            return;
+        }
+
         await window.fs.addDoc(window.fs.collection(window.db, 'reports'), {
             targetType:       'product',
             targetId:         currentProduct.id,

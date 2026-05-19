@@ -3,7 +3,8 @@ import { getFirestore, collection, getDocs,
          doc, getDoc, setDoc, addDoc,
          query, where, limit, orderBy,
          onSnapshot, serverTimestamp,
-         updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
+         updateDoc, arrayUnion, arrayRemove,
+         increment } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes,
          getDownloadURL }                          from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
 import { getAuth, createUserWithEmailAndPassword,
@@ -33,7 +34,8 @@ window.fs = {
     collection, getDocs, doc, getDoc, setDoc, addDoc,
     query, where, limit, orderBy,
     onSnapshot, serverTimestamp,
-    updateDoc, arrayUnion, arrayRemove
+    updateDoc, arrayUnion, arrayRemove,
+    increment
 };
 
 /* Auth 유틸 */
