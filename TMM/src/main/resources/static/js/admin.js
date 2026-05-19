@@ -198,13 +198,24 @@ function closeReportModal(event) {
 
 async function updateReportStatus(newStatus) {
     if (!activeReportId) return;
-    const note = document.getElementById('reportAdminNote').value.trim();
+    const note   = document.getElementById('reportAdminNote').value.trim();
+    const report = allReports.find(r => r.id === activeReportId);
 
     try {
         await window.fs.updateDoc(
             window.fs.doc(window.db, 'reports', activeReportId),
             { status: newStatus, adminNote: note, resolvedAt: new Date().toISOString() }
         );
+
+        /* 처리완료 + 상품 신고인 경우 게시물 숨김 처리 */
+        if (newStatus === '처리완료' && report?.targetType === 'product' && report?.targetId) {
+            await window.fs.updateDoc(
+                window.fs.doc(window.db, 'products', report.targetId),
+                { status: '숨김' }
+            );
+            const product = allProducts.find(p => p.id === report.targetId);
+            if (product) product.status = '숨김';
+        }
 
         const idx = allReports.findIndex(r => r.id === activeReportId);
         if (idx !== -1) {
