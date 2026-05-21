@@ -25,6 +25,7 @@ function loadProduct() {
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
         renderProduct(currentProduct);
+        renderPopular(currentProduct);
         renderSimilar(currentProduct);
         trackView(String(productId));
         checkWishState();
@@ -57,9 +58,6 @@ function loadProduct() {
             });
     });
 }
-
-if (window.db) loadProduct();
-else window.addEventListener('firebase-ready', loadProduct);
 
 /* ===== 이미지 갤러리 ===== */
 function renderGallery(imageUrls, alt) {
@@ -236,6 +234,33 @@ async function toggleWish() {
     } finally {
         btn.disabled = false;
     }
+}
+
+/* ===== 카테고리 인기 상품 ===== */
+function renderPopular(p) {
+    const popular = allProducts
+        .filter(x => x.id !== p.id && x.category === p.category && x.status !== '판매완료')
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, 5);
+    if (popular.length === 0) return;
+
+    const grid = document.getElementById('pdPopularGrid');
+    popular.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'pd-pop-card';
+        const price = s.type === 'auction' ? s.currentPrice : s.price;
+        const thumb = s.imageUrls?.[0]
+            ? `<img src="${s.imageUrls[0]}" alt="${s.title}">`
+            : `<span>📷</span>`;
+        card.innerHTML = `
+            <div class="pd-pop-img">${thumb}</div>
+            <p class="pd-pop-title">${s.title}</p>
+            <p class="pd-pop-price">${price.toLocaleString()}원</p>
+            <p class="pd-pop-views"><i class="fa-regular fa-eye"></i> ${s.views || 0}</p>`;
+        card.onclick = () => location.href = '/product/' + s.id;
+        grid.appendChild(card);
+    });
+    document.getElementById('popular-item').style.display = 'block';
 }
 
 /* ===== 비슷한 상품 ===== */
