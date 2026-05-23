@@ -41,6 +41,35 @@ async function doLogin() {
     try {
         const internalEmail = userId.toLowerCase() + '@tmm.app';
         const cred = await window.authFuncs.signInWithEmailAndPassword(window.auth, internalEmail, pw);
+
+        /* 정지 여부 확인 */
+        if (window.fs && window.db) {
+            const userDoc = await window.fs.getDoc(window.fs.doc(window.db, 'users', cred.user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.suspended) {
+                    const until = data.suspendedUntil ? new Date(data.suspendedUntil) : null;
+                    if (!until) {
+                        /* 영구 정지 */
+                        await window.authFuncs.signOut(window.auth);
+                        setErr('영구 정지된 계정입니다. 고객센터에 문의해 주세요.');
+                        return;
+                    }
+                    if (until > new Date()) {
+                        const days = Math.ceil((until - Date.now()) / 86400000);
+                        await window.authFuncs.signOut(window.auth);
+                        setErr(`정지된 계정입니다. 해제까지 ${days}일 남았습니다.`);
+                        return;
+                    }
+                    /* 정지 기간 만료 → 자동 해제 */
+                    await window.fs.updateDoc(
+                        window.fs.doc(window.db, 'users', cred.user.uid),
+                        { suspended: false, suspendedUntil: null }
+                    );
+                }
+            }
+        }
+
         /* Spring 세션 동기화 (채팅 등 서버 세션 필요 기능용) */
         fetch('/api/auth/session', {
             method:  'POST',

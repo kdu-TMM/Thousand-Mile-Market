@@ -1,6 +1,6 @@
 import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-app.js';
 import { getFirestore, collection, getDocs,
-         doc, getDoc, setDoc, addDoc,
+         doc, getDoc, setDoc, addDoc, deleteDoc,
          query, where, limit, orderBy,
          onSnapshot, serverTimestamp,
          updateDoc, arrayUnion, arrayRemove,
@@ -33,7 +33,7 @@ window.storageUtils = { ref, uploadBytes, getDownloadURL };
 
 /* Firestore 유틸 — 일반 JS 파일에서 window.fs.* 로 사용 */
 window.fs = {
-    collection, getDocs, doc, getDoc, setDoc, addDoc,
+    collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc,
     query, where, limit, orderBy,
     onSnapshot, serverTimestamp,
     updateDoc, arrayUnion, arrayRemove,

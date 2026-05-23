@@ -274,6 +274,29 @@ function searchUsers() {
     renderUsers(filtered);
 }
 
+const SUSPEND_DURATIONS = [3, 7, 30]; // 1회차·2회차·3회차 (이후 영구)
+
+function suspendedLabel(u) {
+    if (!u.suspended) {
+        const cnt = u.suspendCount || 0;
+        const next = cnt < SUSPEND_DURATIONS.length ? `다음 ${SUSPEND_DURATIONS[cnt]}일` : '다음 영구';
+        return cnt > 0
+            ? `<span class="admin-status active">정상 (${cnt}회, ${next})</span>`
+            : '<span class="admin-status active">정상</span>';
+    }
+    if (!u.suspendedUntil) return '<span class="admin-status suspended">영구 정지</span>';
+    const days = Math.ceil((new Date(u.suspendedUntil) - Date.now()) / 86400000);
+    return days > 0
+        ? `<span class="admin-status suspended">정지 (${days}일 남음)</span>`
+        : `<span class="admin-status suspended">정지 (기간 만료)</span>`;
+}
+
+function nextPenaltyLabel(suspendCount) {
+    const cnt = suspendCount || 0;
+    if (cnt < SUSPEND_DURATIONS.length) return `${SUSPEND_DURATIONS[cnt]}일 정지`;
+    return '영구 정지';
+}
+
 function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
     if (!users.length) {
@@ -287,14 +310,12 @@ function renderUsers(users) {
             <td>${escHtml(u.userId || '-')}</td>
             <td>${escHtml(u.region || '-')}</td>
             <td>${u.createdAt ? u.createdAt.slice(0, 10) : '-'}</td>
-            <td>${u.suspended
-                ? '<span class="admin-status suspended">정지</span>'
-                : '<span class="admin-status active">정상</span>'}</td>
+            <td>${suspendedLabel(u)}</td>
             <td>
                 <div class="admin-btn-group">
                     ${u.suspended
                         ? `<button class="admin-btn info"  onclick="toggleUserSuspend('${u.uid}', false)">정지 해제</button>`
-                        : `<button class="admin-btn danger" onclick="toggleUserSuspend('${u.uid}', true)">계정 정지</button>`}
+                        : `<button class="admin-btn danger" onclick="toggleUserSuspend('${u.uid}', true)">${nextPenaltyLabel(u.suspendCount)}</button>`}
                 </div>
             </td>
         </tr>
@@ -302,19 +323,49 @@ function renderUsers(users) {
 }
 
 async function toggleUserSuspend(uid, suspend) {
-    const action = suspend ? '정지' : '정지 해제';
-    if (!confirm(`해당 사용자를 ${action}하시겠습니까?`)) return;
-
-    try {
-        await window.fs.updateDoc(
-            window.fs.doc(window.db, 'users', uid),
-            { suspended: suspend }
-        );
+    if (suspend) {
         const user = allUsers.find(u => u.uid === uid);
-        if (user) user.suspended = suspend;
-        renderUsers(allUsers);
-    } catch (e) {
-        alert('처리 중 오류: ' + e.message);
+        const cnt  = user?.suspendCount || 0;
+        const isPermanent = cnt >= SUSPEND_DURATIONS.length;
+        const days = isPermanent ? null : SUSPEND_DURATIONS[cnt];
+        const label = isPermanent ? '영구 정지' : `${days}일 정지`;
+
+        if (!confirm(`해당 사용자를 ${label}(${cnt + 1}회차)하고 게시물을 모두 삭제하시겠습니까?`)) return;
+
+        const suspendedUntil = isPermanent ? null : new Date(Date.now() + days * 86400 * 1000).toISOString();
+        try {
+            await window.fs.updateDoc(
+                window.fs.doc(window.db, 'users', uid),
+                { suspended: true, suspendedUntil, suspendCount: cnt + 1 }
+            );
+
+            const pSnap = await window.fs.getDocs(
+                window.fs.query(
+                    window.fs.collection(window.db, 'products'),
+                    window.fs.where('sellerUid', '==', uid)
+                )
+            );
+            await Promise.all(pSnap.docs.map(d => window.fs.deleteDoc(d.ref)));
+
+            if (user) { user.suspended = true; user.suspendedUntil = suspendedUntil; user.suspendCount = cnt + 1; }
+            renderUsers(allUsers);
+            alert(`${label} 처리되었고 게시물 ${pSnap.size}개가 삭제되었습니다.`);
+        } catch (e) {
+            alert('처리 중 오류: ' + e.message);
+        }
+    } else {
+        if (!confirm('해당 사용자의 정지를 해제하시겠습니까?')) return;
+        try {
+            await window.fs.updateDoc(
+                window.fs.doc(window.db, 'users', uid),
+                { suspended: false, suspendedUntil: null }
+            );
+            const user = allUsers.find(u => u.uid === uid);
+            if (user) { user.suspended = false; user.suspendedUntil = null; }
+            renderUsers(allUsers);
+        } catch (e) {
+            alert('처리 중 오류: ' + e.message);
+        }
     }
 }
 
