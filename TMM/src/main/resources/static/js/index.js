@@ -192,6 +192,7 @@ function applyAllItemsFilter() {
     const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
     const filtered = allProducts.filter(p => {
+        if (p.status === '숨김') return false;
         const matchRegion   = !region   || p.region.includes(region);
         const matchCategory = !category || p.category === category;
         const matchSearch   = !q || p.title.toLowerCase().includes(q)

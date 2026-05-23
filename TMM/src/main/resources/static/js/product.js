@@ -24,6 +24,10 @@ function loadProduct() {
         }
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
+        if (currentProduct.status === '숨김') {
+            document.getElementById('pdError').style.display = 'flex';
+            return;
+        }
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -357,12 +361,15 @@ async function submitReport() {
             window.fs.query(
                 window.fs.collection(window.db, 'reports'),
                 window.fs.where('reporterUid', '==', user.uid),
+                window.fs.where('targetType',  '==', 'product'),
                 window.fs.where('targetId',    '==', currentProduct.id),
                 window.fs.limit(1)
             )
         );
         if (!dupSnap.empty) {
             msg.textContent = '이미 신고한 상품입니다.';
+            btn.disabled = false;
+            btn.textContent = '신고하기';
             return;
         }
 
