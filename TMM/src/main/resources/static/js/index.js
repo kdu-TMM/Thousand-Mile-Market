@@ -260,16 +260,14 @@ function getSortedProducts(products) {
 
 function applyAllItemsFilter() {
     const region   = getFilterRegion();
-    const category = document.getElementById('filterCategory')?.value || '';
     const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
     const filtered = allProducts.filter(p => {
         if (p.status === '숨김') return false;
-        const matchRegion   = !region   || p.region.includes(region);
-        const matchCategory = !category || p.category === category;
+        const matchRegion   = !region || p.region.includes(region);
         const matchSearch   = !q || p.title.toLowerCase().includes(q)
                                  || (p.description?.toLowerCase().includes(q));
-        return matchRegion && matchCategory && matchSearch;
+        return matchRegion && matchSearch;
     });
 
     filteredProducts = getSortedProducts(filtered);
@@ -349,7 +347,6 @@ function resetFilter() {
     const dongEl = document.getElementById('filterDong');
     dongEl.innerHTML = '<option value="">읍/면/동</option>';
     dongEl.style.display = 'none';
-    document.getElementById('filterCategory').value = '';
     document.getElementById('sortSelect').value = 'latest';
     applyAllItemsFilter();
 }

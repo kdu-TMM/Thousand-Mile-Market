@@ -47,29 +47,6 @@
                         <select class="filter-select" id="filterDong" onchange="applyFilter()" style="display:none">
                             <option value="">읍/면/동</option>
                         </select>
-                        <select class="filter-select" id="filterCategory" onchange="applyFilter()">
-                            <option value="">전체 카테고리</option>
-                            <option>디지털기기</option>
-                            <option>생활가전</option>
-                            <option>가구/인테리어</option>
-                            <option>생활/주방</option>
-                            <option>유아동</option>
-                            <option>유아도서</option>
-                            <option>여성의류</option>
-                            <option>여성잡화</option>
-                            <option>남성패션/잡화</option>
-                            <option>뷰티/미용</option>
-                            <option>스포츠/레저</option>
-                            <option>취미/게임/음반</option>
-                            <option>도서</option>
-                            <option>티켓/교환권</option>
-                            <option>e쿠폰</option>
-                            <option>가공식품</option>
-                            <option>건강기능식품</option>
-                            <option>반려동물용품</option>
-                            <option>식물</option>
-                            <option>기타 중고물품</option>
-                        </select>
                         <button class="filter-reset-btn" onclick="resetFilter()">초기화</button>
                     </div>
                     <div class="filter-right">
@@ -88,16 +65,16 @@
                 </div>
                 <div class="filter-section-tabs">
                     <button class="fsection-tab active" onclick="showSection('all', this)">전체</button>
-                    <button class="fsection-tab" onclick="showSection('popular', this)">🔥 인기 상품</button>
-                    <button class="fsection-tab" onclick="showSection('category', this)">📦 카테고리별 중고 물품</button>
-                    <button class="fsection-tab" onclick="showSection('auction', this)">🔨 경매 진행 중</button>
-                    <button class="fsection-tab" onclick="showSection('all-items', this)">📋 전체 중고 물품</button>
+                    <button class="fsection-tab" onclick="showSection('popular', this)">인기 상품</button>
+                    <button class="fsection-tab" onclick="showSection('category', this)">카테고리별 중고 물품</button>
+                    <button class="fsection-tab" onclick="showSection('auction', this)">경매 진행 중</button>
+                    <button class="fsection-tab" onclick="showSection('all-items', this)">전체 중고 물품</button>
                 </div>
             </div>
 
             <!-- ===== 인기 상품 ===== -->
             <section class="product-section" id="section-popular">
-                <h2 class="product-section-title">🔥 인기 상품</h2>
+                <h2 class="product-section-title">인기 상품</h2>
                 <div class="product-grid">
                     <div class="product-card" onclick="goProduct(1,'아이폰 15 Pro','950,000')">
                         <div class="product-image"><img src="/images/popular/popular-1.jpg" alt="아이폰 15 Pro" onerror="imgError(this)"></div>
@@ -144,7 +121,7 @@
 
             <!-- ===== 카테고리별 중고 물품 ===== -->
             <section class="product-section" id="section-category">
-                <h2 class="product-section-title">📦 카테고리별 중고 물품</h2>
+                <h2 class="product-section-title">카테고리별 중고 물품</h2>
                 <div class="category-tab-bar">
                     <button class="category-tab active" onclick="switchCategory('all', this)">전체</button>
                     <button class="category-tab" onclick="switchCategory('디지털기기', this)">디지털기기</button>
@@ -214,7 +191,7 @@
 
             <!-- ===== 경매 상품 ===== -->
             <section class="product-section" id="section-auction">
-                <h2 class="product-section-title">🔨 경매 진행 중</h2>
+                <h2 class="product-section-title">경매 진행 중</h2>
                 <div class="product-grid" id="auctionGrid">
                     <p id="auctionEmpty" style="display:none; color:#999; padding:16px;">현재 진행 중인 경매가 없습니다.</p>
                 </div>
@@ -222,7 +199,7 @@
 
             <!-- ===== 전체 중고 물품 (무한 스크롤) ===== -->
             <section class="product-section" id="section-all-items">
-                <h2 class="product-section-title">📋 전체 중고 물품</h2>
+                <h2 class="product-section-title">전체 중고 물품</h2>
                 <div class="product-grid" id="mainGrid"></div>
                 <div id="scrollSentinel" style="height:1px;"></div>
                 <div id="loadingSpinner" class="loading-spinner" style="display:none;">
