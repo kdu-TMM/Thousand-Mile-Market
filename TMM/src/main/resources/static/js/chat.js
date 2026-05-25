@@ -205,8 +205,12 @@ function selectRoom(room) {
     if (room.productName) {
         badge.textContent   = room.productName;
         badge.style.display = 'inline-block';
+        badge.style.cursor  = 'pointer';
+        badge.onclick       = () => onProductBadgeClick(room);
     } else {
         badge.style.display = 'none';
+        badge.style.cursor  = '';
+        badge.onclick       = null;
     }
 
     document.getElementById('chatPlaceholder').style.display = 'none';
@@ -526,6 +530,45 @@ async function confirmLeaveRoom() {
     currentRoom   = null;
     document.getElementById('chatContent').style.display     = 'none';
     document.getElementById('chatPlaceholder').style.display = 'flex';
+}
+
+/* ===== 상품 배지 클릭: 삭제/숨김 상품 검사 ===== */
+async function onProductBadgeClick(room) {
+    if (!window.db || !window.fs || !room.productId) return;
+    const { doc, getDoc } = window.fs;
+
+    try {
+        const snap = await getDoc(doc(window.db, 'products', String(room.productId)));
+        const invalid = !snap.exists() || snap.data().status === '숨김';
+
+        if (invalid) {
+            appendSystemMessage('더이상 없는 게시물입니다. 잠시 후 채팅방이 삭제됩니다.');
+            const roomIdToLeave = room.id;
+            setTimeout(() => autoLeaveRoom(roomIdToLeave), 1500);
+        } else {
+            location.href = '/product/' + room.productId;
+        }
+    } catch (e) {
+        location.href = '/product/' + room.productId;
+    }
+}
+
+async function autoLeaveRoom(roomId) {
+    if (!roomId || !window.fs) return;
+    const { doc, updateDoc, arrayRemove } = window.fs;
+    try {
+        await updateDoc(doc(window.db, 'chatRooms', roomId), {
+            participants: arrayRemove(myUid)
+        });
+    } catch (e) {}
+
+    if (msgsUnsub) { msgsUnsub(); msgsUnsub = null; }
+    if (currentRoomId === roomId) {
+        currentRoomId = null;
+        currentRoom   = null;
+        document.getElementById('chatContent').style.display     = 'none';
+        document.getElementById('chatPlaceholder').style.display = 'flex';
+    }
 }
 
 /* ===== 유틸 ===== */
