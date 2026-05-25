@@ -125,9 +125,9 @@
     padding: 2px 8px;
     border-radius: 3px;
     margin-bottom: 4px;
-    background: #e8f4ff; color: #007bff;
+    background: #fce4ec; color: #c62828;
 }
-.auction-badge-label.bidding { background: #fff1e6; color: #e65d0d; }
+.auction-badge-label.bidding { background: #fce4ec; color: #c62828; }
 
 .product-price.start-price { color: #007bff; font-weight: 800; font-size: 17px; }
 .product-price.start-price::after { content: '원'; font-size: 14px; margin-left: 2px; }

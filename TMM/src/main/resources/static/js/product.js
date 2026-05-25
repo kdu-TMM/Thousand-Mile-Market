@@ -116,8 +116,9 @@ function renderProduct(p) {
     document.getElementById('pdTitle').textContent = p.title;
 
     const badge = document.getElementById('pdStatusBadge');
-    const badgeMap = { '판매중': 'on', '예약중': 'reserved', '경매중': 'auction', '판매완료': 'done' };
-    badge.textContent = p.status;
+    const badgeMap  = { '판매중': 'on', '예약중': 'reserved', '경매중': 'auction', '판매완료': 'done' };
+    const labelMap  = { '판매중': '판매 중', '예약중': '예약 중', '경매중': '경매 중', '판매완료': '판매 완료' };
+    badge.textContent = labelMap[p.status] || p.status;
     badge.className   = 'pd-status-badge ' + (badgeMap[p.status] || 'done');
 
     const tradeEl = document.getElementById('pdTradeComplete');

@@ -80,7 +80,7 @@ function createAuctionCard(p) {
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
 
     const bidLabel  = hasBids ? `${p.bidCount}명 입찰 중` : '0명 입찰';
-    const badgeText = hasBids ? '입찰 중' : '시작가';
+    const badgeText = '경매 중';
     const price     = p.currentPrice ?? p.startPrice ?? 0;
     const priceClass = hasBids ? 'bid-price' : 'start-price';
 
