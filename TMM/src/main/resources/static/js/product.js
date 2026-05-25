@@ -19,15 +19,11 @@ function loadProduct() {
     ])
     .then(([docSnap, snapshot]) => {
         if (!docSnap.exists()) {
-            document.getElementById('pdError').style.display = 'flex';
+            alert('삭제되었거나 없는 상품입니다.'); history.back();
             return;
         }
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
-        if (currentProduct.status === '숨김') {
-            document.getElementById('pdError').style.display = 'flex';
-            return;
-        }
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -48,7 +44,7 @@ function loadProduct() {
             .then(r => r.json())
             .then(data => {
                 allProducts    = data;
-                currentProduct = data.find(p => String(p.id) === productId);
+                currentProduct = data.find(p => p.id === productId);
                 if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
