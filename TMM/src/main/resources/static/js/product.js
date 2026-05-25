@@ -25,7 +25,7 @@ function loadProduct() {
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
         if (currentProduct.status === '숨김') {
-            alert('삭제되었거나 없는 상품입니다.'); history.back();
+            document.getElementById('pdError').style.display = 'flex';
             return;
         }
         renderProduct(currentProduct);
@@ -49,7 +49,7 @@ function loadProduct() {
             .then(data => {
                 allProducts    = data;
                 currentProduct = data.find(p => String(p.id) === productId);
-                if (!currentProduct) { alert('삭제되었거나 없는 상품입니다.'); history.back(); return; }
+                if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
                 const priceStr = currentProduct.type === 'auction'

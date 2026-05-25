@@ -42,7 +42,8 @@ async function doLogin() {
         const internalEmail = userId.toLowerCase() + '@tmm.app';
         const cred = await window.authFuncs.signInWithEmailAndPassword(window.auth, internalEmail, pw);
 
-        /* 정지 여부 확인 */
+        /* 정지 여부 + 관리자 여부 확인 (getDoc 1회) */
+        let isAdmin = false;
         if (window.fs && window.db) {
             const userDoc = await window.fs.getDoc(window.fs.doc(window.db, 'users', cred.user.uid));
             if (userDoc.exists()) {
@@ -67,6 +68,7 @@ async function doLogin() {
                         { suspended: false, suspendedUntil: null }
                     );
                 }
+                isAdmin = data.isAdmin === true;
             }
         }
 
@@ -80,6 +82,9 @@ async function doLogin() {
             })
         });
         closeLoginModal();
+
+        /* 관리자 → /admin, 일반 사용자 → / */
+        location.href = isAdmin ? '/admin' : '/';
     } catch (e) {
         const errorMap = {
             'auth/user-not-found':     '존재하지 않는 아이디입니다.',
@@ -99,27 +104,53 @@ async function doLogout() {
     fetch('/api/auth/session', { method: 'DELETE' });
 }
 
-function updateAuthUI(user) {
-    const bar = document.getElementById('utilityBar');
+function updateAuthUI(user, isAdmin = false) {
+    const bar  = document.getElementById('utilityBar');
+    const menu = document.getElementById('headerMenu');
     if (!bar) return;
+
     if (user) {
         const name = user.displayName || user.email.split('@')[0];
-        bar.innerHTML =
-            `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
-            `<span class="utility-divider">|</span>` +
-            `<button onclick="location.href='/mypage'">마이페이지</button>` +
-            `<span class="utility-divider">|</span>` +
-            `<button onclick="doLogout()">로그아웃</button>`;
+        if (isAdmin) {
+            /* 관리자: 마이페이지 숨김, 헤더 메뉴 숨김 */
+            bar.innerHTML =
+                `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="doLogout()">로그아웃</button>`;
+            if (menu) menu.style.visibility = 'hidden';
+        } else {
+            /* 일반 사용자 */
+            bar.innerHTML =
+                `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="location.href='/mypage'">마이페이지</button>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="doLogout()">로그아웃</button>`;
+            if (menu) menu.style.visibility = '';
+        }
     } else {
         bar.innerHTML =
             `<button onclick="openLoginModal()">로그인</button>` +
             `<span class="utility-divider">|</span>` +
             `<button onclick="location.href='/signup'">회원가입</button>`;
+        if (menu) menu.style.visibility = '';
     }
 }
 
 function initAuthListener() {
-    window.authFuncs.onAuthStateChanged(window.auth, updateAuthUI);
+    window.authFuncs.onAuthStateChanged(window.auth, async (user) => {
+        if (user && window.fs && window.db) {
+            try {
+                const snap = await window.fs.getDoc(window.fs.doc(window.db, 'users', user.uid));
+                const isAdmin = snap.exists() && snap.data().isAdmin === true;
+                updateAuthUI(user, isAdmin);
+            } catch (e) {
+                updateAuthUI(user, false);
+            }
+        } else {
+            updateAuthUI(user, false);
+        }
+    });
 }
 
 if (window.auth && window.authFuncs) initAuthListener();

@@ -293,9 +293,9 @@
     cursor: pointer; transition: opacity 0.15s;
 }
 .admin-action-btn:hover { opacity: 0.85; }
-.admin-action-btn.resolve { background: #43a047; color: #fff; }
-.admin-action-btn.reject  { background: #e53935; color: #fff; }
-.admin-action-btn.reopen  { background: #fb8c00; color: #fff; }
+.admin-action-btn.hide-btn   { background: #e53935; color: #fff; }
+.admin-action-btn.reject     { background: #fb8c00; color: #fff; }
+.admin-action-btn.delete-btn { background: #b71c1c; color: #fff; }
 
 .admin-note-input {
     width: 100%; margin-top: 12px;
