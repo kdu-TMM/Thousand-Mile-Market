@@ -28,7 +28,9 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 
 .header-top {
     max-width: 1024px; margin: 0 auto;
-    display: flex; align-items: center; justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     padding: 25px 0;
 }
 .logo { font-size: 28px; font-weight: 800; color: #007bff; cursor: pointer; letter-spacing: -1px; }
@@ -49,7 +51,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 }
 .search-button:hover { background: #0056b3; }
 
-.header-menu { display: flex; align-items: center; gap: 20px; }
+.header-menu { display: flex; align-items: center; gap: 20px; justify-self: end; }
 .header-menu > button { background: none; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
 .header-menu > button:hover { color: #007bff; }
 .menu-divider { color: #ddd; }

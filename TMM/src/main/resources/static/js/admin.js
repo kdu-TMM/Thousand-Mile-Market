@@ -2,7 +2,7 @@
 let allReports   = [];
 let allUsers     = [];
 let allProducts  = [];
-let currentReportFilter  = 'all';
+let currentReportFilter  = '검토중';
 let currentProductFilter = 'all';
 let activeReportId = null;
 
@@ -30,7 +30,7 @@ async function checkAdminAccess() {
             return;
         }
         showAdmin();
-        loadDashboard();
+        loadReports();
     } catch (e) {
         console.error('관리자 확인 실패:', e);
         showGuard();
@@ -61,79 +61,51 @@ function switchAdminTab(tab, btn) {
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
-/* ===== 대시보드 ===== */
-async function loadDashboard() {
-    try {
-        const [usersSnap, productsSnap, reportsSnap] = await Promise.all([
-            window.fs.getDocs(window.fs.collection(window.db, 'users')),
-            window.fs.getDocs(window.fs.collection(window.db, 'products')),
-            window.fs.getDocs(window.fs.collection(window.db, 'reports'))
-        ]);
-
-        const reports      = reportsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        allReports = reports.sort((a, b) => tsMillis(b.createdAt) - tsMillis(a.createdAt));
-        const pendingCount = reports.filter(r => r.status === '검토중').length;
-        const doneCount    = reports.filter(r => r.status === '처리완료').length;
-
-        setText('statUsers',          usersSnap.size);
-        setText('statProducts',       productsSnap.size);
-        setText('statReportsPending', pendingCount);
-        setText('statReportsDone',    doneCount);
-
-        /* 사이드바 뱃지 */
-        const badge = document.getElementById('navBadgeReports');
-        if (pendingCount > 0) badge.textContent = pendingCount;
-
-        /* 최근 미처리 신고 */
-        const recent = reports
-            .filter(r => r.status === '검토중')
-            .sort((a, b) => tsMillis(b.createdAt) - tsMillis(a.createdAt))
-            .slice(0, 5);
-        renderDashRecentReports(recent);
-
-    } catch (e) {
-        console.error('대시보드 로드 실패:', e);
-    }
-}
-
-function renderDashRecentReports(items) {
-    const container = document.getElementById('dashRecentReports');
-    if (!items.length) {
-        container.innerHTML = '<p class="admin-empty">미처리 신고가 없습니다.</p>';
-        return;
-    }
-    container.innerHTML = items.map(r => `
-        <div class="admin-recent-item" onclick="openReportModal('${r.id}')">
-            <div class="admin-recent-meta">
-                <div class="admin-recent-title">[${escHtml(r.targetType || '')}] ${escHtml(r.targetTitle || r.targetId || '')}</div>
-                <div class="admin-recent-sub">사유: ${escHtml(r.reason || '-')} · 신고자: ${escHtml(r.reporterNickname || '-')}</div>
-            </div>
-            <span class="admin-recent-time">${formatDate(r.createdAt)}</span>
-        </div>
-    `).join('');
-}
-
 /* ===== 신고 관리 ===== */
 async function loadReports() {
     const tbody = document.getElementById('reportTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">불러오는 중...</td></tr>';
 
     try {
-        const snap = await window.fs.getDocs(
-            window.fs.query(
-                window.fs.collection(window.db, 'reports'),
-                window.fs.orderBy('createdAt', 'desc')
-            )
-        ).catch(() =>
-            /* 인덱스 없을 시 정렬 없이 폴백 */
-            window.fs.getDocs(window.fs.collection(window.db, 'reports'))
-        );
+        const [reportSnap, productSnap] = await Promise.all([
+            window.fs.getDocs(
+                window.fs.query(
+                    window.fs.collection(window.db, 'reports'),
+                    window.fs.orderBy('createdAt', 'desc')
+                )
+            ).catch(() =>
+                window.fs.getDocs(window.fs.collection(window.db, 'reports'))
+            ),
+            window.fs.getDocs(window.fs.collection(window.db, 'products'))
+        ]);
 
-        allReports = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        /* 상품 ID → 작성자 닉네임 맵 */
+        const productAuthorMap = {};
+        productSnap.docs.forEach(d => {
+            const p = d.data();
+            productAuthorMap[String(d.id)] = p.sellerNickname || p.sellerUid || '-';
+        });
+
+        allReports = reportSnap.docs
+            .map(d => {
+                const r = { id: d.id, ...d.data() };
+                if (r.targetType === 'product') {
+                    r.targetAuthor = productAuthorMap[String(r.targetId)] || '-';
+                } else {
+                    r.targetAuthor = '-';
+                }
+                return r;
+            })
             .sort((a, b) => tsMillis(b.createdAt) - tsMillis(a.createdAt));
+
+        /* 사이드바 뱃지 업데이트 */
+        const pendingCount = allReports.filter(r => r.status === '검토중').length;
+        const badge = document.getElementById('navBadgeReports');
+        if (badge) badge.textContent = pendingCount > 0 ? pendingCount : '';
+
         renderReports();
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오기 실패</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">불러오기 실패</td></tr>';
     }
 }
 
@@ -146,19 +118,18 @@ function filterReports(status, btn) {
 
 function renderReports() {
     const tbody = document.getElementById('reportTableBody');
-    const items = currentReportFilter === 'all'
-        ? allReports
-        : allReports.filter(r => r.status === currentReportFilter);
+    const items = allReports.filter(r => r.status === currentReportFilter);
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">신고가 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">신고가 없습니다.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(r => `
         <tr>
             <td>${typeLabel(r.targetType)}</td>
-            <td class="admin-ellipsis" style="max-width:140px;">${escHtml(r.targetTitle || r.targetId || '-')}</td>
+            <td class="admin-ellipsis" style="max-width:130px;">${escHtml(r.targetTitle || r.targetId || '-')}</td>
+            <td>${escHtml(r.targetAuthor || '-')}</td>
             <td>${escHtml(r.reason || '-')}</td>
             <td>${escHtml(r.reporterNickname || '-')}</td>
             <td>${formatDate(r.createdAt)}</td>
@@ -180,6 +151,7 @@ function openReportModal(reportId) {
     body.innerHTML = `
         <div class="admin-detail-row"><span class="admin-detail-label">신고 유형</span><span class="admin-detail-value">${typeLabel(report.targetType)}</span></div>
         <div class="admin-detail-row"><span class="admin-detail-label">신고 대상</span><span class="admin-detail-value">${escHtml(report.targetTitle || report.targetId || '-')}</span></div>
+        <div class="admin-detail-row"><span class="admin-detail-label">작성자</span><span class="admin-detail-value">${escHtml(report.targetAuthor || '-')}</span></div>
         <div class="admin-detail-row"><span class="admin-detail-label">신고 사유</span><span class="admin-detail-value">${escHtml(report.reason || '-')}</span></div>
         <div class="admin-detail-row"><span class="admin-detail-label">상세 내용</span><span class="admin-detail-value">${escHtml(report.detail || '-')}</span></div>
         <div class="admin-detail-row"><span class="admin-detail-label">신고자</span><span class="admin-detail-value">${escHtml(report.reporterNickname || '-')}</span></div>
@@ -188,6 +160,20 @@ function openReportModal(reportId) {
         ${report.adminNote ? `<div class="admin-detail-row"><span class="admin-detail-label">관리자 메모</span><span class="admin-detail-value">${escHtml(report.adminNote)}</span></div>` : ''}
     `;
     document.getElementById('reportAdminNote').value = report.adminNote || '';
+
+    /* 상태에 따라 버튼 동적 변경 */
+    const actions = document.querySelector('.admin-modal-actions');
+    if (report.status === '숨김') {
+        actions.innerHTML = `
+            <button class="admin-action-btn delete-btn" onclick="deleteReportedProduct()">게시물 삭제</button>
+        `;
+    } else {
+        actions.innerHTML = `
+            <button class="admin-action-btn hide-btn" onclick="updateReportStatus('숨김')">숨김</button>
+            <button class="admin-action-btn reject" onclick="updateReportStatus('반려')">반려</button>
+        `;
+    }
+
     document.getElementById('reportDetailModal').style.display = 'flex';
 }
 
@@ -208,8 +194,8 @@ async function updateReportStatus(newStatus) {
             { status: newStatus, adminNote: note, resolvedAt: new Date().toISOString() }
         );
 
-        /* 처리완료 + 상품 신고인 경우 게시물 숨김 처리 */
-        if (newStatus === '처리완료' && report?.targetType === 'product' && report?.targetId) {
+        /* 숨김 + 상품 신고인 경우 게시물 숨김 처리 */
+        if (newStatus === '숨김' && report?.targetType === 'product' && report?.targetId) {
             await window.fs.updateDoc(
                 window.fs.doc(window.db, 'products', String(report.targetId)),
                 { status: '숨김' }
@@ -226,40 +212,80 @@ async function updateReportStatus(newStatus) {
 
         document.getElementById('reportDetailModal').style.display = 'none';
         activeReportId = null;
+        /* 사이드바 뱃지 업데이트 */
+        const pendingCount = allReports.filter(r => r.status === '검토중').length;
+        const badge = document.getElementById('navBadgeReports');
+        badge.textContent = pendingCount > 0 ? pendingCount : '';
+
         renderReports();
-        refreshDashboardReports();
     } catch (e) {
         alert('처리 중 오류가 발생했습니다: ' + e.message);
     }
 }
 
-function refreshDashboardReports() {
-    const pendingCount = allReports.filter(r => r.status === '검토중').length;
-    const doneCount    = allReports.filter(r => r.status === '처리완료').length;
+/* ===== 신고된 게시물 삭제 ===== */
+async function deleteReportedProduct() {
+    if (!activeReportId) return;
+    const report = allReports.find(r => r.id === activeReportId);
+    if (!report?.targetId) return alert('삭제할 게시물 정보를 찾을 수 없습니다.');
+    if (!confirm('해당 게시물을 완전히 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
 
-    setText('statReportsPending', pendingCount);
-    setText('statReportsDone',    doneCount);
+    try {
+        /* Firestore에서 상품 삭제 */
+        await window.fs.deleteDoc(window.fs.doc(window.db, 'products', String(report.targetId)));
 
-    const badge = document.getElementById('navBadgeReports');
-    badge.textContent = pendingCount > 0 ? pendingCount : '';
+        /* 로컬 캐시에서 제거 */
+        const pIdx = allProducts.findIndex(p => String(p.id) === String(report.targetId));
+        if (pIdx !== -1) allProducts.splice(pIdx, 1);
 
-    const recent = allReports
-        .filter(r => r.status === '검토중')
-        .slice(0, 5);
-    renderDashRecentReports(recent);
+        /* 신고 상태를 '처리완료'로 갱신 */
+        await window.fs.updateDoc(
+            window.fs.doc(window.db, 'reports', activeReportId),
+            { status: '처리완료', resolvedAt: new Date().toISOString() }
+        );
+        const rIdx = allReports.findIndex(r => r.id === activeReportId);
+        if (rIdx !== -1) allReports[rIdx].status = '처리완료';
+
+        document.getElementById('reportDetailModal').style.display = 'none';
+        activeReportId = null;
+
+        const pendingCount = allReports.filter(r => r.status === '검토중').length;
+        const badge = document.getElementById('navBadgeReports');
+        badge.textContent = pendingCount > 0 ? pendingCount : '';
+
+        renderReports();
+        alert('게시물이 삭제되었습니다.');
+    } catch (e) {
+        alert('삭제 중 오류가 발생했습니다: ' + e.message);
+    }
 }
 
 /* ===== 사용자 관리 ===== */
 async function loadUsers() {
     const tbody = document.getElementById('userTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">불러오는 중...</td></tr>';
 
     try {
-        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        allUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(u => !u.isAdmin);
+        const [usersSnap, productsSnap] = await Promise.all([
+            window.fs.getDocs(window.fs.collection(window.db, 'users')),
+            window.fs.getDocs(window.fs.collection(window.db, 'products'))
+        ]);
+
+        /* 사용자별 숨김 게시물 수 집계 */
+        const hiddenCountMap = {};
+        productsSnap.docs.forEach(d => {
+            const p = d.data();
+            if (p.status === '숨김' && p.sellerUid) {
+                hiddenCountMap[p.sellerUid] = (hiddenCountMap[p.sellerUid] || 0) + 1;
+            }
+        });
+
+        allUsers = usersSnap.docs
+            .map(d => ({ uid: d.id, ...d.data(), hiddenCount: hiddenCountMap[d.id] || 0 }))
+            .filter(u => !u.isAdmin);
         renderUsers(allUsers);
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오기 실패</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">불러오기 실패</td></tr>';
     }
 }
 
@@ -301,6 +327,7 @@ function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
     if (!users.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">사용자가 없습니다.</td></tr>';
+
         return;
     }
 
@@ -308,7 +335,9 @@ function renderUsers(users) {
         <tr>
             <td><b>${escHtml(u.nickname || '-')}</b></td>
             <td>${escHtml(u.userId || '-')}</td>
-            <td>${escHtml(u.region || '-')}</td>
+            <td>${u.hiddenCount > 0
+                ? `<span style="color:#e53935;font-weight:600;">${u.hiddenCount}건</span>`
+                : '<span style="color:#aaa;">0건</span>'}</td>
             <td>${u.createdAt ? u.createdAt.slice(0, 10) : '-'}</td>
             <td>${suspendedLabel(u)}</td>
             <td>
@@ -487,6 +516,6 @@ function typeLabel(type) {
 }
 
 function statusBadge(status) {
-    const map = { '검토중': 'pending', '처리완료': 'resolved', '반려': 'rejected' };
+    const map = { '검토중': 'pending', '처리완료': 'resolved', '숨김': 'resolved', '반려': 'rejected' };
     return `<span class="admin-status ${map[status] || ''}">${status || '-'}</span>`;
 }
