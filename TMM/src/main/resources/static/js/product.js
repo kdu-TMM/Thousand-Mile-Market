@@ -240,69 +240,83 @@ function closeBidModal(e) {
 }
 
 async function submitBid() {
-    const input   = document.getElementById('bidAmountInput');
-    const msgEl   = document.getElementById('bidMsg');
-    const bidBtn  = document.querySelector('.bid-submit-btn');
-    const amount  = parseInt(input.value);
-    const min     = minBidAmount(currentProduct);
+    const input  = document.getElementById('bidAmountInput');
+    const msgEl  = document.getElementById('bidMsg');
+    const bidBtn = document.querySelector('.bid-submit-btn');
+    const amount = parseInt(input.value);
+    const min    = minBidAmount(currentProduct);
 
     msgEl.className = 'bid-msg';
-    if (!amount || isNaN(amount))          { msgEl.textContent = '금액을 입력해 주세요.'; return; }
-    if (amount < min)                      { msgEl.textContent = `최소 입찰가는 ${min.toLocaleString()}원입니다.`; return; }
+    if (!amount || isNaN(amount))                { msgEl.textContent = '금액을 입력해 주세요.'; return; }
+    if (amount < min)                            { msgEl.textContent = `최소 입찰가는 ${min.toLocaleString()}원입니다.`; return; }
     if (!window.db || !window.auth?.currentUser) { msgEl.textContent = '로그인이 필요합니다.'; return; }
 
     const user = window.auth.currentUser;
-    bidBtn.disabled = true;
+    bidBtn.disabled    = true;
     bidBtn.textContent = '입찰 중...';
 
+    const ref = window.fs.doc(window.db, 'products', String(productId));
+
     try {
-        const ref  = window.fs.doc(window.db, 'products', String(productId));
-        const snap = await window.fs.getDoc(ref);
-        if (!snap.exists()) throw new Error('상품을 찾을 수 없습니다.');
+        // ── Firestore 트랜잭션: 읽기 → 검증 → 쓰기를 원자적으로 처리 ──
+        // 트랜잭션 내부에서 동시 입찰이 들어오면 Firestore가 자동으로
+        // 충돌을 감지하고 재시도(최대 5회)하므로 경쟁 조건이 없습니다.
+        let newBidCount = 0;
 
-        const data    = snap.data();
-        const freshMin = Math.ceil((data.currentPrice ?? data.startPrice ?? 0) * 1.1);
-        // 동시성 방어: 서버 최신 최소입찰가 재확인
-        if (amount < freshMin) {
-            // 서버값으로 모달 갱신 후 재입력 유도
-            currentProduct.currentPrice = data.currentPrice ?? data.startPrice ?? 0;
-            document.getElementById('bidCurrentDisplay').textContent = currentProduct.currentPrice.toLocaleString();
-            document.getElementById('bidMinDisplay').textContent     = freshMin.toLocaleString();
-            input.min   = freshMin;
-            input.value = freshMin;
-            msgEl.textContent = '방금 더 높은 입찰이 들어왔습니다. 금액을 확인해 주세요.';
-            bidBtn.disabled = false;
-            bidBtn.textContent = '입찰하기';
-            return;
-        }
+        await window.fs.runTransaction(window.db, async (transaction) => {
+            const snap = await transaction.get(ref);
+            if (!snap.exists()) throw new Error('상품을 찾을 수 없습니다.');
 
-        await window.fs.updateDoc(ref, {
-            currentPrice:    amount,
-            bidCount:        (data.bidCount || 0) + 1,
-            currentWinnerId: user.uid,
-            currentWinnerName: user.displayName || ''
+            const data     = snap.data();
+            const freshMin = Math.ceil((data.currentPrice ?? data.startPrice ?? 0) * 1.1);
+
+            if (amount < freshMin) {
+                // 트랜잭션 내부에서 검증 실패 → 별도 식별용 객체로 throw
+                const err = new Error('OUTBID');
+                err.freshPrice = data.currentPrice ?? data.startPrice ?? 0;
+                err.freshMin   = freshMin;
+                throw err;
+            }
+
+            newBidCount = (data.bidCount || 0) + 1;
+            transaction.update(ref, {
+                currentPrice:     amount,
+                bidCount:         newBidCount,
+                currentWinnerId:  user.uid,
+                currentWinnerName: user.displayName || ''
+            });
         });
 
-        // 로컬 캐시 갱신
+        // 트랜잭션 성공 → 로컬 캐시 갱신 후 UI 업데이트
         currentProduct.currentPrice    = amount;
-        currentProduct.bidCount        = (currentProduct.bidCount || 0) + 1;
+        currentProduct.bidCount        = newBidCount;
         currentProduct.currentWinnerId = user.uid;
 
         document.getElementById('pdCurrentPrice').textContent = amount.toLocaleString() + '원';
-        document.getElementById('pdBidCount').textContent     = currentProduct.bidCount + '명';
+        document.getElementById('pdBidCount').textContent     = newBidCount + '명';
         document.getElementById('pdPrice').textContent        = amount.toLocaleString();
 
-        msgEl.className = 'bid-msg ok';
+        msgEl.className   = 'bid-msg ok';
         msgEl.textContent = '입찰 성공!';
         setTimeout(() => {
             document.getElementById('bidModal').style.display = 'none';
-            updateActionButton(currentProduct); // 버튼을 "입찰 중(비활성화)"으로 갱신
+            updateActionButton(currentProduct);
         }, 900);
 
     } catch (e) {
-        msgEl.textContent = '오류: ' + e.message;
+        if (e.message === 'OUTBID') {
+            // 트랜잭션 내부에서 잡힌 "더 높은 입찰 선점" 케이스 → 모달 갱신
+            currentProduct.currentPrice = e.freshPrice;
+            document.getElementById('bidCurrentDisplay').textContent = e.freshPrice.toLocaleString();
+            document.getElementById('bidMinDisplay').textContent     = e.freshMin.toLocaleString();
+            input.min   = e.freshMin;
+            input.value = e.freshMin;
+            msgEl.textContent = '방금 더 높은 입찰이 들어왔습니다. 금액을 확인해 주세요.';
+        } else {
+            msgEl.textContent = '오류: ' + e.message;
+        }
     } finally {
-        bidBtn.disabled = false;
+        bidBtn.disabled    = false;
         bidBtn.textContent = '입찰하기';
     }
 }
