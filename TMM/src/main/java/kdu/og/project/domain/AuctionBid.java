@@ -1,87 +1,77 @@
 package kdu.og.project.domain;
 
-import jakarta.persistence.*;
 import kdu.og.project.domain.enums.BidStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 경매 입찰 엔티티
- * 입찰자 식별은 Firebase UID(String) 사용
+ * 입찰 도메인 모델 (Firestore 문서 매핑)
+ * JPA 엔티티 아님 — Firebase Firestore에 저장
  */
-@Entity
-@Table(name = "auction_bids", indexes = {
-    @Index(name = "idx_bid_auction",  columnList = "auction_id"),
-    @Index(name = "idx_bid_bidder",   columnList = "bidder_id"),
-    @Index(name = "idx_bid_status",   columnList = "status"),
-    @Index(name = "idx_bid_time",     columnList = "bid_time"),
-    @Index(name = "idx_bid_ranking",  columnList = "auction_id, bid_amount DESC, bid_time DESC")
-})
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AuctionBid {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "auction_bid_id")
-    private Long id;
-
-    /** 입찰자 Firebase UID */
-    @Column(name = "bidder_id", nullable = false)
-    private String bidderId;
-
-    /** 입찰자 닉네임 (Firestore에서 캐시) */
-    @Column(name = "bidder_name")
-    private String bidderName;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auction_id")
-    private Auction auction;
-
-    @Column(nullable = false)
-    private Long bidAmount;
-
-    @Column(nullable = false)
+    private String        id;           // Firestore document ID
+    private String        auctionId;    // 경매 document ID
+    private String        bidderId;     // Firebase UID
+    private String        bidderName;   // 닉네임 (캐시)
+    private Long          bidAmount;
+    private LocalDateTime bidTime;
     @Builder.Default
-    private LocalDateTime bidTime = LocalDateTime.now();
+    private BidStatus     status = BidStatus.ACTIVE;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private BidStatus status = BidStatus.ACTIVE;
+    /* ===== Firestore 변환 ===== */
 
-    public static AuctionBid of(Auction auction, String uid, String nickname,
-                                Long amount, LocalDateTime time) {
+    public static AuctionBid fromFirestore(String id, Map<String, Object> data) {
+        if (data == null) return null;
         return AuctionBid.builder()
-                .auction(auction)
-                .bidderId(uid)
-                .bidderName(nickname)
-                .bidAmount(amount)
-                .bidTime(time)
-                .status(BidStatus.ACTIVE)
+                .id(id)
+                .auctionId((String) data.get("auctionId"))
+                .bidderId((String) data.get("bidderId"))
+                .bidderName((String) data.get("bidderName"))
+                .bidAmount(toLong(data.get("bidAmount")))
+                .bidTime(toLocalDateTime(data.get("bidTime")))
+                .status(BidStatus.valueOf((String) data.getOrDefault("status", "ACTIVE")))
                 .build();
     }
 
-    public boolean isActive()  { return status == BidStatus.ACTIVE;   }
-    public boolean isOutBid()  { return status == BidStatus.OUTBID;   }
-    public boolean isWinning() { return status == BidStatus.WINNING;  }
-    public boolean isLost()    { return status == BidStatus.LOST;     }
-
-    public void winBid() {
-        if (!isActive()) throw new IllegalStateException("최고가만 낙찰 가능합니다");
-        status = BidStatus.WINNING;
+    public Map<String, Object> toFirestoreMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("auctionId",  auctionId);
+        map.put("bidderId",   bidderId);
+        map.put("bidderName", bidderName);
+        map.put("bidAmount",  bidAmount);
+        map.put("bidTime",    toDate(bidTime));
+        map.put("status",     status.name());
+        return map;
     }
 
-    public void outBid() {
-        if (!isActive()) throw new IllegalStateException("활성화 상태에서만 outbid가 됩니다.");
-        status = BidStatus.OUTBID;
+    /* ===== 변환 헬퍼 ===== */
+
+    private static LocalDateTime toLocalDateTime(Object v) {
+        if (v == null) return null;
+        if (v instanceof Date d) return d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (v instanceof com.google.cloud.Timestamp ts)
+            return ts.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return null;
     }
 
-    public void lostBid() {
-        if (status != BidStatus.OUTBID) throw new IllegalStateException("OUTBID 상태에서만 Lost가 가능합니다");
-        status = BidStatus.LOST;
+    private static Date toDate(LocalDateTime ldt) {
+        return ldt == null ? null : Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    private static Long toLong(Object v) {
+        if (v == null) return 0L;
+        if (v instanceof Long l) return l;
+        if (v instanceof Number n) return n.longValue();
+        return 0L;
     }
 }

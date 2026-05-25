@@ -37,7 +37,7 @@ public class AuctionSseService {
     }
 
     /** 클라이언트 SSE 구독 등록 */
-    public SseEmitter subscribe(Long auctionId) {
+    public SseEmitter subscribe(String auctionId) {
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분
         String id = auctionId + "_" + System.currentTimeMillis();
         emitters.put(id, emitter);
@@ -77,12 +77,12 @@ public class AuctionSseService {
                     : message;
 
             AuctionSseMessage sseMessage = objectMapper.readValue(cleanMessage, AuctionSseMessage.class);
-            String auctionIdStr = String.valueOf(sseMessage.getAuctionId());
+            String auctionId = sseMessage.getAuctionId();
 
-            log.info("SSE 전송: 경매ID={}, 가격={}", sseMessage.getAuctionId(), sseMessage.getCurrentPrice());
+            log.info("SSE 전송: 경매ID={}, 가격={}", auctionId, sseMessage.getCurrentPrice());
 
             emitters.forEach((key, emitter) -> {
-                if (key.startsWith(auctionIdStr + "_")) {
+                if (key.startsWith(auctionId + "_")) {
                     try {
                         emitter.send(SseEmitter.event()
                                 .name("refresh")

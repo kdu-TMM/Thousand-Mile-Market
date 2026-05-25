@@ -20,11 +20,11 @@ import java.util.concurrent.ScheduledFuture;
 @Component
 public class AuctionTaskScheduler {
 
-    private final TaskScheduler   taskScheduler;
-    private final AuctionService  auctionService;
+    private final TaskScheduler  taskScheduler;
+    private final AuctionService auctionService;
 
     /** 종료 예약들을 보관 — 입찰 시 취소 후 재등록 (이연시간 연장 로직) */
-    private final Map<Long, ScheduledFuture<?>> scheduledEndTasks = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> scheduledEndTasks = new ConcurrentHashMap<>();
 
     public AuctionTaskScheduler(
             @Qualifier("auctionScheduler") TaskScheduler taskScheduler,
@@ -34,7 +34,7 @@ public class AuctionTaskScheduler {
     }
 
     /** 경매 시작 시각 예약 */
-    public void scheduleAuctionStart(Long auctionId, LocalDateTime startTime) {
+    public void scheduleAuctionStart(String auctionId, LocalDateTime startTime) {
         Runnable task = () -> {
             log.info("경매 시작 자동 실행! (Auction ID: {})", auctionId);
             auctionService.activateScheduledAuctions(LocalDateTime.now());
@@ -48,7 +48,7 @@ public class AuctionTaskScheduler {
      * 경매 종료 시각 예약
      * 입찰 발생 시 기존 예약을 취소하고 새 시각으로 재등록 (이연시간 연장)
      */
-    public void scheduleAuctionEnd(Long auctionId, LocalDateTime endTime) {
+    public void scheduleAuctionEnd(String auctionId, LocalDateTime endTime) {
         // 기존 예약 취소
         ScheduledFuture<?> existing = scheduledEndTasks.get(auctionId);
         if (existing != null) {

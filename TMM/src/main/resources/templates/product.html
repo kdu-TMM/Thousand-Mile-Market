@@ -103,7 +103,9 @@
                         <i class="fa-regular fa-heart" id="pdWishIcon"></i>
                         <span id="pdWishCount">0</span>
                     </button>
-                    <button id="chatting-btn" onclick="location.href='/chat'">채팅하기</button>
+                    <div id="pdActionArea">
+                        <!-- JS가 경매 상태/유저에 따라 버튼을 채워 넣음 -->
+                    </div>
                 </div>
             </div>
 
@@ -159,6 +161,22 @@
                 <textarea id="reportDetail" class="report-detail-input" placeholder="신고 내용을 입력해 주세요." style="display:none;"></textarea>
                 <div id="reportMsg" class="report-msg"></div>
                 <button class="report-submit-btn" onclick="submitReport()">신고하기</button>
+            </div>
+        </div>
+
+        <!-- 입찰 모달 -->
+        <div id="bidModal" class="bid-modal-overlay" style="display:none;" onclick="closeBidModal(event)">
+            <div class="bid-modal-box">
+                <button class="bid-modal-close" onclick="closeBidModal()">✕</button>
+                <h3 class="bid-modal-title">입찰하기</h3>
+                <p class="bid-modal-current">현재가 <strong id="bidCurrentDisplay">0</strong>원</p>
+                <p class="bid-modal-min">최소 입찰가 <strong id="bidMinDisplay">0</strong>원 이상</p>
+                <div class="bid-input-row">
+                    <input type="number" id="bidAmountInput" class="bid-amount-input" placeholder="입찰 금액">
+                    <span class="bid-unit">원</span>
+                </div>
+                <div id="bidMsg" class="bid-msg"></div>
+                <button class="bid-submit-btn" onclick="submitBid()">입찰하기</button>
             </div>
         </div>
 

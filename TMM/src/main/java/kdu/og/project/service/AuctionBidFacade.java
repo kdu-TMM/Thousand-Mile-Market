@@ -13,20 +13,21 @@ import java.util.List;
 
 /**
  * 경매 입찰 Facade
- * Redis Lua 스크립트로 동시성 제어 후 DB 업데이트
+ * Redis Lua 스크립트로 동시성 제어 후 Firestore 업데이트
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuctionBidFacade {
 
-    private final RedissonClient  redissonClient;
-    private final AuctionService  auctionService;
+    private final RedissonClient redissonClient;
+    private final AuctionService auctionService;
 
     /**
+     * @param auctionId Firestore document ID
      * @return true = 입찰 성공, false = 현재가 이하라 실패
      */
-    public boolean bid(Long auctionId, String uid, String nickname,
+    public boolean bid(String auctionId, String uid, String nickname,
                        Long bidAmount, LocalDateTime bidTime) {
 
         String redisKey = "auction_price:" + auctionId;
@@ -58,7 +59,7 @@ public class AuctionBidFacade {
             return false;
         }
 
-        log.info("Redis 입찰 성공! DB 업데이트 진행 (경매={}, 금액={})", auctionId, bidAmount);
+        log.info("Redis 입찰 성공! Firestore 업데이트 진행 (경매={}, 금액={})", auctionId, bidAmount);
         auctionService.placeBid(auctionId, uid, nickname, bidAmount, bidTime);
         return true;
     }

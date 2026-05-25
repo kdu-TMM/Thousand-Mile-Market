@@ -3,7 +3,7 @@ package kdu.og.project.dto;
 import java.time.LocalDateTime;
 
 public record AuctionStatusResponse(
-        Long          auctionId,
+        String        auctionId,
         Long          currentPrice,
         String        winnerName,
         Boolean       overtimeStarted,

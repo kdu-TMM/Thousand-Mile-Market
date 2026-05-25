@@ -10,16 +10,16 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class OngoingAuctionResponse {
-    private Long              auctionId;
-    private AuctionStatus     status;
-    private Long              currentPrice;
-    private Integer           totalBids;
-    private LocalDateTime     startTime;
-    private LocalDateTime     regularEndTime;
-    private Boolean           overtimeStarted;
-    private LocalDateTime     overtimeEndTime;
-    private Integer           overtimeSeconds;
-    private String            winnerName;
+    private String              auctionId;
+    private AuctionStatus       status;
+    private Long                currentPrice;
+    private Integer             totalBids;
+    private LocalDateTime       startTime;
+    private LocalDateTime       regularEndTime;
+    private Boolean             overtimeStarted;
+    private LocalDateTime       overtimeEndTime;
+    private Integer             overtimeSeconds;
+    private String              winnerName;
     private AuctionItemResponse item;
 
     public static OngoingAuctionResponse from(Auction auction) {
@@ -34,7 +34,7 @@ public class OngoingAuctionResponse {
                 .overtimeEndTime(auction.getOvertimeEndTime())
                 .overtimeSeconds(auction.getOvertimeSeconds())
                 .winnerName(auction.getWinnerName())
-                .item(AuctionItemResponse.from(auction.getAuctionItem()))
+                .item(AuctionItemResponse.from(auction))
                 .build();
     }
 }

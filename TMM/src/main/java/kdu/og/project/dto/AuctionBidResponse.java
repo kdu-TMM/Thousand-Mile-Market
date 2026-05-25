@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class AuctionBidResponse {
-    private Long          id;
-    private String        bidderId;    // Firebase UID
+    private String        id;           // Firestore document ID
+    private String        bidderId;     // Firebase UID
     private String        bidderName;
     private Long          bidAmount;
     private LocalDateTime bidTime;

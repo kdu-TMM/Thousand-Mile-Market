@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 public class AuctionSseMessage {
-    private Long    auctionId;
+    private String  auctionId;     // Firestore document ID
     private String  bidderId;      // Firebase UID
     private String  bidderName;    // 닉네임
     private Long    currentPrice;

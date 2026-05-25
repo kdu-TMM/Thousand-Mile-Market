@@ -1,144 +1,122 @@
 package kdu.og.project.domain;
 
-import jakarta.persistence.*;
 import kdu.og.project.domain.enums.AuctionStatus;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 경매 엔티티
- * 입찰자/낙찰자는 Firebase UID(String)로 참조 — User JPA 엔티티 없음
+ * 경매 도메인 모델 (Firestore 문서 매핑)
+ * JPA 엔티티 아님 — Firebase Firestore에 저장
  */
-@Entity
-@Table(name = "auctions", indexes = {
-    @Index(name = "idx_auction_status",     columnList = "status"),
-    @Index(name = "idx_auction_start_time", columnList = "start_time"),
-    @Index(name = "idx_auction_end_time",   columnList = "regular_end_time")
-})
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Auction {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "auction_id")
-    private Long id;
+    private String id; // Firestore document ID
 
-    /** 현재가 (항상 0P 부터 시작, 1P 단위로 입찰 가능) */
-    @Column(nullable = false)
-    @Builder.Default
-    private Long currentPrice = 0L;
+    @Builder.Default private Long         currentPrice   = 0L;
+    private String         currentBidId;  // 현재 최고 입찰의 Firestore document ID
+    private LocalDateTime  startTime;
+    private LocalDateTime  regularEndTime;
+    @Builder.Default private Boolean      overtimeStarted = false;
+    private LocalDateTime  overtimeEndTime;
+    @Builder.Default private Integer      overtimeSeconds = 30;
+    @Builder.Default private AuctionStatus status         = AuctionStatus.SCHEDULED;
+    private String         winnerId;      // Firebase UID
+    private String         winnerName;    // 닉네임 (캐시)
+    @Builder.Default private Integer      totalBids       = 0;
 
-    @Column(name = "start_time", nullable = false)
-    private LocalDateTime startTime;
+    // 경매 물품 정보 (Firestore에 임베드)
+    private String itemName;
+    private String itemDescription;
+    private String itemImage;
 
-    /** 정규 종료 시간 */
-    @Column(name = "regular_end_time", nullable = false)
-    private LocalDateTime regularEndTime;
+    /* ===== Firestore 변환 ===== */
 
-    /** 이연시간 시작 여부 */
-    @Column(name = "over_time_started", nullable = false)
-    @Builder.Default
-    private Boolean overtimeStarted = false;
+    public static Auction fromFirestore(String id, Map<String, Object> data) {
+        if (data == null) return null;
+        String statusStr = (String) data.getOrDefault("status", "SCHEDULED");
+        return Auction.builder()
+                .id(id)
+                .currentPrice(toLong(data.get("currentPrice"), 0L))
+                .currentBidId((String) data.get("currentBidId"))
+                .startTime(toLocalDateTime(data.get("startTime")))
+                .regularEndTime(toLocalDateTime(data.get("regularEndTime")))
+                .overtimeStarted(toBoolean(data.get("overtimeStarted"), false))
+                .overtimeEndTime(toLocalDateTime(data.get("overtimeEndTime")))
+                .overtimeSeconds(toInteger(data.get("overtimeSeconds"), 30))
+                .status(AuctionStatus.valueOf(statusStr))
+                .winnerId((String) data.get("winnerId"))
+                .winnerName((String) data.get("winnerName"))
+                .totalBids(toInteger(data.get("totalBids"), 0))
+                .itemName((String) data.get("itemName"))
+                .itemDescription((String) data.get("itemDescription"))
+                .itemImage((String) data.get("itemImage"))
+                .build();
+    }
 
-    /** 이연시간 종료 시각 (입찰마다 리셋) */
-    @Column(name = "over_time_end_time")
-    private LocalDateTime overtimeEndTime;
+    public Map<String, Object> toFirestoreMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("currentPrice",    currentPrice);
+        map.put("currentBidId",    currentBidId);
+        map.put("startTime",       toDate(startTime));
+        map.put("regularEndTime",  toDate(regularEndTime));
+        map.put("overtimeStarted", overtimeStarted);
+        map.put("overtimeEndTime", toDate(overtimeEndTime));
+        map.put("overtimeSeconds", overtimeSeconds);
+        map.put("status",          status.name());
+        map.put("winnerId",        winnerId);
+        map.put("winnerName",      winnerName);
+        map.put("totalBids",       totalBids);
+        map.put("itemName",        itemName);
+        map.put("itemDescription", itemDescription);
+        map.put("itemImage",       itemImage);
+        return map;
+    }
 
-    /** 이연시간 (초) - 기본 30초 */
-    @Column(name = "over_time_seconds", nullable = false)
-    @Builder.Default
-    private Integer overtimeSeconds = 30;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private AuctionStatus status = AuctionStatus.SCHEDULED;
-
-    /** 낙찰자 Firebase UID */
-    @Column(name = "winner_id")
-    private String winnerId;
-
-    /** 낙찰자 닉네임 (Firestore에서 캐시) */
-    @Column(name = "winner_name")
-    private String winnerName;
-
-    @Column(name = "winning_bid")
-    private Long winningBid;
-
-    @Column(name = "total_bids", nullable = false)
-    @Builder.Default
-    private Integer totalBids = 0;
-
-    @OneToOne(mappedBy = "auction", fetch = FetchType.LAZY)
-    private AuctionItem auctionItem;
-
-    /* ===== 상태 확인 헬퍼 ===== */
+    /* ===== 상태 확인 ===== */
 
     public boolean isScheduled() { return status == AuctionStatus.SCHEDULED; }
     public boolean isActive()    { return status == AuctionStatus.ACTIVE;    }
     public boolean isEnded()     { return status == AuctionStatus.ENDED;     }
-    public boolean isCancelled() { return status == AuctionStatus.CANCELLED; }
 
-    /* ===== 상태 전환 ===== */
+    /* ===== 도메인 로직 ===== */
 
     public void activate(LocalDateTime now) {
-        if (!isScheduled())
-            throw new IllegalStateException("Scheduled 상태에서만 활성화가 가능합니다");
-        if (now.isBefore(startTime))
-            throw new IllegalStateException("시작시간 전에는 활성화할 수 없습니다.");
-        if (now.isAfter(regularEndTime))
-            throw new IllegalStateException("정규 종료 시간이 지난 경매는 활성화할 수 없습니다.");
+        if (!isScheduled()) throw new IllegalStateException("Scheduled 상태에서만 활성화 가능합니다");
+        if (now.isBefore(startTime)) throw new IllegalStateException("시작 시간 전입니다");
+        if (now.isAfter(regularEndTime)) throw new IllegalStateException("종료 시간이 지났습니다");
         this.status = AuctionStatus.ACTIVE;
     }
 
-    public void deactivate(List<AuctionBid> bids) {
-        if (!isActive())
-            throw new IllegalStateException("Active 상태에서만 종료할 수 있습니다");
-        for (AuctionBid bid : bids) {
-            if (bid.isActive())  bid.winBid();
-            else if (bid.isOutBid()) bid.lostBid();
-        }
+    public void close() {
+        if (!isActive()) throw new IllegalStateException("Active 상태에서만 종료 가능합니다");
         this.overtimeStarted = false;
         this.status = AuctionStatus.ENDED;
     }
 
-    public void cancel() { this.status = AuctionStatus.CANCELLED; }
-
-    /* ===== 입찰 검증 ===== */
-
     public void validateBid(Long bidAmount) {
         if (bidAmount == null || bidAmount <= currentPrice)
-            throw new IllegalStateException("현재가 보다 높아야 입찰 가능합니다");
+            throw new IllegalStateException("현재가보다 높아야 입찰 가능합니다");
     }
 
-    /**
-     * 입찰 처리 — User 엔티티 대신 Firebase uid / nickname 사용
-     */
     public void placeBid(String uid, String nickname, Long bidAmount, LocalDateTime bidTime) {
-        if (this.status != AuctionStatus.ACTIVE)
-            throw new IllegalStateException("경매가 종료되었습니다.");
+        if (!isActive()) throw new IllegalStateException("진행 중인 경매가 아닙니다");
 
         if (overtimeStarted) {
-            // 이미 이연시간 모드
-            if (bidTime.isAfter(overtimeEndTime))
-                throw new IllegalStateException("이연시간이 종료되었습니다.");
-            // 입찰 성공 → 시간 30초 리셋
+            if (bidTime.isAfter(overtimeEndTime)) throw new IllegalStateException("이연시간이 종료되었습니다");
             this.overtimeEndTime = bidTime.plusSeconds(overtimeSeconds);
-        } else {
-            if (bidTime.isBefore(regularEndTime)) {
-                // 정규 시간 내 입찰 — 시간 연장 없음
-            } else {
-                // 정규 시간 초과 → 30초 대기 기회 부여
-                LocalDateTime hardLimit = regularEndTime.plusSeconds(overtimeSeconds);
-                if (bidTime.isAfter(hardLimit))
-                    throw new IllegalStateException("정규 시간 및 추가 대기 시간이 모두 종료되었습니다.");
-                startOvertime(bidTime);
-            }
+        } else if (!bidTime.isBefore(regularEndTime)) {
+            LocalDateTime hardLimit = regularEndTime.plusSeconds(overtimeSeconds);
+            if (bidTime.isAfter(hardLimit)) throw new IllegalStateException("입찰 가능 시간이 종료되었습니다");
+            startOvertime(bidTime);
         }
 
         validateBid(bidAmount);
@@ -153,20 +131,47 @@ public class Auction {
         this.overtimeEndTime = now.plusSeconds(overtimeSeconds);
     }
 
-    public AuctionBid createBid(String uid, String nickname, Long bidAmount, LocalDateTime bidTime) {
-        return AuctionBid.of(this, uid, nickname, bidAmount, bidTime);
-    }
-
-    /** 실효 종료 시각 (이연시간 포함) */
     public LocalDateTime getEndTime() {
-        if (Boolean.TRUE.equals(overtimeStarted) && overtimeEndTime != null)
-            return overtimeEndTime;
+        if (Boolean.TRUE.equals(overtimeStarted) && overtimeEndTime != null) return overtimeEndTime;
         return regularEndTime.plusSeconds(overtimeSeconds);
     }
 
     /** [데모용] 강제 시간 변경 */
-    public void changeTimeForDemo(LocalDateTime newStartTime, LocalDateTime newEndTime) {
-        this.startTime      = newStartTime;
-        this.regularEndTime = newEndTime;
+    public void changeTimeForDemo(LocalDateTime newStart, LocalDateTime newEnd) {
+        this.startTime      = newStart;
+        this.regularEndTime = newEnd;
+    }
+
+    /* ===== 변환 헬퍼 ===== */
+
+    private static LocalDateTime toLocalDateTime(Object v) {
+        if (v == null) return null;
+        if (v instanceof Date d) return d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (v instanceof com.google.cloud.Timestamp ts)
+            return ts.toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return null;
+    }
+
+    private static Date toDate(LocalDateTime ldt) {
+        return ldt == null ? null : Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    private static Long toLong(Object v, Long def) {
+        if (v == null) return def;
+        if (v instanceof Long l) return l;
+        if (v instanceof Number n) return n.longValue();
+        return def;
+    }
+
+    private static Integer toInteger(Object v, Integer def) {
+        if (v == null) return def;
+        if (v instanceof Integer i) return i;
+        if (v instanceof Number n) return n.intValue();
+        return def;
+    }
+
+    private static Boolean toBoolean(Object v, Boolean def) {
+        if (v instanceof Boolean b) return b;
+        return def;
     }
 }

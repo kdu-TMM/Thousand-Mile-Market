@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * 경매 REST API
- * 인증: Firebase UID를 HttpSession("uid")에서 읽음 — Spring Security @CurrentUser 미사용
+ * 인증: Firebase UID를 HttpSession("uid")에서 읽음
  */
 @Slf4j
 @RestController
@@ -42,10 +42,10 @@ public class AuctionController {
         return ResponseEntity.ok(auctionService.scheduledAuctionWithItem());
     }
 
-    /** 입찰 (Redis Lua 스크립트 + Redisson 분산 락) */
+    /** 입찰 (Redis Lua 스크립트 + Firestore 트랜잭션) */
     @PostMapping("/{auctionId}/bid")
     public ResponseEntity<?> placeBid(
-            @PathVariable Long auctionId,
+            @PathVariable String     auctionId,
             @RequestBody  AuctionRequest request,
             HttpSession session) {
 
@@ -76,7 +76,7 @@ public class AuctionController {
 
     /** SSE 구독 (실시간 입찰 업데이트) */
     @GetMapping(value = "/stream/{auctionId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> streamAuction(@PathVariable Long auctionId) {
+    public ResponseEntity<SseEmitter> streamAuction(@PathVariable String auctionId) {
         return ResponseEntity.ok(auctionSseService.subscribe(auctionId));
     }
 
@@ -88,7 +88,7 @@ public class AuctionController {
 
     /** [데모] 정규 시간 즉시 종료 → 이연시간 진입 가능 상태로 */
     @GetMapping("/test/regular-end/{auctionId}")
-    public ResponseEntity<String> expireRegularTime(@PathVariable Long auctionId) {
+    public ResponseEntity<String> expireRegularTime(@PathVariable String auctionId) {
         auctionService.expireRegularTime(auctionId);
         return ResponseEntity.ok(
                 "경매(" + auctionId + ")의 정규 시간이 종료되었습니다! 이제 입찰하면 이연시간이 시작됩니다.");

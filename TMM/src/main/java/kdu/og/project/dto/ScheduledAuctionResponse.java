@@ -10,11 +10,11 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class ScheduledAuctionResponse {
-    private Long              auctionId;
-    private AuctionStatus     status;
-    private LocalDateTime     startTime;
-    private LocalDateTime     regularEndTime;
-    private Integer           overtimeSeconds;
+    private String              auctionId;
+    private AuctionStatus       status;
+    private LocalDateTime       startTime;
+    private LocalDateTime       regularEndTime;
+    private Integer             overtimeSeconds;
     private AuctionItemResponse item;
 
     public static ScheduledAuctionResponse from(Auction auction) {
@@ -24,7 +24,7 @@ public class ScheduledAuctionResponse {
                 .startTime(auction.getStartTime())
                 .regularEndTime(auction.getRegularEndTime())
                 .overtimeSeconds(auction.getOvertimeSeconds())
-                .item(AuctionItemResponse.from(auction.getAuctionItem()))
+                .item(AuctionItemResponse.from(auction))
                 .build();
     }
 }

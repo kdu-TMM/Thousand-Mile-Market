@@ -1,28 +1,5 @@
 services:
 
-  tmm-mysql:
-    image: mysql:8.0
-    container_name: tmm-mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: tmm_db
-      MYSQL_USER: tmm_user
-      MYSQL_PASSWORD: tmm_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - tmm-mysql-data:/var/lib/mysql
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "tmm_user", "-ptmm_password"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   tmm-redis:
     image: redis:7-alpine
     container_name: tmm-redis
@@ -34,6 +11,3 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-
-volumes:
-  tmm-mysql-data:
