@@ -410,27 +410,31 @@ async function toggleWish() {
 function renderPopular(p) {
     const popular = allProducts
         .filter(x => x.id !== p.id && x.category === p.category && x.status !== '판매완료')
-        .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, 5);
+        .sort((a, b) => (b.views || 0) - (a.views || 0));
     if (popular.length === 0) return;
 
     const grid = document.getElementById('pdPopularGrid');
+    document.getElementById('pdPopularPage').textContent = `1/${Math.ceil(popular.length / 5)}`;
+
     popular.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'pd-pop-card';
+        card.className = 'pd-sim-card';
         const price = s.type === 'auction' ? s.currentPrice : s.price;
         const thumb = s.imageUrls?.[0]
             ? `<img src="${s.imageUrls[0]}" alt="${s.title}">`
             : `<span>📷</span>`;
         card.innerHTML = `
-            <div class="pd-pop-img">${thumb}</div>
-            <p class="pd-pop-title">${s.title}</p>
-            <p class="pd-pop-price">${price.toLocaleString()}원</p>
-            <p class="pd-pop-views"><i class="fa-regular fa-eye"></i> ${s.views || 0}</p>`;
+            <div class="pd-sim-img">${thumb}</div>
+            <p class="pd-sim-title">${s.title}</p>
+            <p class="pd-sim-price">${price.toLocaleString()}원</p>`;
         card.onclick = () => location.href = '/product/' + s.id;
         grid.appendChild(card);
     });
     document.getElementById('popular-item').style.display = 'block';
+}
+
+function scrollPopular(dir) {
+    document.getElementById('pdPopularGrid').scrollBy({ left: dir * 800, behavior: 'smooth' });
 }
 
 /* ===== 비슷한 상품 ===== */
