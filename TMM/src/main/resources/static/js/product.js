@@ -24,19 +24,10 @@ function loadProduct() {
         }
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
         if (currentProduct.status === '숨김') {
             document.getElementById('pdError').style.display = 'flex';
             return;
         }
-<<<<<<< HEAD
-=======
->>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
-=======
->>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -57,18 +48,8 @@ function loadProduct() {
             .then(r => r.json())
             .then(data => {
                 allProducts    = data;
-<<<<<<< HEAD
-<<<<<<< HEAD
-                currentProduct = data.find(p => String(p.id) === productId);
-                if (!currentProduct) { alert('삭제되었거나 없는 상품입니다.'); history.back(); return; }
-=======
-                currentProduct = data.find(p => p.id === productId);
-                if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
->>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
-=======
                 currentProduct = data.find(p => String(p.id) === productId);
                 if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
->>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
                 const priceStr = currentProduct.type === 'auction'
