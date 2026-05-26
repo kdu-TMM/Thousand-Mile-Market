@@ -164,28 +164,55 @@ function relativeDate(dateStr) {
 function createProductCard(product) {
     const card = document.createElement('div');
     const isAuction = product.type === 'auction';
-    card.className = 'product-card' + (isAuction ? ' auction' : '');
-    const price = isAuction ? product.currentPrice : product.price;
-    const thumb = product.imageUrls?.[0]
-        ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
-        : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
-    const timerHtml = isAuction && product.auctionEnd
-        ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
-        : '';
-    card.innerHTML = `
-        <div class="product-image">${thumb}${timerHtml}</div>
-        <div class="product-info">
-            <h3 class="product-title">${product.title}</h3>
-            <div class="product-details">
-                <span class="product-price">${price.toLocaleString()}</span>
-                <span class="product-date">${relativeDate(product.date)}</span>
+
+    if (isAuction) {
+        const hasBids = (product.bidCount || 0) > 0;
+        card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
+        const price = product.currentPrice ?? product.startPrice ?? 0;
+        const priceClass = hasBids ? 'bid-price' : 'start-price';
+        const bidLabel = hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰';
+        const thumb = product.imageUrls?.[0]
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
+            : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+        const timerHtml = product.auctionEnd
+            ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
+            : '';
+        card.innerHTML = `
+            <div class="product-image">
+                ${thumb}${timerHtml}
+                <div class="bid-count-banner">${bidLabel}</div>
             </div>
-        </div>`;
-    card.addEventListener('click', () => {
-        const imageUrl = product.imageUrls?.[0] ?? null;
-        window.addRecentItem && window.addRecentItem(product.id, product.title, price.toLocaleString() + '원', imageUrl);
-        location.href = '/product/' + product.id;
-    });
+            <div class="product-info">
+                <div class="auction-badge-label ${hasBids ? 'bidding' : ''}">경매 중</div>
+                <h3 class="product-title">${product.title}</h3>
+                <div class="product-details">
+                    <span class="product-price ${priceClass}">${price.toLocaleString()}</span>
+                </div>
+            </div>`;
+        card.addEventListener('click', () => {
+            window.addRecentItem && window.addRecentItem(product.id, product.title, price.toLocaleString() + '원', product.imageUrls?.[0] ?? null);
+            location.href = '/product/' + product.id;
+        });
+    } else {
+        card.className = 'product-card';
+        const price = product.price ?? 0;
+        const thumb = product.imageUrls?.[0]
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
+            : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+        card.innerHTML = `
+            <div class="product-image">${thumb}</div>
+            <div class="product-info">
+                <h3 class="product-title">${product.title}</h3>
+                <div class="product-details">
+                    <span class="product-price">${price.toLocaleString()}</span>
+                    <span class="product-date">${relativeDate(product.date)}</span>
+                </div>
+            </div>`;
+        card.addEventListener('click', () => {
+            window.addRecentItem && window.addRecentItem(product.id, product.title, price.toLocaleString() + '원', product.imageUrls?.[0] ?? null);
+            location.href = '/product/' + product.id;
+        });
+    }
     return card;
 }
 
