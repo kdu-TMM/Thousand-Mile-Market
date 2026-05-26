@@ -319,9 +319,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (q) {
         const input = document.getElementById('searchInput');
         if (input) input.value = q;
-        /* 검색 시 전체 물품 섹션만 표시 */
-        const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
-        if (allTab) showSection('all-items', allTab);
+        /* 검색 시 전체 탭으로 전환 */
+        const allTab = document.querySelector('.fsection-tab[onclick*="\'all\'"]');
+        if (allTab) showSection('all', allTab);
     }
 
     if (window.db) {
@@ -335,10 +335,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-/* 필터 변경 시 전체 물품 섹션으로 자동 전환 후 재필터링 */
+/* 필터 변경 시 전체 탭으로 전환 후 재필터링 */
 function applyFilter() {
-    const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
-    if (allTab && !allTab.classList.contains('active')) showSection('all-items', allTab);
+    const allTab = document.querySelector('.fsection-tab[onclick*="\'all\'"]');
+    if (allTab && !allTab.classList.contains('active')) showSection('all', allTab);
     applyAllItemsFilter();
 }
 function resetFilter() {
