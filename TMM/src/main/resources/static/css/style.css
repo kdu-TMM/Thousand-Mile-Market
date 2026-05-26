@@ -242,13 +242,12 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 @media (max-width: 1260px) { .quick-menu { display: none; } }
 
 .qm-recent-section {
-    display: flex; flex-direction: row; align-items: flex-start; gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
     padding-top: 10px;
 }
 .qm-recent-label {
     font-size: 9px; color: #999; text-align: center; line-height: 1.4;
-    writing-mode: vertical-rl;        /* 세로 텍스트 */
-    padding-top: 2px;
+    white-space: nowrap;
 }
 .qm-thumb-list {
     display: flex; flex-direction: column; gap: 4px;
