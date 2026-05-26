@@ -359,7 +359,7 @@ async function toggleUserSuspend(uid, suspend) {
         const days = isPermanent ? null : SUSPEND_DURATIONS[cnt];
         const label = isPermanent ? '영구 정지' : `${days}일 정지`;
 
-        if (!confirm(`해당 사용자를 ${label}(${cnt + 1}회차)하고 게시물을 모두 삭제하시겠습니까?`)) return;
+        if (!confirm(`해당 사용자를 ${label}(${cnt + 1}회차) 처리하고 게시물을 모두 숨김 처리하시겠습니까?`)) return;
 
         const suspendedUntil = isPermanent ? null : new Date(Date.now() + days * 86400 * 1000).toISOString();
         try {
@@ -368,30 +368,55 @@ async function toggleUserSuspend(uid, suspend) {
                 { suspended: true, suspendedUntil, suspendCount: cnt + 1 }
             );
 
+            /* 삭제 대신 status: '삭제' 로 표시 (복구 가능) */
             const pSnap = await window.fs.getDocs(
                 window.fs.query(
                     window.fs.collection(window.db, 'products'),
                     window.fs.where('sellerUid', '==', uid)
                 )
             );
-            await Promise.all(pSnap.docs.map(d => window.fs.deleteDoc(d.ref)));
+            const toHide = pSnap.docs.filter(d => d.data().status !== '삭제');
+            await Promise.all(toHide.map(d =>
+                window.fs.updateDoc(d.ref, {
+                    status:     '삭제',
+                    prevStatus: d.data().status || '판매중'
+                })
+            ));
 
             if (user) { user.suspended = true; user.suspendedUntil = suspendedUntil; user.suspendCount = cnt + 1; }
             renderUsers(allUsers);
-            alert(`${label} 처리되었고 게시물 ${pSnap.size}개가 삭제되었습니다.`);
+            alert(`${label} 처리되었고 게시물 ${toHide.length}개가 숨김 처리되었습니다.`);
         } catch (e) {
             alert('처리 중 오류: ' + e.message);
         }
     } else {
-        if (!confirm('해당 사용자의 정지를 해제하시겠습니까?')) return;
+        if (!confirm('해당 사용자의 정지를 해제하시겠습니까?\n정지로 인해 숨김된 게시물도 함께 복구됩니다.')) return;
         try {
             await window.fs.updateDoc(
                 window.fs.doc(window.db, 'users', uid),
                 { suspended: false, suspendedUntil: null }
             );
+
+            /* 정지로 숨김된(status === '삭제') 게시물 복구 */
+            const pSnap = await window.fs.getDocs(
+                window.fs.query(
+                    window.fs.collection(window.db, 'products'),
+                    window.fs.where('sellerUid', '==', uid),
+                    window.fs.where('status',    '==', '삭제')
+                )
+            );
+            await Promise.all(pSnap.docs.map(d => {
+                const prev = d.data().prevStatus || '판매중';
+                return window.fs.updateDoc(d.ref, { status: prev, prevStatus: null });
+            }));
+
             const user = allUsers.find(u => u.uid === uid);
             if (user) { user.suspended = false; user.suspendedUntil = null; }
             renderUsers(allUsers);
+            const msg = pSnap.size > 0
+                ? `정지가 해제되었고 게시물 ${pSnap.size}개가 복구되었습니다.`
+                : '정지가 해제되었습니다.';
+            alert(msg);
         } catch (e) {
             alert('처리 중 오류: ' + e.message);
         }
@@ -443,7 +468,7 @@ function renderProducts() {
         const price = p.type === 'auction'
             ? (p.currentPrice ?? 0).toLocaleString() + '원'
             : (p.price ?? 0).toLocaleString() + '원';
-        const statusClass = { '판매중': 'sell', '경매중': 'auction', '판매완료': 'done', '숨김': 'hidden', '예약중': 'warn' }[p.status] || 'done';
+        const statusClass = { '판매중': 'sell', '경매중': 'auction', '판매완료': 'done', '숨김': 'hidden', '예약중': 'warn', '삭제': 'suspended' }[p.status] || 'done';
         return `
             <tr>
                 <td>
@@ -457,7 +482,9 @@ function renderProducts() {
                 <td>
                     <div class="admin-btn-group">
                         ${p.status === '숨김'
-                            ? `<button class="admin-btn info"  onclick="toggleProductHidden('${p.id}', false)">숨김 해제</button>`
+                            ? `<button class="admin-btn info" onclick="toggleProductHidden('${p.id}', false)">숨김 해제</button>`
+                            : p.status === '삭제'
+                            ? `<button class="admin-btn info" onclick="restoreDeletedProduct('${p.id}')">복구</button>`
                             : `<button class="admin-btn warn" onclick="toggleProductHidden('${p.id}', true)">강제 숨김</button>`}
                     </div>
                 </td>
@@ -503,6 +530,23 @@ async function toggleProductHidden(productId, hide) {
         renderProducts();
     } catch (e) {
         alert('처리 중 오류: ' + e.message);
+    }
+}
+
+/* ===== 삭제 상태 상품 개별 복구 ===== */
+async function restoreDeletedProduct(productId) {
+    if (!confirm('해당 상품을 복구하시겠습니까?')) return;
+    try {
+        const product  = allProducts.find(p => String(p.id) === String(productId));
+        const newStatus = product?.prevStatus || (product?.type === 'auction' ? '경매중' : '판매중');
+        await window.fs.updateDoc(
+            window.fs.doc(window.db, 'products', productId),
+            { status: newStatus, prevStatus: null }
+        );
+        if (product) { product.status = newStatus; delete product.prevStatus; }
+        renderProducts();
+    } catch (e) {
+        alert('복구 중 오류: ' + e.message);
     }
 }
 

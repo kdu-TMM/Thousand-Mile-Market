@@ -1,4 +1,4 @@
-const productId = location.pathname.split('/').pop();
+﻿const productId = location.pathname.split('/').pop();
 let allProducts = [];
 let currentProduct = null;
 let wished = false;
@@ -24,7 +24,7 @@ function loadProduct() {
         }
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
-        if (currentProduct.status === '숨김') {
+        if (currentProduct.status === '숨김' || currentProduct.status === '삭제') {
             document.getElementById('pdError').style.display = 'flex';
             return;
         }
