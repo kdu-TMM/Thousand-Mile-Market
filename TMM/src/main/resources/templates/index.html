@@ -47,6 +47,29 @@
                         <select class="filter-select" id="filterDong" onchange="applyFilter()" style="display:none">
                             <option value="">읍/면/동</option>
                         </select>
+                        <select class="filter-select" id="filterCategory" onchange="applyFilter()">
+                            <option value="">전체 카테고리</option>
+                            <option>디지털기기</option>
+                            <option>생활가전</option>
+                            <option>가구/인테리어</option>
+                            <option>생활/주방</option>
+                            <option>유아동</option>
+                            <option>유아도서</option>
+                            <option>여성의류</option>
+                            <option>여성잡화</option>
+                            <option>남성패션/잡화</option>
+                            <option>뷰티/미용</option>
+                            <option>스포츠/레저</option>
+                            <option>취미/게임/음반</option>
+                            <option>도서</option>
+                            <option>티켓/교환권</option>
+                            <option>e쿠폰</option>
+                            <option>가공식품</option>
+                            <option>건강기능식품</option>
+                            <option>반려동물용품</option>
+                            <option>식물</option>
+                            <option>기타 중고물품</option>
+                        </select>
                         <button class="filter-reset-btn" onclick="resetFilter()">초기화</button>
                     </div>
                     <div class="filter-right">
@@ -62,13 +85,6 @@
                 </div>
                 <div id="distanceHint" class="distance-hint" style="display:none;">
                     📍 거리순은 지역 필터를 선택하면 해당 지역 상품을 먼저 보여줍니다.
-                </div>
-                <div class="filter-section-tabs">
-                    <button class="fsection-tab active" onclick="showSection('all', this)">전체</button>
-                    <button class="fsection-tab" onclick="showSection('popular', this)">인기 상품</button>
-                    <button class="fsection-tab" onclick="showSection('category', this)">카테고리별 중고 물품</button>
-                    <button class="fsection-tab" onclick="showSection('auction', this)">경매 진행 중</button>
-                    <button class="fsection-tab" onclick="showSection('all-items', this)">전체 중고 물품</button>
                 </div>
             </div>
 
