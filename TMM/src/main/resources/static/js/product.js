@@ -169,7 +169,12 @@ function updateActionButton(p) {
 
     // 경매 상품이 아니면 채팅하기
     if (p.type !== 'auction') {
-        area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="location.href='/chat'">채팅하기</button>`;
+        if (uid && p.sellerUid === uid) {
+            // 본인 상품 → 채팅 불가
+            area.innerHTML = `<button class="pd-action-btn pd-bid-disabled" disabled>내 상품입니다</button>`;
+        } else {
+            area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="startChatWithSeller()">채팅하기</button>`;
+        }
         return;
     }
 
@@ -204,7 +209,7 @@ function updateActionButton(p) {
         // ── 경매 종료 ──
         const winner = p.winnerId || p.currentWinnerId;
         if (uid && winner === uid) {
-            area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="location.href='/chat'">채팅하기</button>`;
+            area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="startChatWithSeller()">채팅하기</button>`;
         } else {
             area.innerHTML = `<span class="pd-ended-text">종료된 상품입니다</span>`;
         }
@@ -465,6 +470,23 @@ function renderSimilar(p) {
 
 function scrollSimilar(dir) {
     document.getElementById('pdSimilarGrid').scrollBy({ left: dir * 800, behavior: 'smooth' });
+}
+
+/* ===== 채팅하기 ===== */
+function startChatWithSeller() {
+    const user = window.auth?.currentUser;
+    if (!user) { openLoginModal(); return; }
+
+    const p = currentProduct;
+    if (!p || !p.sellerUid) { alert('판매자 정보를 불러올 수 없습니다.'); return; }
+
+    const params = new URLSearchParams({
+        targetUid:      p.sellerUid,
+        targetNickname: p.sellerNickname || '판매자',
+        productId:      String(p.id),
+        productName:    p.title
+    });
+    location.href = '/chat?' + params.toString();
 }
 
 /* ===== 신고 ===== */

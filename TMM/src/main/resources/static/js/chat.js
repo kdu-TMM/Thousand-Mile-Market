@@ -1,11 +1,10 @@
-/* ===== 상태 ===== */
+﻿/* ===== 상태 ===== */
 let myUid        = null;
 let myNickname   = null;
 let currentRoomId = null;
 let currentRoom  = null;
 let roomsUnsub   = null;
 let msgsUnsub    = null;
-let searchTimer  = null;
 let allRooms     = [];
 let typeFilter   = 'all';  // 'all' | 'sell' | 'buy'
 let statusFilter = 'all';  // 'all' | 'waiting' | 'active' | 'ended'
@@ -398,56 +397,18 @@ function generateRoomKey(uid1, uid2, productId) {
     return productId ? `${sorted}:${productId}` : sorted;
 }
 
-/* ===== 닉네임 검색 ===== */
+/* ===== 닉네임 검색 (기존 채팅방 필터링) ===== */
 function searchUser(query) {
-    clearTimeout(searchTimer);
-    const result = document.getElementById('searchResult');
-    if (!query.trim()) { result.classList.add('hidden'); return; }
-
-    searchTimer = setTimeout(() => {
-        if (!window.db || !window.fs) return;
-        window.fs.getDocs(
-            window.fs.query(
-                window.fs.collection(window.db, 'users'),
-                window.fs.where('nickname', '>=', query),
-                window.fs.where('nickname', '<', query + ''),
-                window.fs.limit(5)
-            )
-        ).then(snap => {
-            result.innerHTML = '';
-            const items = snap.docs.filter(d => d.data().uid !== myUid);
-            if (!items.length) { result.classList.add('hidden'); return; }
-            result.classList.remove('hidden');
-            items.forEach(d => {
-                const u = d.data();
-                const temp      = u.mannerTemp ?? 36.5;
-                const tempColor = temp >= 50 ? '#ff6f00' : temp >= 36.5 ? '#43a047' : '#1e88e5';
-                const tempWidth = Math.min(100, (temp / 100) * 100).toFixed(1);
-                const li = document.createElement('li');
-                li.className = 'chat-search-item';
-                li.innerHTML = `
-                    <div class="search-avatar">${escHtml((u.nickname || '?')[0])}</div>
-                    <div class="search-info">
-                        <div class="search-top">
-                            <span class="search-nickname">${escHtml(u.nickname)}</span>
-                            ${u.region ? `<span class="search-region">${escHtml(u.region)}</span>` : ''}
-                        </div>
-                        <div class="search-temp">
-                            <span class="search-temp-val" style="color:${tempColor}">${temp}°</span>
-                            <div class="search-temp-bar">
-                                <div class="search-temp-fill" style="width:${tempWidth}%;background:${tempColor}"></div>
-                            </div>
-                        </div>
-                    </div>`;
-                li.onclick = () => {
-                    result.classList.add('hidden');
-                    document.getElementById('nickSearch').value = '';
-                    openOrCreateRoom(u.uid, u.nickname, null, null);
-                };
-                result.appendChild(li);
-            });
-        }).catch(e => console.error('닉네임 검색 오류:', e));
-    }, 300);
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
+        renderRoomList(getFilteredRooms());
+        return;
+    }
+    const filtered = allRooms.filter(room => {
+        const targetNickname = room.user1Uid === myUid ? room.user2Nickname : room.user1Nickname;
+        return (targetNickname || '').toLowerCase().includes(q);
+    });
+    renderRoomList(filtered);
 }
 
 /* ===== 드롭다운 ===== */
