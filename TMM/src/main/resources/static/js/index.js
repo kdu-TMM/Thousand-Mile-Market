@@ -69,6 +69,78 @@ function tickTimers() {
 }
 setInterval(tickTimers, 1000);
 
+/* ===== 경매 진행 중 섹션 ===== */
+function createAuctionCard(p) {
+    const card    = document.createElement('div');
+    const hasBids = (p.bidCount || 0) > 0;
+    card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
+
+    const thumb = p.imageUrls?.[0]
+        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" onerror="imgError(this)">`
+        : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+
+    const bidLabel  = hasBids ? `${p.bidCount}명 입찰 중` : '0명 입찰';
+    const badgeText = '경매 중';
+    const price     = p.currentPrice ?? p.startPrice ?? 0;
+    const priceClass = hasBids ? 'bid-price' : 'start-price';
+
+    card.innerHTML = `
+        <div class="product-image">
+            ${thumb}
+            <div class="auction-timer" data-end="${p.auctionEnd}">🕐 --</div>
+            <div class="bid-count-banner">${bidLabel}</div>
+        </div>
+        <div class="product-info">
+            <div class="auction-badge-label ${hasBids ? 'bidding' : ''}">${badgeText}</div>
+            <h3 class="product-title">${p.title}</h3>
+            <div class="product-details">
+                <span class="product-price ${priceClass}">${price.toLocaleString()}</span>
+            </div>
+        </div>`;
+
+    card.addEventListener('click', () => {
+        window.addRecentItem && window.addRecentItem(p.id, p.title, price.toLocaleString() + '원', p.imageUrls?.[0] ?? null);
+        location.href = '/product/' + p.id;
+    });
+    return card;
+}
+
+function loadAuctions() {
+    const grid     = document.getElementById('auctionGrid');
+    const emptyMsg = document.getElementById('auctionEmpty');
+    if (!grid) return;
+
+    const now = new Date();
+
+    window.fs.getDocs(
+        window.fs.query(
+            window.fs.collection(window.db, 'products'),
+            window.fs.where('type',   '==', 'auction'),
+            window.fs.where('status', '==', '경매중')
+        )
+    ).then(snapshot => {
+        // 더미 외 기존 카드 제거 (emptyMsg 제외)
+        [...grid.children].forEach(el => { if (el.id !== 'auctionEmpty') el.remove(); });
+
+        // auctionEnd 가 현재 시각 이후인 것만 표시
+        const active = snapshot.docs
+            .map(d => d.data())
+            .filter(p => p.auctionEnd && new Date(p.auctionEnd) > now)
+            .sort((a, b) => new Date(a.auctionEnd) - new Date(b.auctionEnd)); // 마감 임박순
+
+        if (active.length === 0) {
+            emptyMsg.style.display = 'block';
+            return;
+        }
+
+        emptyMsg.style.display = 'none';
+        active.forEach(p => grid.appendChild(createAuctionCard(p)));
+    }).catch(err => {
+        console.warn('경매 목록 로드 실패:', err);
+        emptyMsg.style.display = 'block';
+    });
+}
+
 /* ===== 전체 중고 물품 (무한 스크롤) ===== */
 const BATCH_SIZE = 8;
 let allProducts = [];
@@ -188,16 +260,14 @@ function getSortedProducts(products) {
 
 function applyAllItemsFilter() {
     const region   = getFilterRegion();
-    const category = document.getElementById('filterCategory')?.value || '';
     const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
     const filtered = allProducts.filter(p => {
         if (p.status === '숨김') return false;
-        const matchRegion   = !region   || p.region.includes(region);
-        const matchCategory = !category || p.category === category;
+        const matchRegion   = !region || p.region.includes(region);
         const matchSearch   = !q || p.title.toLowerCase().includes(q)
                                  || (p.description?.toLowerCase().includes(q));
-        return matchRegion && matchCategory && matchSearch;
+        return matchRegion && matchSearch;
     });
 
     filteredProducts = getSortedProducts(filtered);
@@ -252,8 +322,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (allTab) showSection('all-items', allTab);
     }
 
-    if (window.db) loadProducts();
-    else window.addEventListener('firebase-ready', loadProducts);
+    if (window.db) {
+        loadProducts();
+        loadAuctions();
+    } else {
+        window.addEventListener('firebase-ready', () => {
+            loadProducts();
+            loadAuctions();
+        });
+    }
 });
 
 /* 필터 변경 시 전체 물품 섹션으로 자동 전환 후 재필터링 */
@@ -270,7 +347,6 @@ function resetFilter() {
     const dongEl = document.getElementById('filterDong');
     dongEl.innerHTML = '<option value="">읍/면/동</option>';
     dongEl.style.display = 'none';
-    document.getElementById('filterCategory').value = '';
     document.getElementById('sortSelect').value = 'latest';
     applyAllItemsFilter();
 }

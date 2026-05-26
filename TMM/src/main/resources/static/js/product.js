@@ -25,12 +25,18 @@ function loadProduct() {
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
         if (currentProduct.status === '숨김') {
-            alert('삭제되었거나 없는 상품입니다.'); history.back();
+            document.getElementById('pdError').style.display = 'flex';
             return;
         }
+<<<<<<< HEAD
 =======
 >>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
+=======
+>>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -52,12 +58,17 @@ function loadProduct() {
             .then(data => {
                 allProducts    = data;
 <<<<<<< HEAD
+<<<<<<< HEAD
                 currentProduct = data.find(p => String(p.id) === productId);
                 if (!currentProduct) { alert('삭제되었거나 없는 상품입니다.'); history.back(); return; }
 =======
                 currentProduct = data.find(p => p.id === productId);
                 if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
 >>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
+=======
+                currentProduct = data.find(p => String(p.id) === productId);
+                if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
+>>>>>>> a4d7c65339a99257b2ffeec5f10464f4d6ebfea4
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
                 const priceStr = currentProduct.type === 'auction'
@@ -124,8 +135,9 @@ function renderProduct(p) {
     document.getElementById('pdTitle').textContent = p.title;
 
     const badge = document.getElementById('pdStatusBadge');
-    const badgeMap = { '판매중': 'on', '예약중': 'reserved', '경매중': 'auction', '판매완료': 'done' };
-    badge.textContent = p.status;
+    const badgeMap  = { '판매중': 'on', '예약중': 'reserved', '경매중': 'auction', '판매완료': 'done' };
+    const labelMap  = { '판매중': '판매 중', '예약중': '예약 중', '경매중': '경매 중', '판매완료': '판매 완료' };
+    badge.textContent = labelMap[p.status] || p.status;
     badge.className   = 'pd-status-badge ' + (badgeMap[p.status] || 'done');
 
     const tradeEl = document.getElementById('pdTradeComplete');
@@ -162,6 +174,171 @@ function renderProduct(p) {
     renderGallery(images, p.title);
 
     document.getElementById('item-detail').style.display = 'block';
+
+    // 액션 버튼 렌더 (auth 준비 후 재시도)
+    updateActionButton(p);
+}
+
+/* ===== 경매 액션 버튼 ===== */
+function updateActionButton(p) {
+    const area = document.getElementById('pdActionArea');
+    if (!area || !p) return;
+
+    const uid  = window.auth?.currentUser?.uid;
+
+    // 경매 상품이 아니면 채팅하기
+    if (p.type !== 'auction') {
+        area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="location.href='/chat'">채팅하기</button>`;
+        return;
+    }
+
+    const now        = new Date();
+    const auctionEnd = p.auctionEnd ? new Date(p.auctionEnd) : null;
+    const isActive   = p.status === '경매중' && auctionEnd && auctionEnd > now;
+
+    if (isActive) {
+        // ── 경매 진행 중 ──
+        const isSeller = uid && p.sellerUid === uid;
+        const isWinning = uid && p.currentWinnerId === uid;
+
+        if (isSeller) {
+            // 판매자 본인 → 비활성화
+            area.innerHTML = `
+                <button class="pd-action-btn pd-bid-btn pd-bid-disabled" disabled title="본인이 등록한 경매입니다">
+                    <i class="fa-solid fa-gavel"></i> 입찰하기
+                </button>`;
+        } else if (isWinning) {
+            // 현재 최고 입찰자 본인 → 비활성화
+            area.innerHTML = `
+                <button class="pd-action-btn pd-bid-btn pd-bid-disabled" disabled title="현재 최고 입찰자입니다">
+                    <i class="fa-solid fa-gavel"></i> 입찰 중
+                </button>`;
+        } else {
+            area.innerHTML = `
+                <button class="pd-action-btn pd-bid-btn" onclick="openBidModal()">
+                    <i class="fa-solid fa-gavel"></i> 입찰하기
+                </button>`;
+        }
+    } else {
+        // ── 경매 종료 ──
+        const winner = p.winnerId || p.currentWinnerId;
+        if (uid && winner === uid) {
+            area.innerHTML = `<button class="pd-action-btn pd-chat-btn" onclick="location.href='/chat'">채팅하기</button>`;
+        } else {
+            area.innerHTML = `<span class="pd-ended-text">종료된 상품입니다</span>`;
+        }
+    }
+}
+
+/* ===== 입찰 모달 ===== */
+function minBidAmount(p) {
+    const cur = p.currentPrice ?? p.startPrice ?? 0;
+    return Math.ceil(cur * 1.1);
+}
+
+function openBidModal() {
+    if (!window.auth?.currentUser) {
+        alert('로그인 후 입찰할 수 있습니다.');
+        return;
+    }
+    if (!currentProduct) return;
+
+    const cur = currentProduct.currentPrice ?? currentProduct.startPrice ?? 0;
+    const min = minBidAmount(currentProduct);
+    document.getElementById('bidCurrentDisplay').textContent = cur.toLocaleString();
+    document.getElementById('bidMinDisplay').textContent     = min.toLocaleString();
+    document.getElementById('bidAmountInput').value = min;
+    document.getElementById('bidAmountInput').min   = min;
+    document.getElementById('bidMsg').textContent = '';
+    document.getElementById('bidMsg').className = 'bid-msg';
+    document.getElementById('bidModal').style.display = 'flex';
+}
+
+function closeBidModal(e) {
+    if (e && e.target !== document.getElementById('bidModal')) return;
+    document.getElementById('bidModal').style.display = 'none';
+}
+
+async function submitBid() {
+    const input  = document.getElementById('bidAmountInput');
+    const msgEl  = document.getElementById('bidMsg');
+    const bidBtn = document.querySelector('.bid-submit-btn');
+    const amount = parseInt(input.value);
+    const min    = minBidAmount(currentProduct);
+
+    msgEl.className = 'bid-msg';
+    if (!amount || isNaN(amount))                { msgEl.textContent = '금액을 입력해 주세요.'; return; }
+    if (amount < min)                            { msgEl.textContent = `최소 입찰가는 ${min.toLocaleString()}원입니다.`; return; }
+    if (!window.db || !window.auth?.currentUser) { msgEl.textContent = '로그인이 필요합니다.'; return; }
+
+    const user = window.auth.currentUser;
+    bidBtn.disabled    = true;
+    bidBtn.textContent = '입찰 중...';
+
+    const ref = window.fs.doc(window.db, 'products', String(productId));
+
+    try {
+        // ── Firestore 트랜잭션: 읽기 → 검증 → 쓰기를 원자적으로 처리 ──
+        // 트랜잭션 내부에서 동시 입찰이 들어오면 Firestore가 자동으로
+        // 충돌을 감지하고 재시도(최대 5회)하므로 경쟁 조건이 없습니다.
+        let newBidCount = 0;
+
+        await window.fs.runTransaction(window.db, async (transaction) => {
+            const snap = await transaction.get(ref);
+            if (!snap.exists()) throw new Error('상품을 찾을 수 없습니다.');
+
+            const data     = snap.data();
+            const freshMin = Math.ceil((data.currentPrice ?? data.startPrice ?? 0) * 1.1);
+
+            if (amount < freshMin) {
+                // 트랜잭션 내부에서 검증 실패 → 별도 식별용 객체로 throw
+                const err = new Error('OUTBID');
+                err.freshPrice = data.currentPrice ?? data.startPrice ?? 0;
+                err.freshMin   = freshMin;
+                throw err;
+            }
+
+            newBidCount = (data.bidCount || 0) + 1;
+            transaction.update(ref, {
+                currentPrice:     amount,
+                bidCount:         newBidCount,
+                currentWinnerId:  user.uid,
+                currentWinnerName: user.displayName || ''
+            });
+        });
+
+        // 트랜잭션 성공 → 로컬 캐시 갱신 후 UI 업데이트
+        currentProduct.currentPrice    = amount;
+        currentProduct.bidCount        = newBidCount;
+        currentProduct.currentWinnerId = user.uid;
+
+        document.getElementById('pdCurrentPrice').textContent = amount.toLocaleString() + '원';
+        document.getElementById('pdBidCount').textContent     = newBidCount + '명';
+        document.getElementById('pdPrice').textContent        = amount.toLocaleString();
+
+        msgEl.className   = 'bid-msg ok';
+        msgEl.textContent = '입찰 성공!';
+        setTimeout(() => {
+            document.getElementById('bidModal').style.display = 'none';
+            updateActionButton(currentProduct);
+        }, 900);
+
+    } catch (e) {
+        if (e.message === 'OUTBID') {
+            // 트랜잭션 내부에서 잡힌 "더 높은 입찰 선점" 케이스 → 모달 갱신
+            currentProduct.currentPrice = e.freshPrice;
+            document.getElementById('bidCurrentDisplay').textContent = e.freshPrice.toLocaleString();
+            document.getElementById('bidMinDisplay').textContent     = e.freshMin.toLocaleString();
+            input.min   = e.freshMin;
+            input.value = e.freshMin;
+            msgEl.textContent = '방금 더 높은 입찰이 들어왔습니다. 금액을 확인해 주세요.';
+        } else {
+            msgEl.textContent = '오류: ' + e.message;
+        }
+    } finally {
+        bidBtn.disabled    = false;
+        bidBtn.textContent = '입찰하기';
+    }
 }
 
 function relativeDate(dateStr) {
@@ -406,3 +583,8 @@ async function submitReport() {
 /* ===== 초기화 ===== */
 window.addEventListener('firebase-ready', loadProduct);
 if (window.firebaseReady) loadProduct();
+
+// 로그인/로그아웃 시 버튼 상태 갱신
+window.addEventListener('auth-changed', () => {
+    if (currentProduct) updateActionButton(currentProduct);
+});

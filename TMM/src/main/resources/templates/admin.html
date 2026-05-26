@@ -155,9 +155,8 @@
             <h3 class="admin-modal-title">신고 상세</h3>
             <div id="reportDetailBody" class="admin-modal-body"></div>
             <div class="admin-modal-actions">
-                <button class="admin-action-btn resolve" onclick="updateReportStatus('처리완료')">처리완료</button>
+                <button class="admin-action-btn hide-btn" onclick="updateReportStatus('숨김')">숨김</button>
                 <button class="admin-action-btn reject" onclick="updateReportStatus('반려')">반려</button>
-                <button class="admin-action-btn reopen" onclick="updateReportStatus('검토중')">검토중으로</button>
             </div>
             <textarea id="reportAdminNote" class="admin-note-input" placeholder="관리자 메모 (선택사항)"></textarea>
         </div>

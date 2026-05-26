@@ -4,7 +4,7 @@ import { getFirestore, collection, getDocs,
          query, where, limit, orderBy,
          onSnapshot, serverTimestamp,
          updateDoc, arrayUnion, arrayRemove,
-         increment } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
+         increment, runTransaction } from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes,
          getDownloadURL }                          from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-storage.js';
 import { getAuth, createUserWithEmailAndPassword,
@@ -37,7 +37,7 @@ window.fs = {
     query, where, limit, orderBy,
     onSnapshot, serverTimestamp,
     updateDoc, arrayUnion, arrayRemove,
-    increment
+    increment, runTransaction
 };
 
 /* Auth 유틸 */

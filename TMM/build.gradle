@@ -72,8 +72,21 @@ dependencies {
 
 	// XML
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
-	
-	
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Redisson
+	implementation 'org.redisson:redisson:3.32.0'
+
+	// QueryDSL (Jakarta)
+	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.1.0:jakarta'
+	annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+	annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+	// Spring Security Test (@WithMockUser 등)
+	testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
