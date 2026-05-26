@@ -1,7 +1,8 @@
 /* ===== 채팅 전체 레이아웃 ===== */
 .chat-main {
     padding: 0 !important;
-    height: calc(100vh - 130px);
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
 }
