@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" class="footer">
+    <div class="footer-in">
+
+        <nav class="ft-toplinks" aria-label="Ft links">
+            <a th:href="@{#}">회사소개</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">서비스 소개</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">이용약관</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">개인정보처리방침</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">청소년보호정책</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">채용정보</a>
+            <span class="sep">|</span>
+            <a th:href="@{#}">광고문의</a>
+        </nav>
+
+        <div class="footer-main">
+
+            <div class="footer-info">
+                <div class="info-row"><span class="info-title">(주)천리마켓</span></div>
+                <div class="info-row"><span>경기도 양주시 경동대학로 27</span></div>
+                <div class="info-row"><span>대표자: (발신자부담) 1544-0000</span></div>
+                <div class="info-row"><span>이메일: pfielskdh46@gmail.com</span></div>
+                <div class="info-row"><span>대표 FAX: 2026-05-19</span></div>
+                <div class="info-row"><span>사업자등록번호: 000-00-00000</span></div>
+                <div class="info-row"><span>통신판매업신고: 0000 - 경기도 - 00000</span></div>
+                <div class="info-row"><span>개인정보관리 책임자: 천리마</span></div>
+                <div class="info-row copyright">© CHEONLIMARKET</div>
+            </div>
+
+            <div class="footer-sns" aria-label="Social links">
+                <a class="sns-btn" th:href="@{#}" aria-label="KakaoTalk">
+                    <img th:src="@{/svg/footer-kakao.svg}" alt="KakaoTalk">
+                </a>
+                <a class="sns-btn" th:href="@{#}" aria-label="Facebook">
+                    <img th:src="@{/svg/footer-facebook.svg}" alt="Facebook">
+                </a>
+                <a class="sns-btn" href="https://www.instagram.com/dog___foooot?igsh=MTlyc3lpc3Y3c3FqMA==" aria-label="Instagram">
+                    <img th:src="@{/svg/footer-instagram.svg}" alt="Instagram">
+                </a>
+                <a class="sns-btn" th:href="@{#}" aria-label="YouTube">
+                    <img th:src="@{/svg/footer-youtube.svg}" alt="YouTube">
+                </a>
+            </div>
+
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>
