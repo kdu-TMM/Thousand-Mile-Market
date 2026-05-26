@@ -5,6 +5,24 @@ function imgError(el) {
 }
 
 
+/* ===== 섹션 탭 전환 ===== */
+const sectionMap = {
+    popular:     'section-popular',
+    auction:     'section-auction',
+    'all-items': 'section-all-items',
+};
+
+function showSection(type, btn) {
+    document.querySelectorAll('.fsection-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (type === 'all') {
+        Object.values(sectionMap).forEach(id => document.getElementById(id).style.display = 'block');
+    } else {
+        Object.values(sectionMap).forEach(id => document.getElementById(id).style.display = 'none');
+        document.getElementById(sectionMap[type]).style.display = 'block';
+    }
+}
+
 /* ===== 필터 ===== */
 function getFilterRegion() {
     const dong    = document.getElementById('filterDong')?.value    || '';
@@ -301,6 +319,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (q) {
         const input = document.getElementById('searchInput');
         if (input) input.value = q;
+        /* 검색 시 전체 물품 섹션만 표시 */
+        const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
+        if (allTab) showSection('all-items', allTab);
     }
 
     if (window.db) {
@@ -314,7 +335,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+/* 필터 변경 시 전체 물품 섹션으로 자동 전환 후 재필터링 */
 function applyFilter() {
+    const allTab = document.querySelector('.fsection-tab[onclick*="all-items"]');
+    if (allTab && !allTab.classList.contains('active')) showSection('all-items', allTab);
     applyAllItemsFilter();
 }
 function resetFilter() {
