@@ -471,13 +471,35 @@ async function toggleProductHidden(productId, hide) {
     if (!confirm(`해당 상품을 ${action}하시겠습니까?`)) return;
 
     try {
-        const newStatus = hide ? '숨김' : '판매중';
+        /* Bug Fix: String 비교로 타입 불일치(숫자 id) 해결 */
+        const product = allProducts.find(p => String(p.id) === String(productId));
+
+        let newStatus;
+        let extraFields = {};
+        if (hide) {
+            /* 숨김 처리: 원래 상태를 prevStatus에 보관 */
+            newStatus    = '숨김';
+            extraFields  = { prevStatus: product?.status || '판매중' };
+        } else {
+            /* 숨김 해제: prevStatus → 없으면 type으로 추론 (경매중 / 판매중) */
+            newStatus   = product?.prevStatus
+                || (product?.type === 'auction' ? '경매중' : '판매중');
+            extraFields = { prevStatus: null };
+        }
+
         await window.fs.updateDoc(
             window.fs.doc(window.db, 'products', productId),
-            { status: newStatus }
+            { status: newStatus, ...extraFields }
         );
-        const product = allProducts.find(p => p.id === productId);
-        if (product) product.status = newStatus;
+
+        if (product) {
+            if (hide) {
+                product.prevStatus = product.status;
+            } else {
+                delete product.prevStatus;
+            }
+            product.status = newStatus;
+        }
         renderProducts();
     } catch (e) {
         alert('처리 중 오류: ' + e.message);
