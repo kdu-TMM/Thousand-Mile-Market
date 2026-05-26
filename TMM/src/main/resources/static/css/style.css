@@ -234,9 +234,9 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 /* ===== 퀵 메뉴 (우측 고정 사이드바) ===== */
 .quick-menu {
     position: fixed; top: 130px;
-    left: calc(50% + 534px);          /* 상품 이미지 우측에 맞춤 */
+    left: calc(50% + 539px);
     display: flex; flex-direction: column;
-    align-items: center; gap: 6px;
+    align-items: flex-end; gap: 6px;
     z-index: 900;
 }
 @media (max-width: 1260px) { .quick-menu { display: none; } }
@@ -252,6 +252,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 }
 .qm-thumb-list {
     display: flex; flex-direction: column; gap: 4px;
+    width: 52px;                           /* 항목 없어도 너비 고정 → 밀림 방지 */
     min-height: calc(5 * 52px + 4 * 4px); /* 5개 항목 높이 고정 = 276px */
 }
 .qm-thumb-item {
