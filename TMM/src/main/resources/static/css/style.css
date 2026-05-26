@@ -234,7 +234,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 /* ===== 퀵 메뉴 (우측 고정 사이드바) ===== */
 .quick-menu {
     position: fixed; top: 130px;
-    left: calc(50% + 524px);
+    left: calc(50% + 534px);          /* 상품 이미지 우측에 맞춤 */
     display: flex; flex-direction: column;
     align-items: center; gap: 6px;
     z-index: 900;
@@ -242,14 +242,17 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 @media (max-width: 1260px) { .quick-menu { display: none; } }
 
 .qm-recent-section {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    padding-top: 10px; padding-left: 6px;
+    display: flex; flex-direction: row; align-items: flex-start; gap: 4px;
+    padding-top: 10px;
 }
 .qm-recent-label {
-    font-size: 10px; color: #999; text-align: center; line-height: 1.4;
+    font-size: 9px; color: #999; text-align: center; line-height: 1.4;
+    writing-mode: vertical-rl;        /* 세로 텍스트 */
+    padding-top: 2px;
 }
 .qm-thumb-list {
     display: flex; flex-direction: column; gap: 4px;
+    min-height: calc(5 * 52px + 4 * 4px); /* 5개 항목 높이 고정 = 276px */
 }
 .qm-thumb-item {
     display: block; width: 52px; height: 52px;
