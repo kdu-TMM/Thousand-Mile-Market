@@ -219,7 +219,7 @@ function updateActionButton(p) {
 /* ===== 입찰 모달 ===== */
 function minBidAmount(p) {
     const cur = p.currentPrice ?? p.startPrice ?? 0;
-    return Math.ceil(cur * 1.1);
+    return Math.ceil((cur * 1.1) / 10) * 10;
 }
 
 function openBidModal() {
