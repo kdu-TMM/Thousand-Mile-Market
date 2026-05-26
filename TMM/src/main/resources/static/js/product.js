@@ -24,10 +24,13 @@ function loadProduct() {
         }
         allProducts    = snapshot.docs.map(d => d.data());
         currentProduct = docSnap.data();
+<<<<<<< HEAD
         if (currentProduct.status === '숨김') {
             alert('삭제되었거나 없는 상품입니다.'); history.back();
             return;
         }
+=======
+>>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -48,8 +51,13 @@ function loadProduct() {
             .then(r => r.json())
             .then(data => {
                 allProducts    = data;
+<<<<<<< HEAD
                 currentProduct = data.find(p => String(p.id) === productId);
                 if (!currentProduct) { alert('삭제되었거나 없는 상품입니다.'); history.back(); return; }
+=======
+                currentProduct = data.find(p => p.id === productId);
+                if (!currentProduct) { document.getElementById('pdError').style.display = 'flex'; return; }
+>>>>>>> 81bb2f3b16b15ed3a43763b105d6a71109b17e57
                 renderProduct(currentProduct);
                 renderSimilar(currentProduct);
                 const priceStr = currentProduct.type === 'auction'

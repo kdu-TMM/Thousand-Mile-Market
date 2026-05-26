@@ -37,10 +37,7 @@
                     <span>관리자 패널</span>
                 </div>
                 <nav class="admin-nav">
-                    <button class="admin-nav-item active" onclick="switchAdminTab('dashboard', this)">
-                        <span class="admin-nav-icon">📊</span> 대시보드
-                    </button>
-                    <button class="admin-nav-item" onclick="switchAdminTab('reports', this)">
+                    <button class="admin-nav-item active" onclick="switchAdminTab('reports', this)">
                         <span class="admin-nav-icon">🚨</span> 신고 관리
                         <span class="admin-nav-badge" id="navBadgeReports"></span>
                     </button>
@@ -56,53 +53,12 @@
             <!-- 콘텐츠 영역 -->
             <div class="admin-body">
 
-                <!-- ===== 대시보드 탭 ===== -->
-                <section id="tabDashboard" class="admin-tab-panel">
-                    <h2 class="admin-section-title">대시보드</h2>
-                    <div class="admin-stats-grid">
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon" style="background:#e3f2fd;">👥</div>
-                            <div>
-                                <p class="admin-stat-label">전체 회원</p>
-                                <p class="admin-stat-num" id="statUsers">-</p>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon" style="background:#e8f5e9;">📦</div>
-                            <div>
-                                <p class="admin-stat-label">전체 상품</p>
-                                <p class="admin-stat-num" id="statProducts">-</p>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon" style="background:#fff3e0;">🚨</div>
-                            <div>
-                                <p class="admin-stat-label">신고 (검토중)</p>
-                                <p class="admin-stat-num" id="statReportsPending">-</p>
-                            </div>
-                        </div>
-                        <div class="admin-stat-card">
-                            <div class="admin-stat-icon" style="background:#fce4ec;">✅</div>
-                            <div>
-                                <p class="admin-stat-label">신고 (처리완료)</p>
-                                <p class="admin-stat-num" id="statReportsDone">-</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h3 class="admin-section-subtitle">최근 신고 (미처리)</h3>
-                    <div id="dashRecentReports" class="admin-recent-list">
-                        <p class="admin-empty">불러오는 중...</p>
-                    </div>
-                </section>
-
                 <!-- ===== 신고 관리 탭 ===== -->
-                <section id="tabReports" class="admin-tab-panel" style="display:none;">
+                <section id="tabReports" class="admin-tab-panel">
                     <h2 class="admin-section-title">신고 관리</h2>
 
                     <div class="admin-filter-bar">
-                        <button class="admin-filter-btn active" onclick="filterReports('all', this)">전체</button>
-                        <button class="admin-filter-btn" onclick="filterReports('검토중', this)">검토중</button>
+                        <button class="admin-filter-btn active" onclick="filterReports('검토중', this)">검토중</button>
                         <button class="admin-filter-btn" onclick="filterReports('처리완료', this)">처리완료</button>
                         <button class="admin-filter-btn" onclick="filterReports('반려', this)">반려</button>
                     </div>
@@ -113,6 +69,7 @@
                                 <tr>
                                     <th>신고 유형</th>
                                     <th>신고 대상</th>
+                                    <th>작성자</th>
                                     <th>신고 사유</th>
                                     <th>신고자</th>
                                     <th>신고일</th>
@@ -121,7 +78,7 @@
                                 </tr>
                             </thead>
                             <tbody id="reportTableBody">
-                                <tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr>
+                                <tr><td colspan="8" class="admin-empty">불러오는 중...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -142,7 +99,7 @@
                                 <tr>
                                     <th>닉네임</th>
                                     <th>아이디</th>
-                                    <th>지역</th>
+                                    <th>신고된 게시물</th>
                                     <th>가입일</th>
                                     <th>상태</th>
                                     <th>처리</th>
