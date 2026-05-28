@@ -28,6 +28,19 @@ function loadProduct() {
             document.getElementById('pdError').style.display = 'flex';
             return;
         }
+
+        // 만료된 경매 → 판매완료로 자동 갱신 (lazy cleanup)
+        if (currentProduct.type === 'auction' &&
+            currentProduct.status === '경매중' &&
+            currentProduct.auctionEnd &&
+            new Date(currentProduct.auctionEnd) <= new Date()) {
+            currentProduct.status = '판매완료';
+            window.fs.updateDoc(
+                window.fs.doc(window.db, 'products', String(productId)),
+                { status: '판매완료' }
+            ).catch(() => {});
+        }
+
         renderProduct(currentProduct);
         renderPopular(currentProduct);
         renderSimilar(currentProduct);
@@ -269,6 +282,8 @@ async function submitBid() {
         // 충돌을 감지하고 재시도(최대 5회)하므로 경쟁 조건이 없습니다.
         let newBidCount = 0;
 
+        let isNewBidder = false;
+
         await window.fs.runTransaction(window.db, async (transaction) => {
             const snap = await transaction.get(ref);
             if (!snap.exists()) throw new Error('상품을 찾을 수 없습니다.');
@@ -284,13 +299,19 @@ async function submitBid() {
                 throw err;
             }
 
-            newBidCount = (data.bidCount || 0) + 1;
-            transaction.update(ref, {
-                currentPrice:     amount,
-                bidCount:         newBidCount,
-                currentWinnerId:  user.uid,
+            const bidderUids = data.bidderUids || [];
+            isNewBidder = !bidderUids.includes(user.uid);
+            newBidCount = isNewBidder ? (data.bidCount || 0) + 1 : (data.bidCount || 0);
+
+            const updateData = {
+                currentPrice:      amount,
+                bidCount:          newBidCount,
+                currentWinnerId:   user.uid,
                 currentWinnerName: user.displayName || ''
-            });
+            };
+            if (isNewBidder) updateData.bidderUids = [...bidderUids, user.uid];
+
+            transaction.update(ref, updateData);
         });
 
         // 트랜잭션 성공 → 로컬 캐시 갱신 후 UI 업데이트
