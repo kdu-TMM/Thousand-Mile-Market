@@ -64,7 +64,7 @@ function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 /* ===== 신고 관리 ===== */
 async function loadReports() {
     const tbody = document.getElementById('reportTableBody');
-    tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">불러오는 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">불러오는 중...</td></tr>';
 
     try {
         const [reportSnap, productSnap] = await Promise.all([
@@ -105,7 +105,7 @@ async function loadReports() {
 
         renderReports();
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">불러오기 실패</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">불러오기 실패</td></tr>';
     }
 }
 
@@ -121,19 +121,15 @@ function renderReports() {
     const items = allReports.filter(r => r.status === currentReportFilter);
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">신고가 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">신고가 없습니다.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(r => `
         <tr>
             <td>${typeLabel(r.targetType)}</td>
-            <td class="admin-ellipsis" style="max-width:130px;">${escHtml(r.targetTitle || r.targetId || '-')}</td>
             <td>${escHtml(r.targetAuthor || '-')}</td>
             <td>${escHtml(r.reason || '-')}</td>
-            <td>${escHtml(r.reporterNickname || '-')}</td>
-            <td>${formatDate(r.createdAt)}</td>
-            <td>${statusBadge(r.status)}</td>
             <td>
                 <button class="admin-btn info" onclick="openReportModal('${r.id}')">상세</button>
             </td>
@@ -300,51 +296,32 @@ function searchUsers() {
     renderUsers(filtered);
 }
 
-const SUSPEND_DURATIONS = [3, 7, 30]; // 1회차·2회차·3회차 (이후 영구)
+const SUSPEND_DURATIONS = [3, 7, 30];
 
 function suspendedLabel(u) {
-    if (!u.suspended) {
-        const cnt = u.suspendCount || 0;
-        const next = cnt < SUSPEND_DURATIONS.length ? `다음 ${SUSPEND_DURATIONS[cnt]}일` : '다음 영구';
-        return cnt > 0
-            ? `<span class="admin-status active">정상 (${cnt}회, ${next})</span>`
-            : '<span class="admin-status active">정상</span>';
-    }
-    if (!u.suspendedUntil) return '<span class="admin-status suspended">영구 정지</span>';
-    const days = Math.ceil((new Date(u.suspendedUntil) - Date.now()) / 86400000);
-    return days > 0
-        ? `<span class="admin-status suspended">정지 (${days}일 남음)</span>`
-        : `<span class="admin-status suspended">정지 (기간 만료)</span>`;
-}
-
-function nextPenaltyLabel(suspendCount) {
-    const cnt = suspendCount || 0;
-    if (cnt < SUSPEND_DURATIONS.length) return `${SUSPEND_DURATIONS[cnt]}일 정지`;
-    return '영구 정지';
+    if (!u.suspended) return '<span class="admin-status active">정상</span>';
+    return '<span class="admin-status suspended">정지</span>';
 }
 
 function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
     if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">사용자가 없습니다.</td></tr>';
-
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">사용자가 없습니다.</td></tr>';
         return;
     }
 
     tbody.innerHTML = users.map(u => `
         <tr>
             <td><b>${escHtml(u.nickname || '-')}</b></td>
-            <td>${escHtml(u.userId || '-')}</td>
             <td>${u.hiddenCount > 0
                 ? `<span style="color:#e53935;font-weight:600;">${u.hiddenCount}건</span>`
                 : '<span style="color:#aaa;">0건</span>'}</td>
-            <td>${u.createdAt ? u.createdAt.slice(0, 10) : '-'}</td>
             <td>${suspendedLabel(u)}</td>
             <td>
                 <div class="admin-btn-group">
                     ${u.suspended
-                        ? `<button class="admin-btn info"  onclick="toggleUserSuspend('${u.uid}', false)">정지 해제</button>`
-                        : `<button class="admin-btn danger" onclick="toggleUserSuspend('${u.uid}', true)">${nextPenaltyLabel(u.suspendCount)}</button>`}
+                        ? `<button class="admin-btn info"   onclick="toggleUserSuspend('${u.uid}', false)">정지 해제</button>`
+                        : `<button class="admin-btn danger" onclick="toggleUserSuspend('${u.uid}', true)">정지</button>`}
                 </div>
             </td>
         </tr>
@@ -426,7 +403,7 @@ async function toggleUserSuspend(uid, suspend) {
 /* ===== 상품 관리 ===== */
 async function loadProducts() {
     const tbody = document.getElementById('productTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오는 중...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">불러오는 중...</td></tr>';
 
     try {
         const snap = await window.fs.getDocs(
@@ -442,7 +419,7 @@ async function loadProducts() {
             .sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
         renderProducts();
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">불러오기 실패</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">불러오기 실패</td></tr>';
     }
 }
 
@@ -460,24 +437,18 @@ function renderProducts() {
         : allProducts.filter(p => p.status === currentProductFilter);
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">상품이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">상품이 없습니다.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(p => {
-        const price = p.type === 'auction'
-            ? (p.currentPrice ?? 0).toLocaleString() + '원'
-            : (p.price ?? 0).toLocaleString() + '원';
         const statusClass = { '판매중': 'sell', '경매중': 'auction', '판매완료': 'done', '숨김': 'hidden', '예약중': 'warn', '삭제': 'suspended' }[p.status] || 'done';
         return `
             <tr>
                 <td>
                     <a href="/product/${p.id}" target="_blank" class="admin-product-link">${escHtml(p.title || '-')}</a>
                 </td>
-                <td>${price}</td>
-                <td>${escHtml(p.sellerNickname || p.sellerUid || '-')}</td>
                 <td>${escHtml(p.category || '-')}</td>
-                <td>${(p.date || '').slice(0, 10)}</td>
                 <td><span class="admin-status ${statusClass}">${p.status || '-'}</span></td>
                 <td>
                     <div class="admin-btn-group">
