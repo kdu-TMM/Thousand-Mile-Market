@@ -38,3 +38,6 @@ out/
 
 ### Firebase 서비스 계정 키 (절대 커밋 금지!) ###
 src/main/resources/firebase-service-account.json
+
+### 시크릿 설정 (API 키 등 민감 정보) ###
+src/main/resources/application-secret.properties
