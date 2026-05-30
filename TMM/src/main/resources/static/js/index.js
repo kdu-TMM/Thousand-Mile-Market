@@ -288,12 +288,14 @@ function getSortedProducts(products) {
 function applyAllItemsFilter() {
     isLoading = false;   /* 이전 렌더 중단 후 재시작 보장 */
 
+    const now      = new Date();
     const region   = getFilterRegion();
     const category = document.getElementById('filterCategory')?.value || '';
     const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
 
     const filtered = allProducts.filter(p => {
         if (p.status === '숨김' || p.status === '삭제') return false;
+        if (p.type === 'auction' && p.status === '경매중' && p.auctionEnd && new Date(p.auctionEnd) <= now) return false;
         const matchRegion   = !region   || (p.region   || '').includes(region);
         const matchCategory = !category || (p.category || '') === category;
         const matchSearch   = !q || (p.title || '').toLowerCase().includes(q)
