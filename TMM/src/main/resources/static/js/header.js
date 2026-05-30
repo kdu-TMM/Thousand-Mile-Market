@@ -112,8 +112,10 @@ function updateAuthUI(user, isAdmin = false) {
     if (user) {
         const name = user.displayName || user.email.split('@')[0];
         if (isAdmin) {
-            /* 관리자: 마이페이지 숨김, 헤더 메뉴 숨김 */
+            /* 관리자: 관리자 버튼 추가, 마이페이지 숨김, 헤더 메뉴 숨김 */
             bar.innerHTML =
+                `<button onclick="location.href='/admin'">관리자</button>` +
+                `<span class="utility-divider">|</span>` +
                 `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
                 `<span class="utility-divider">|</span>` +
                 `<button onclick="doLogout()">로그아웃</button>`;
