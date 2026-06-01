@@ -48,7 +48,7 @@ function renderWishCard(grid, p, uid) {
     const priceLabel = p.type === 'auction' ? '현재가 ' : '';
 
     const thumb = p.imageUrls?.[0]
-        ? `<img src="${p.imageUrls[0]}" alt="${p.title}">`
+        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy">`
         : `<div class="wl-no-img">📷</div>`;
 
     const statusMap = { '판매중': 'on', '예약중': 'reserved', '경매중': 'auction', '판매완료': 'done' };

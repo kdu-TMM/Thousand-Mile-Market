@@ -50,7 +50,7 @@ function renderSalesList(items) {
         li.style.cursor = 'pointer';
         li.onclick = () => location.href = '/product/' + p.id;
         li.innerHTML = `
-            <div class="sales-thumb">${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="">` : ''}</div>
+            <div class="sales-thumb">${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="" loading="lazy">` : ''}</div>
             <div class="sales-info">
                 <p class="sales-name">${p.title}</p>
                 <p class="sales-price">${price}</p>
@@ -149,7 +149,7 @@ function loadWishList() {
             card.onclick = () => location.href = '/product/' + p.id;
             card.innerHTML = `
                 <div class="product-image">
-                    ${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="">` : '<span>📷</span>'}
+                    ${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="" loading="lazy">` : '<span>📷</span>'}
                 </div>
                 <div class="product-info">
                     <h3 class="product-title">${p.title}</h3>
@@ -202,7 +202,7 @@ function loadBuyList() {
             li.style.cursor = 'pointer';
             li.onclick = () => location.href = '/product/' + p.id;
             li.innerHTML = `
-                <div class="sales-thumb">${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="">` : ''}</div>
+                <div class="sales-thumb">${p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="" loading="lazy">` : ''}</div>
                 <div class="sales-info">
                     <p class="sales-name">${p.title}</p>
                     <p class="sales-price">${price}</p>

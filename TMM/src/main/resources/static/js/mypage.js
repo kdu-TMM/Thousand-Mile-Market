@@ -439,7 +439,7 @@ function loadBuyList(filter) {
                 actionBtn = `<button class="mp-chat-btn" onclick="event.stopPropagation();location.href='/chat'">채팅하기</button>`;
             }
 
-            const thumb = p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="">` : '';
+            const thumb = p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="" loading="lazy">` : '';
             const div = document.createElement('div');
             div.className = 'mp-trade-item';
             div.onclick = () => location.href = '/product/' + p.id;
@@ -490,7 +490,7 @@ function loadSellList(filter) {
             const price = p.type === 'auction'
                 ? '현재가 ' + (p.currentPrice ?? 0).toLocaleString() + '원'
                 : (p.price ?? 0).toLocaleString() + '원';
-            const thumb = p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="">` : '';
+            const thumb = p.imageUrls?.[0] ? `<img src="${p.imageUrls[0]}" alt="" loading="lazy">` : '';
             const div = document.createElement('div');
             div.className = 'mp-trade-item';
             div.onclick = () => location.href = '/product/' + p.id;
