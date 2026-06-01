@@ -169,17 +169,15 @@ function openReportModal(reportId) {
     `;
     document.getElementById('reportAdminNote').value = report.adminNote || '';
 
-    /* 상태에 따라 버튼 동적 변경 */
+    /* 검토중인 신고만 처리 버튼 표시 */
     const actions = document.querySelector('.admin-modal-actions');
-    if (report.status === '숨김') {
+    if (report.status === '검토중') {
         actions.innerHTML = `
-            <button class="admin-action-btn delete-btn" onclick="deleteReportedProduct()">게시물 삭제</button>
-        `;
-    } else {
-        actions.innerHTML = `
-            <button class="admin-action-btn hide-btn" onclick="updateReportStatus('숨김')">숨김</button>
+            <button class="admin-action-btn hide-btn" onclick="updateReportStatus('처리완료')">숨김처리</button>
             <button class="admin-action-btn reject" onclick="updateReportStatus('반려')">반려</button>
         `;
+    } else {
+        actions.innerHTML = '';
     }
 
     document.getElementById('reportDetailModal').style.display = 'flex';
@@ -202,8 +200,8 @@ async function updateReportStatus(newStatus) {
             { status: newStatus, adminNote: note, resolvedAt: new Date().toISOString() }
         );
 
-        /* 숨김 + 상품 신고인 경우 게시물 숨김 처리 */
-        if (newStatus === '숨김' && report?.targetType === 'product' && report?.targetId) {
+        /* 처리완료 시 상품 숨김 처리 */
+        if (newStatus === '처리완료' && report?.targetType === 'product' && report?.targetId) {
             await window.fs.updateDoc(
                 window.fs.doc(window.db, 'products', String(report.targetId)),
                 { status: '숨김' }
@@ -601,6 +599,6 @@ function typeLabel(type) {
 }
 
 function statusBadge(status) {
-    const map = { '검토중': 'pending', '처리완료': 'resolved', '숨김': 'resolved', '반려': 'rejected' };
+    const map = { '검토중': 'pending', '처리완료': 'resolved', '반려': 'rejected' };
     return `<span class="admin-status ${map[status] || ''}">${status || '-'}</span>`;
 }
