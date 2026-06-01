@@ -6,6 +6,11 @@ let currentReportFilter  = '검토중';
 let currentProductFilter = 'all';
 let activeReportId = null;
 
+const PAGE_SIZE = 10;
+let currentReportPage  = 1;
+let currentUserPage    = 1;
+let currentProductPage = 1;
+
 /* ===== 초기화 ===== */
 function initAdmin() {
     if (window.firebaseReady) {
@@ -111,6 +116,7 @@ async function loadReports() {
 
 function filterReports(status, btn) {
     currentReportFilter = status;
+    currentReportPage = 1;
     document.querySelectorAll('#tabReports .admin-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderReports();
@@ -121,11 +127,14 @@ function renderReports() {
     const items = allReports.filter(r => r.status === currentReportFilter);
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">신고가 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">신고가 없습니다.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = items.map(r => `
+    const start = (currentReportPage - 1) * PAGE_SIZE;
+    const pageItems = items.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageItems.map(r => `
         <tr>
             <td>${typeLabel(r.targetType)}</td>
             <td>${escHtml(r.targetAuthor || '-')}</td>
@@ -135,7 +144,10 @@ function renderReports() {
             </td>
         </tr>
     `).join('');
+    renderPagination(items.length, currentReportPage, 'setReportPage', 'reportPagination');
 }
+
+function setReportPage(page) { currentReportPage = page; renderReports(); }
 
 /* ===== 신고 상세 모달 ===== */
 function openReportModal(reportId) {
@@ -286,6 +298,7 @@ async function loadUsers() {
 }
 
 function searchUsers() {
+    currentUserPage = 1;
     const q = document.getElementById('userSearchInput').value.trim().toLowerCase();
     const filtered = !q
         ? allUsers
@@ -306,11 +319,15 @@ function suspendedLabel(u) {
 function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
     if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">사용자가 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">사용자가 없습니다.</td></tr>';
+
         return;
     }
 
-    tbody.innerHTML = users.map(u => `
+    const start = (currentUserPage - 1) * PAGE_SIZE;
+    const pageItems = users.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageItems.map(u => `
         <tr>
             <td><b>${escHtml(u.nickname || '-')}</b></td>
             <td>${u.hiddenCount > 0
@@ -326,7 +343,10 @@ function renderUsers(users) {
             </td>
         </tr>
     `).join('');
+    renderPagination(users.length, currentUserPage, 'setUserPage', 'userPagination');
 }
+
+function setUserPage(page) { currentUserPage = page; renderUsers(allUsers); }
 
 async function toggleUserSuspend(uid, suspend) {
     if (suspend) {
@@ -425,6 +445,7 @@ async function loadProducts() {
 
 function filterProducts(status, btn) {
     currentProductFilter = status;
+    currentProductPage = 1;
     document.querySelectorAll('#tabProducts .admin-filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderProducts();
@@ -437,11 +458,14 @@ function renderProducts() {
         : allProducts.filter(p => p.status === currentProductFilter);
 
     if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">상품이 없습니다.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">상품이 없습니다.</td></tr>';
         return;
     }
 
     tbody.innerHTML = items.map(p => {
+        const price = p.type === 'auction'
+            ? (p.currentPrice ?? 0).toLocaleString() + '원'
+            : (p.price ?? 0).toLocaleString() + '원';
         const statusClass = { '판매중': 'sell', '경매중': 'auction', '판매완료': 'done', '숨김': 'hidden', '예약중': 'warn', '삭제': 'suspended' }[p.status] || 'done';
         return `
             <tr>
@@ -462,7 +486,10 @@ function renderProducts() {
             </tr>
         `;
     }).join('');
+    renderPagination(items.length, currentProductPage, 'setProductPage', 'productPagination');
 }
+
+function setProductPage(page) { currentProductPage = page; renderProducts(); }
 
 async function toggleProductHidden(productId, hide) {
     const action = hide ? '숨김 처리' : '숨김 해제';
@@ -519,6 +546,27 @@ async function restoreDeletedProduct(productId) {
     } catch (e) {
         alert('복구 중 오류: ' + e.message);
     }
+}
+
+/* ===== 페이지네이션 ===== */
+function renderPagination(total, current, setter, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) { container.innerHTML = ''; return; }
+
+    const start = Math.max(1, current - 2);
+    const end   = Math.min(totalPages, start + 4);
+    let html = `<button class="pg-btn" ${current === 1 ? 'disabled' : ''} onclick="${setter}(${current - 1})">‹</button>`;
+    if (start > 1) html += `<button class="pg-btn" onclick="${setter}(1)">1</button>`;
+    if (start > 2) html += `<span class="pg-ellipsis">…</span>`;
+    for (let i = start; i <= end; i++) {
+        html += `<button class="pg-btn${i === current ? ' active' : ''}" onclick="${setter}(${i})">${i}</button>`;
+    }
+    if (end < totalPages - 1) html += `<span class="pg-ellipsis">…</span>`;
+    if (end < totalPages)     html += `<button class="pg-btn" onclick="${setter}(${totalPages})">${totalPages}</button>`;
+    html += `<button class="pg-btn" ${current === totalPages ? 'disabled' : ''} onclick="${setter}(${current + 1})">›</button>`;
+    container.innerHTML = html;
 }
 
 /* ===== 유틸 ===== */

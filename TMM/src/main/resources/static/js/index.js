@@ -76,7 +76,7 @@ function createAuctionCard(p) {
     card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
 
     const thumb = p.imageUrls?.[0]
-        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" onerror="imgError(this)">`
+        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy" onerror="imgError(this)">`
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
 
     const bidLabel  = hasBids ? `${p.bidCount}명 입찰 중` : '0명 입찰';
@@ -172,7 +172,7 @@ function createProductCard(product) {
         const priceClass = hasBids ? 'bid-price' : 'start-price';
         const bidLabel = hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰';
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         const timerHtml = product.auctionEnd
             ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
@@ -197,7 +197,7 @@ function createProductCard(product) {
         card.className = 'product-card';
         const price = product.price ?? 0;
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         card.innerHTML = `
             <div class="product-image">${thumb}</div>

@@ -144,13 +144,36 @@ function closeSellConfirm() {
     _pendingSellData = null;
 }
 
+function compressImage(file, maxSize = 1200, quality = 0.8) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            let { width, height } = img;
+            if (width > maxSize || height > maxSize) {
+                if (width > height) { height = Math.round(height * maxSize / width); width = maxSize; }
+                else                { width  = Math.round(width  * maxSize / height); height = maxSize; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+    });
+}
+
 async function uploadImages(uid, files) {
     const { ref, uploadBytes, getDownloadURL } = window.storageUtils;
     const urls = [];
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const path = `products/${uid}/${Date.now()}_${i}_${file.name}`;
-        const snap = await uploadBytes(ref(window.storage, path), file);
+        const compressed = await compressImage(file);
+        const ext = file.name.replace(/.*\./, '') || 'jpg';
+        const path = `products/${uid}/${Date.now()}_${i}.jpg`;
+        const snap = await uploadBytes(ref(window.storage, path), compressed, { contentType: 'image/jpeg' });
         urls.push(await getDownloadURL(snap.ref));
     }
     return urls;

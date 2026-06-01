@@ -1,3 +1,28 @@
+/* ===== 페이지네이션 ===== */
+.admin-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-top: 16px;
+}
+.pg-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.pg-btn:hover:not(:disabled) { background: #f0f4ff; border-color: #1a3f9e; color: #1a3f9e; }
+.pg-btn.active { background: #1a3f9e; color: #fff; border-color: #1a3f9e; font-weight: 700; }
+.pg-btn:disabled { color: #bbb; cursor: default; }
+.pg-ellipsis { font-size: 13px; color: #aaa; padding: 0 2px; }
+
 /* ===== 관리자 가드 ===== */
 .admin-guard {
     position: fixed; inset: 0;

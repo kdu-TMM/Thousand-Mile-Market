@@ -447,7 +447,7 @@ function renderPopular(p) {
         card.className = 'pd-sim-card';
         const price = s.type === 'auction' ? s.currentPrice : s.price;
         const thumb = s.imageUrls?.[0]
-            ? `<img src="${s.imageUrls[0]}" alt="${s.title}">`
+            ? `<img src="${s.imageUrls[0]}" alt="${s.title}" loading="lazy">`
             : `<span>📷</span>`;
         card.innerHTML = `
             <div class="pd-sim-img">${thumb}</div>
@@ -476,7 +476,7 @@ function renderSimilar(p) {
         card.className = 'pd-sim-card';
         const price = s.type === 'auction' ? s.currentPrice : s.price;
         const thumb = s.imageUrls?.[0]
-            ? `<img src="${s.imageUrls[0]}" alt="${s.title}">`
+            ? `<img src="${s.imageUrls[0]}" alt="${s.title}" loading="lazy">`
             : `<span>📷</span>`;
         card.innerHTML = `
             <div class="pd-sim-img">${thumb}</div>
