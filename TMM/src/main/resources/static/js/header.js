@@ -108,7 +108,10 @@ async function doLogout() {
 function updateAuthUI(user, isAdmin = false) {
     const bar  = document.getElementById('utilityBar');
     const menu = document.getElementById('headerMenu');
+    const logo = document.querySelector('.logo');
     if (!bar) return;
+
+    if (logo) logo.onclick = () => location.href = (isAdmin ? '/admin' : '/');
 
     if (user) {
         const name = user.displayName || user.email.split('@')[0];
