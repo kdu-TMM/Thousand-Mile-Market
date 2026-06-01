@@ -11,7 +11,7 @@ import { getAuth, createUserWithEmailAndPassword,
          signInWithEmailAndPassword, signOut,
          onAuthStateChanged, updateProfile,
          updatePassword, reauthenticateWithCredential,
-         EmailAuthProvider,
+         EmailAuthProvider, PhoneAuthProvider,
          RecaptchaVerifier, signInWithPhoneNumber,
          initializeRecaptchaConfig }             from 'https://www.gstatic.com/firebasejs/11.8.0/firebase-auth.js';
 
@@ -51,7 +51,8 @@ window.authFuncs = {
     reauthenticateWithCredential,
     EmailAuthProvider,
     RecaptchaVerifier,
-    signInWithPhoneNumber
+    signInWithPhoneNumber,
+    PhoneAuthProvider
 };
 
 initializeRecaptchaConfig(window.auth)
