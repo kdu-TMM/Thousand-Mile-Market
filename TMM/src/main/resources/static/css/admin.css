@@ -32,8 +32,8 @@
 @keyframes adminSpin { to { transform: rotate(360deg); } }
 
 /* ===== 레이아웃 ===== */
-.admin-main { max-width: 1280px; margin: 0 auto; padding: 24px 16px; }
-.admin-layout { display: flex; gap: 24px; align-items: flex-start; }
+.admin-main { max-width: 1280px; margin: 0 auto; padding: 8px 16px 24px; }
+.admin-layout { display: flex; gap: 24px; align-items: flex-start; min-height: calc(100vh - 200px); }
 
 /* ===== 사이드바 ===== */
 .admin-sidebar {
@@ -42,7 +42,7 @@
     border: 1px solid #e8e8e8;
     border-radius: 10px;
     padding: 20px 0;
-    position: sticky; top: 90px;
+    position: sticky; top: 136px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .admin-sidebar-title {

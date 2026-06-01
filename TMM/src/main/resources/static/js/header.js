@@ -102,6 +102,7 @@ async function doLogout() {
     if (!window.authFuncs) return;
     await window.authFuncs.signOut(window.auth);
     fetch('/api/auth/session', { method: 'DELETE' });
+    location.href = '/';
 }
 
 function updateAuthUI(user, isAdmin = false) {
