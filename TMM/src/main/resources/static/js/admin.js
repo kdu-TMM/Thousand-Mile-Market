@@ -10,6 +10,7 @@ const PAGE_SIZE = 10;
 let currentReportPage  = 1;
 let currentUserPage    = 1;
 let currentProductPage = 1;
+let filteredUsers      = [];
 
 /* ===== 초기화 ===== */
 function initAdmin() {
@@ -128,6 +129,7 @@ function renderReports() {
 
     if (!items.length) {
         tbody.innerHTML = '<tr><td colspan="8" class="admin-empty">신고가 없습니다.</td></tr>';
+        renderPagination(0, 1, 'setReportPage', 'reportPagination');
         return;
     }
 
@@ -289,6 +291,7 @@ async function loadUsers() {
         allUsers = usersSnap.docs
             .map(d => ({ uid: d.id, ...d.data(), hiddenCount: hiddenCountMap[d.id] || 0 }))
             .filter(u => !u.isAdmin);
+        filteredUsers = [];
         renderUsers(allUsers);
     } catch (e) {
         tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">불러오기 실패</td></tr>';
@@ -298,13 +301,13 @@ async function loadUsers() {
 function searchUsers() {
     currentUserPage = 1;
     const q = document.getElementById('userSearchInput').value.trim().toLowerCase();
-    const filtered = !q
+    filteredUsers = !q
         ? allUsers
         : allUsers.filter(u =>
             (u.nickname || '').toLowerCase().includes(q) ||
             (u.userId   || '').toLowerCase().includes(q)
           );
-    renderUsers(filtered);
+    renderUsers(filteredUsers);
 }
 
 const SUSPEND_DURATIONS = [3, 7, 30];
@@ -318,7 +321,7 @@ function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
     if (!users.length) {
         tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">사용자가 없습니다.</td></tr>';
-
+        renderPagination(0, 1, 'setUserPage', 'userPagination');
         return;
     }
 
@@ -344,7 +347,7 @@ function renderUsers(users) {
     renderPagination(users.length, currentUserPage, 'setUserPage', 'userPagination');
 }
 
-function setUserPage(page) { currentUserPage = page; renderUsers(allUsers); }
+function setUserPage(page) { currentUserPage = page; renderUsers(filteredUsers.length ? filteredUsers : allUsers); }
 
 async function toggleUserSuspend(uid, suspend) {
     if (suspend) {
@@ -457,10 +460,14 @@ function renderProducts() {
 
     if (!items.length) {
         tbody.innerHTML = '<tr><td colspan="7" class="admin-empty">상품이 없습니다.</td></tr>';
+        renderPagination(0, 1, 'setProductPage', 'productPagination');
         return;
     }
 
-    tbody.innerHTML = items.map(p => {
+    const start = (currentProductPage - 1) * PAGE_SIZE;
+    const pageItems = items.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageItems.map(p => {
         const price = p.type === 'auction'
             ? (p.currentPrice ?? 0).toLocaleString() + '원'
             : (p.price ?? 0).toLocaleString() + '원';
@@ -550,8 +557,7 @@ async function restoreDeletedProduct(productId) {
 function renderPagination(total, current, setter, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    if (totalPages <= 1) { container.innerHTML = ''; return; }
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
     const start = Math.max(1, current - 2);
     const end   = Math.min(totalPages, start + 4);
