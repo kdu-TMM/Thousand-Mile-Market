@@ -349,12 +349,6 @@
 .bid-submit-btn:disabled { background: #bdbdbd; cursor: not-allowed; }
 
 
-/* ===== 카테고리 인기 상품 ===== */
-#popular-item {
-    margin-top: 48px;
-    margin-bottom: 0;
-}
-
 /* ===== 비슷한 상품 ===== */
 #similar-item {
     margin-top: 48px;

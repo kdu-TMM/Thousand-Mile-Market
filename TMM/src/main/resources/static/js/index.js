@@ -375,14 +375,33 @@ function applyAllItemsFilter() {
     }
 }
 
+const CACHE_KEY = 'tmm_products';
+const CACHE_TTL = 3 * 60 * 1000; // 3분
+
 function loadProducts() {
+    // 캐시 확인 → 있으면 즉시 렌더링
+    try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const { data, ts } = JSON.parse(cached);
+            if (Date.now() - ts < CACHE_TTL) {
+                allProducts = data;
+                applyAllItemsFilter();
+            }
+        }
+    } catch (_) {}
+
+    // 백그라운드에서 최신 데이터 갱신
     window.fs.getDocs(window.fs.collection(window.db, 'products'))
         .then(snapshot => {
             allProducts = snapshot.docs.map(d => d.data());
+            try {
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() }));
+            } catch (_) {}
             applyAllItemsFilter();
         })
         .catch(() => {
-            /* Firestore 실패 시 products.json 폴백 */
+            if (allProducts.length > 0) return; // 캐시로 이미 렌더됐으면 스킵
             fetch('/data/products.json')
                 .then(r => r.json())
                 .then(data => { allProducts = data; applyAllItemsFilter(); });
