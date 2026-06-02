@@ -166,7 +166,12 @@ function renderProduct(p) {
     const images = p.imageUrls?.length ? p.imageUrls : (localImageMap[p.id] ?? []);
     renderGallery(images, p.title);
 
-    document.getElementById('item-detail').style.display = 'block';
+    // 스켈레톤 제거
+    document.querySelectorAll('.pd-skeleton').forEach(el => el.classList.remove('pd-skeleton'));
+
+    // 푸터 표시
+    const footer = document.querySelector('.footer');
+    if (footer) footer.classList.remove('app-footer-hidden');
 
     // 액션 버튼 렌더 (auth 준비 후 재시도)
     updateActionButton(p);

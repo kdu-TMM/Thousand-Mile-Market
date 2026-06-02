@@ -24,7 +24,7 @@
         </div>
 
         <!-- 상품 상세 (JS로 채움) -->
-        <section id="item-detail" class="pd-center" style="display:none;">
+        <section id="item-detail" class="pd-center">
 
             <div id="item-info">
                 <!-- 이미지 영역 -->
@@ -86,15 +86,15 @@
             <div class="pd-bottom-row">
                 <div id="user-profile">
                     <div class="pd-seller-left">
-                        <img id="pdSellerImg" src="/images/common/user.png" alt="프로필">
+                        <img id="pdSellerImg" src="/images/common/user.png" alt="프로필" class="pd-skeleton">
                         <div class="pd-seller-info">
-                            <span class="pd-seller-nickname" id="pdSellerNickname">판매자</span>
-                            <span class="pd-seller-region" id="pdSellerRegion"></span>
+                            <span class="pd-seller-nickname pd-skeleton" id="pdSellerNickname"></span>
+                            <span class="pd-seller-region pd-skeleton" id="pdSellerRegion"></span>
                         </div>
                     </div>
                     <div class="rating-stars">
                         <i class="fa-solid fa-star"></i>
-                        <span class="pd-rating" id="pdRating">0.0</span>
+                        <span class="pd-rating pd-skeleton" id="pdRating"></span>
                     </div>
                 </div>
 
@@ -182,6 +182,9 @@
 
     <div th:replace="~{fragments/footer :: footer}"></div>
     <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
+    <script>
+        document.querySelector('.footer')?.classList.add('app-footer-hidden');
+    </script>
     <script th:src="@{/js/product.js}"></script>
 </div>
 </body>

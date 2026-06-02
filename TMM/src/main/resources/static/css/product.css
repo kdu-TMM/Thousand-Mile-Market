@@ -1,3 +1,23 @@
+/* ===== 스켈레톤 ===== */
+.pd-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: pdShimmer 1.4s infinite;
+    color: transparent !important;
+    border-radius: 4px;
+    min-width: 60px;
+    min-height: 14px;
+    display: inline-block;
+}
+.pd-skeleton * { visibility: hidden; }
+@keyframes pdShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* 푸터 로딩 전 숨김 */
+.app-footer-hidden { display: none !important; }
+
 /* ===== 상품 상세 페이지 ===== */
 .pd-breadcrumb {
     max-width: 1024px;
