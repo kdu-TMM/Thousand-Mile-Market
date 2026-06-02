@@ -127,8 +127,8 @@ function loadPopular() {
         docs.forEach(doc => {
             const p = doc.data();
             const price = p.type === 'auction'
-                ? (p.currentPrice ?? p.startPrice ?? 0).toLocaleString() + '원'
-                : (p.price ?? 0).toLocaleString() + '원';
+                ? (p.currentPrice ?? p.startPrice ?? 0).toLocaleString()
+                : (p.price ?? 0).toLocaleString();
             const thumb = p.imageUrls?.[0]
                 ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" onload="this.classList.add('loaded')" onerror="imgError(this)">`
                 : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
