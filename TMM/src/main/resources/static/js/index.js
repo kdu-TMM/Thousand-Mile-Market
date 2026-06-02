@@ -76,7 +76,7 @@ function createAuctionCard(p) {
     card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
 
     const thumb = p.imageUrls?.[0]
-        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy" onerror="imgError(this)">`
+        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" onload="this.classList.add('loaded')" onerror="imgError(this)">`
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
 
     const bidLabel  = hasBids ? `${p.bidCount}명 입찰 중` : '0명 입찰';
@@ -103,6 +103,52 @@ function createAuctionCard(p) {
         location.href = '/product/' + p.id;
     });
     return card;
+}
+
+function loadPopular() {
+    const grid = document.getElementById('popularGrid');
+    if (!grid) return;
+
+    window.fs.getDocs(
+        window.fs.query(
+            window.fs.collection(window.db, 'products'),
+            window.fs.orderBy('views', 'desc'),
+            window.fs.limit(20)
+        )
+    ).then(snapshot => {
+        grid.innerHTML = '';
+        const docs = snapshot.docs
+            .filter(doc => ['판매중', '경매중'].includes(doc.data().status))
+            .slice(0, 5);
+        if (docs.length === 0) {
+            grid.innerHTML = '<p style="color:#999; padding:16px; grid-column: 1 / -1;">인기 상품이 없습니다.</p>';
+            return;
+        }
+        docs.forEach(doc => {
+            const p = doc.data();
+            const price = p.type === 'auction'
+                ? (p.currentPrice ?? p.startPrice ?? 0).toLocaleString() + '원'
+                : (p.price ?? 0).toLocaleString() + '원';
+            const thumb = p.imageUrls?.[0]
+                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+                : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <div class="product-image">${thumb}</div>
+                <div class="product-info">
+                    <h3 class="product-title">${p.title}</h3>
+                    <div class="product-details">
+                        <span class="product-price">${price}</span>
+                        <span class="product-date">조회 ${(p.views ?? 0).toLocaleString()}</span>
+                    </div>
+                </div>`;
+            card.addEventListener('click', () => location.href = '/product/' + doc.id);
+            grid.appendChild(card);
+        });
+    }).catch(() => {
+        grid.innerHTML = '<p style="color:#999; padding:16px; grid-column: 1 / -1;">인기 상품을 불러올 수 없습니다.</p>';
+    });
 }
 
 function loadAuctions() {
@@ -172,7 +218,7 @@ function createProductCard(product) {
         const priceClass = hasBids ? 'bid-price' : 'start-price';
         const bidLabel = hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰';
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onload="this.classList.add('loaded')" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         const timerHtml = product.auctionEnd
             ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
@@ -197,7 +243,7 @@ function createProductCard(product) {
         card.className = 'product-card';
         const price = product.price ?? 0;
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onload="this.classList.add('loaded')" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         card.innerHTML = `
             <div class="product-image">${thumb}</div>
@@ -358,10 +404,12 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.db) {
         loadProducts();
         loadAuctions();
+        loadPopular();
     } else {
         window.addEventListener('firebase-ready', () => {
             loadProducts();
             loadAuctions();
+            loadPopular();
         });
     }
 });
@@ -370,6 +418,14 @@ document.addEventListener('DOMContentLoaded', function () {
 function applyFilter() {
     const allTab = document.querySelector('.fsection-tab[onclick*="\'all\'"]');
     if (allTab && !allTab.classList.contains('active')) showSection('all', allTab);
+
+    const category = document.getElementById('filterCategory')?.value || '';
+    const sido     = document.getElementById('filterSido')?.value     || '';
+    const isFiltered = category || sido;
+
+    document.getElementById('section-popular').style.display = isFiltered ? 'none' : '';
+    document.getElementById('section-auction').style.display = isFiltered ? 'none' : '';
+
     applyAllItemsFilter();
 }
 function resetFilter() {
@@ -382,6 +438,10 @@ function resetFilter() {
     dongEl.style.display = 'none';
     document.getElementById('filterCategory').value = '';
     document.getElementById('sortSelect').value = 'latest';
+
+    document.getElementById('section-popular').style.display = '';
+    document.getElementById('section-auction').style.display = '';
+
     applyAllItemsFilter();
 }
 

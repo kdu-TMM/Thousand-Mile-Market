@@ -301,15 +301,17 @@ async function submitBid() {
 
             const bidderUids = data.bidderUids || [];
             isNewBidder = !bidderUids.includes(user.uid);
-            newBidCount = isNewBidder ? (data.bidCount || 0) + 1 : (data.bidCount || 0);
+            const newBidderUids = isNewBidder ? [...bidderUids, user.uid] : bidderUids;
+            newBidCount = newBidderUids.length;
 
             const updateData = {
                 currentPrice:      amount,
                 bidCount:          newBidCount,
+                bidderUids:        newBidderUids,
                 currentWinnerId:   user.uid,
                 currentWinnerName: user.displayName || ''
             };
-            if (isNewBidder) updateData.bidderUids = [...bidderUids, user.uid];
+
 
             transaction.update(ref, updateData);
         });
