@@ -79,6 +79,9 @@ dependencies {
 	// Redisson
 	implementation 'org.redisson:redisson:3.32.0'
 
+	// Solapi SDK (SMS 인증)
+	implementation 'com.solapi:sdk:1.0.3'
+
 	// QueryDSL (Jakarta)
 	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
 	annotationProcessor 'com.querydsl:querydsl-apt:5.1.0:jakarta'

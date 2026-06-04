@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gradlew.bat clean *)"
+      "Bash(gradlew.bat clean *)",
+      "WebFetch(domain:solapi.com)",
+      "Bash(./gradlew dependencies *)",
+      "Bash(./gradlew compileJava)",
+      "PowerShell(javap -classpath $jar com.solapi.sdk.message.exception.SolapiEmptyResponseException 2>&1)",
+      "PowerShell(javap -classpath $jar com.solapi.sdk.message.exception.SolapiException 2>&1)",
+      "PowerShell($jar = \"C:\\\\Users\\\\samsung\\\\.gradle\\\\caches\\\\modules-2\\\\files-2.1\\\\com.solapi\\\\sdk\\\\1.0.3\\\\7d5cb30cd49c9a49e4bfd4ff5d5e598efb2cbabf\\\\sdk-1.0.3.jar\")",
+      "PowerShell(javap -classpath $jar com.solapi.sdk.message.exception.SolapiUnknownException 2>&1)"
     ]
   }
 }
