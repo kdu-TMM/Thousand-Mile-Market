@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = e?.detail?.user ?? window.auth?.currentUser;
         if (!user) { showLoginPrompt(); return; }
         if (myUid) return;
+        if (e?.type === 'auth-changed') { location.href = '/'; return; }
         startChat(user);
     };
 

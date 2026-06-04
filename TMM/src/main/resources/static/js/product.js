@@ -42,7 +42,6 @@ function loadProduct() {
         }
 
         renderProduct(currentProduct);
-        renderPopular(currentProduct);
         renderSimilar(currentProduct);
         trackView(String(productId));
         checkWishState();
@@ -167,7 +166,12 @@ function renderProduct(p) {
     const images = p.imageUrls?.length ? p.imageUrls : (localImageMap[p.id] ?? []);
     renderGallery(images, p.title);
 
-    document.getElementById('item-detail').style.display = 'block';
+    // 스켈레톤 제거
+    document.querySelectorAll('.pd-skeleton').forEach(el => el.classList.remove('pd-skeleton'));
+
+    // 푸터 표시
+    const footer = document.querySelector('.footer');
+    if (footer) footer.classList.remove('app-footer-hidden');
 
     // 액션 버튼 렌더 (auth 준비 후 재시도)
     updateActionButton(p);
@@ -301,15 +305,17 @@ async function submitBid() {
 
             const bidderUids = data.bidderUids || [];
             isNewBidder = !bidderUids.includes(user.uid);
-            newBidCount = isNewBidder ? (data.bidCount || 0) + 1 : (data.bidCount || 0);
+            const newBidderUids = isNewBidder ? [...bidderUids, user.uid] : bidderUids;
+            newBidCount = newBidderUids.length;
 
             const updateData = {
                 currentPrice:      amount,
                 bidCount:          newBidCount,
+                bidderUids:        newBidderUids,
                 currentWinnerId:   user.uid,
                 currentWinnerName: user.displayName || ''
             };
-            if (isNewBidder) updateData.bidderUids = [...bidderUids, user.uid];
+
 
             transaction.update(ref, updateData);
         });
@@ -430,37 +436,6 @@ async function toggleWish() {
     } finally {
         btn.disabled = false;
     }
-}
-
-/* ===== 카테고리 인기 상품 ===== */
-function renderPopular(p) {
-    const popular = allProducts
-        .filter(x => x.id !== p.id && x.category === p.category && x.status !== '판매완료')
-        .sort((a, b) => (b.views || 0) - (a.views || 0));
-    if (popular.length === 0) return;
-
-    const grid = document.getElementById('pdPopularGrid');
-    document.getElementById('pdPopularPage').textContent = `1/${Math.ceil(popular.length / 5)}`;
-
-    popular.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'pd-sim-card';
-        const price = s.type === 'auction' ? s.currentPrice : s.price;
-        const thumb = s.imageUrls?.[0]
-            ? `<img src="${s.imageUrls[0]}" alt="${s.title}" loading="lazy">`
-            : `<span>📷</span>`;
-        card.innerHTML = `
-            <div class="pd-sim-img">${thumb}</div>
-            <p class="pd-sim-title">${s.title}</p>
-            <p class="pd-sim-price">${price.toLocaleString()}원</p>`;
-        card.onclick = () => location.href = '/product/' + s.id;
-        grid.appendChild(card);
-    });
-    document.getElementById('popular-item').style.display = 'block';
-}
-
-function scrollPopular(dir) {
-    document.getElementById('pdPopularGrid').scrollBy({ left: dir * 800, behavior: 'smooth' });
 }
 
 /* ===== 비슷한 상품 ===== */
