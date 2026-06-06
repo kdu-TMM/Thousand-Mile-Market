@@ -92,6 +92,7 @@ function loadUserInfo() {
             setVal('settingBio',      d.bio      || '');
             setVal('settingPhone',    d.phone    || '');
             setVal('settingRegion',   d.region   || '');
+            _originalPhone = (d.phone || '').replace(/\D/g, '');
             setVal('infoCreatedAt',   formatDate(d.createdAt));
 
             _originalNickname  = d.nickname || '';
@@ -146,105 +147,104 @@ function checkNicknameDup() {
     }).catch(() => showFieldMsg('nicknameMsg', '확인 중 오류가 발생했습니다.', 'error'));
 }
 
-let _phoneVerificationId = null;
-let _phoneTimerInterval  = null;
+let _phoneTimerInterval = null;
+let _phoneTimerSeconds  = 0;
+let _verifiedPhone      = '';
+let _originalPhone      = '';
 
-function _resetPhoneRecaptcha() {
-    if (window._phoneRecaptchaVerifier) {
-        try { window._phoneRecaptchaVerifier.clear(); } catch (e) {}
-        window._phoneRecaptchaVerifier = null;
-    }
-    const container = document.getElementById('phone-recaptcha');
-    if (container) container.innerHTML = '';
-}
-
-function _startPhoneTimer(sec) {
+function _startPhoneTimer() {
+    _phoneTimerSeconds = 5 * 60;
+    _updatePhoneTimer();
     clearInterval(_phoneTimerInterval);
-    const el = document.getElementById('phoneTimer');
-    if (!el) return;
     _phoneTimerInterval = setInterval(() => {
-        const m = String(Math.floor(sec / 60)).padStart(1, '0');
-        const s = String(sec % 60).padStart(2, '0');
-        el.textContent = `${m}:${s}`;
-        if (sec-- <= 0) {
+        _phoneTimerSeconds--;
+        _updatePhoneTimer();
+        if (_phoneTimerSeconds <= 0) {
             clearInterval(_phoneTimerInterval);
-            el.textContent = '만료';
+            document.getElementById('phoneTimer').textContent = '만료';
             document.getElementById('phoneCodeField').style.display = 'none';
-            _phoneVerificationId = null;
+            showFieldMsg('phoneMsg', '인증 시간이 만료되었습니다. 재전송해 주세요.', 'error');
         }
     }, 1000);
 }
 
+function _updatePhoneTimer() {
+    const el = document.getElementById('phoneTimer');
+    if (!el) return;
+    const m = Math.floor(_phoneTimerSeconds / 60);
+    const s = _phoneTimerSeconds % 60;
+    el.textContent = m + ':' + String(s).padStart(2, '0');
+}
+
 async function requestPhoneVerify() {
-    const phone = document.getElementById('settingPhone').value.trim();
-    if (!phone) { showFieldMsg('phoneMsg', '전화번호를 입력해 주세요.', 'error'); return; }
-    const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) { showFieldMsg('phoneMsg', '올바른 전화번호를 입력해 주세요.', 'error'); return; }
-    if (!window.auth?.currentUser || !window.authFuncs) { showFieldMsg('phoneMsg', '로그인이 필요합니다.', 'error'); return; }
+    const phone = document.getElementById('settingPhone').value.replace(/\D/g, '');
+    if (!phone.match(/^01[0-9]{8,9}$/)) {
+        showFieldMsg('phoneMsg', '올바른 전화번호를 입력해 주세요. (예: 01012345678)', 'error');
+        return;
+    }
 
     const btn = document.getElementById('phoneVerifyBtn');
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = '전송 중...';
     showFieldMsg('phoneMsg', '', '');
 
-    _resetPhoneRecaptcha();
-    window._phoneRecaptchaVerifier = new window.authFuncs.RecaptchaVerifier(
-        window.auth, 'phone-recaptcha', { size: 'invisible' }
-    );
-
-    const formatted = '+82' + digits.replace(/^0/, '');
-
     try {
-        const provider = new window.authFuncs.PhoneAuthProvider(window.auth);
-        await window._phoneRecaptchaVerifier.render();
-        _phoneVerificationId = await provider.verifyPhoneNumber(formatted, window._phoneRecaptchaVerifier);
+        const res  = await fetch('/api/sms/send', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phone })
+        });
+        const data = await res.json();
 
-        document.getElementById('phoneCodeField').style.display = 'block';
-        document.getElementById('phoneCode').value = '';
-        _startPhoneTimer(180);
-        showFieldMsg('phoneMsg', '인증번호가 발송되었습니다.', 'ok');
-        btn.textContent = '재전송';
-    } catch (err) {
-        const errMap = {
-            'auth/invalid-phone-number':  '올바르지 않은 전화번호입니다.',
-            'auth/too-many-requests':     '너무 많은 요청입니다. 잠시 후 다시 시도해 주세요.',
-            'auth/captcha-check-failed':  'reCAPTCHA 인증 실패. 페이지를 새로고침 해주세요.'
-        };
-        showFieldMsg('phoneMsg', errMap[err.code] || '발송 실패: ' + err.message, 'error');
-        _resetPhoneRecaptcha();
-    } finally {
-        btn.disabled = false;
-        if (btn.textContent === '전송 중...') btn.textContent = '인증';
+        if (res.ok) {
+            showFieldMsg('phoneMsg', '인증번호가 발송되었습니다.', 'ok');
+            document.getElementById('phoneCodeField').style.display = 'block';
+            document.getElementById('phoneCode').value = '';
+            _startPhoneTimer();
+            btn.textContent = '재전송';
+            setTimeout(() => { btn.disabled = false; }, 60000);
+        } else {
+            showFieldMsg('phoneMsg', data.message || 'SMS 발송에 실패했습니다.', 'error');
+            btn.disabled    = false;
+            btn.textContent = '인증';
+        }
+    } catch {
+        showFieldMsg('phoneMsg', '네트워크 오류가 발생했습니다.', 'error');
+        btn.disabled    = false;
+        btn.textContent = '인증';
     }
 }
 
 async function confirmPhoneCode() {
-    const code = document.getElementById('phoneCode').value.trim();
-    if (!code || code.length < 6) { showFieldMsg('phoneMsg', '인증번호 6자리를 입력해 주세요.', 'error'); return; }
-    if (!_phoneVerificationId) { showFieldMsg('phoneMsg', '먼저 인증번호를 요청해 주세요.', 'error'); return; }
-    if (!window.auth?.currentUser) { showFieldMsg('phoneMsg', '로그인이 필요합니다.', 'error'); return; }
+    const phone = document.getElementById('settingPhone').value.replace(/\D/g, '');
+    const code  = document.getElementById('phoneCode').value.trim();
+    if (!code || code.length !== 6) {
+        showFieldMsg('phoneMsg', '인증번호 6자리를 입력해 주세요.', 'error');
+        return;
+    }
 
     try {
-        const credential = window.authFuncs.PhoneAuthProvider.credential(_phoneVerificationId, code);
-        await window.auth.currentUser.updatePhoneNumber(credential);
+        const res  = await fetch('/api/sms/verify', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ phone, code })
+        });
+        const data = await res.json();
 
-        const phone = document.getElementById('settingPhone').value.trim();
-        await window.fs.updateDoc(
-            window.fs.doc(window.db, 'users', window.auth.currentUser.uid),
-            { phone }
-        );
-
-        clearInterval(_phoneTimerInterval);
-        document.getElementById('phoneCodeField').style.display = 'none';
-        document.getElementById('phoneTimer').textContent = '';
-        _phoneVerificationId = null;
-        showFieldMsg('phoneMsg', '전화번호가 인증되었습니다.', 'ok');
-    } catch (err) {
-        const errMap = {
-            'auth/invalid-verification-code': '인증번호가 올바르지 않습니다.',
-            'auth/code-expired':              '인증번호가 만료되었습니다. 다시 요청해 주세요.'
-        };
-        showFieldMsg('phoneMsg', errMap[err.code] || '인증 실패: ' + err.message, 'error');
+        if (res.ok && data.verified) {
+            _verifiedPhone = phone;
+            clearInterval(_phoneTimerInterval);
+            document.getElementById('phoneCodeField').style.display = 'none';
+            document.getElementById('phoneTimer').textContent = '';
+            showFieldMsg('phoneMsg', '인증이 완료되었습니다.', 'ok');
+            const btn = document.getElementById('phoneVerifyBtn');
+            btn.disabled    = true;
+            btn.textContent = '인증완료';
+        } else {
+            showFieldMsg('phoneMsg', data.message || '인증번호가 올바르지 않습니다.', 'error');
+        }
+    } catch {
+        showFieldMsg('phoneMsg', '네트워크 오류가 발생했습니다.', 'error');
     }
 }
 
@@ -274,6 +274,12 @@ async function saveMypageSettings(e) {
             return;
         }
     }
+    const currentPhone = phone.replace(/\D/g, '');
+    if (currentPhone && currentPhone !== _originalPhone && _verifiedPhone !== currentPhone) {
+        showFieldMsg('phoneMsg', '변경된 전화번호 인증을 완료해 주세요.', 'error');
+        return;
+    }
+
     if (!window.db || !window.auth?.currentUser) { alert('로그인이 필요합니다.'); return; }
 
     btn.disabled = true;
