@@ -4,6 +4,13 @@ function imgError(el) {
         '<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>';
 }
 
+/* 캐시된 이미지는 onload가 안 불릴 수 있으므로 렌더 후 complete 상태 보정 */
+function markCachedImagesLoaded(container) {
+    (container || document).querySelectorAll('.product-image img:not(.loaded)').forEach(img => {
+        if (img.complete && img.naturalWidth > 0) img.classList.add('loaded');
+    });
+}
+
 
 /* ===== 섹션 탭 전환 ===== */
 const sectionMap = {
@@ -76,7 +83,7 @@ function createAuctionCard(p) {
     card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
 
     const thumb = p.imageUrls?.[0]
-        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+        ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
         : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
 
     const bidLabel  = hasBids ? `${p.bidCount}명 입찰 중` : '0명 입찰';
@@ -130,7 +137,7 @@ function loadPopular() {
                 ? (p.currentPrice ?? p.startPrice ?? 0).toLocaleString()
                 : (p.price ?? 0).toLocaleString();
             const thumb = p.imageUrls?.[0]
-                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="eager" fetchpriority="high" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
                 : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
             const card = document.createElement('div');
             card.className = 'product-card';
@@ -146,6 +153,7 @@ function loadPopular() {
             card.addEventListener('click', () => location.href = '/product/' + doc.id);
             grid.appendChild(card);
         });
+        markCachedImagesLoaded(grid);
     }).catch(() => {
         grid.innerHTML = '<p style="color:#999; padding:16px; grid-column: 1 / -1;">인기 상품을 불러올 수 없습니다.</p>';
     });
@@ -181,6 +189,7 @@ function loadAuctions() {
 
         emptyMsg.style.display = 'none';
         active.forEach(p => grid.appendChild(createAuctionCard(p)));
+        markCachedImagesLoaded(grid);
     }).catch(err => {
         console.warn('경매 목록 로드 실패:', err);
         emptyMsg.style.display = 'block';
@@ -218,7 +227,7 @@ function createProductCard(product) {
         const priceClass = hasBids ? 'bid-price' : 'start-price';
         const bidLabel = hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰';
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         const timerHtml = product.auctionEnd
             ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
@@ -243,7 +252,7 @@ function createProductCard(product) {
         card.className = 'product-card';
         const price = product.price ?? 0;
         const thumb = product.imageUrls?.[0]
-            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+            ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         card.innerHTML = `
             <div class="product-image">${thumb}</div>
@@ -277,6 +286,7 @@ function loadMoreProducts() {
 
         if (spinner) spinner.style.display = 'none';
         isLoading = false;
+        markCachedImagesLoaded(grid);
 
         /* 모두 표시됐으면 옵저버 해제 */
         if (renderedCount >= filteredProducts.length && scrollObserver) {
@@ -408,8 +418,27 @@ function loadProducts() {
         });
 }
 
+function showSkeletonCards() {
+    const grid = document.getElementById('mainGrid');
+    if (!grid || grid.children.length > 0) return;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 8; i++) {
+        const card = document.createElement('div');
+        card.className = 'product-card product-card-skeleton';
+        card.innerHTML = `
+            <div class="product-image skeleton"></div>
+            <div class="product-info">
+                <div class="skeleton skeleton-title" style="margin-bottom:10px"></div>
+                <div class="skeleton skeleton-text" style="width:50%"></div>
+            </div>`;
+        frag.appendChild(card);
+    }
+    grid.appendChild(frag);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     initTimerEnds();
+    showSkeletonCards();
 
     const q = new URLSearchParams(location.search).get('q')?.trim();
     if (q) {

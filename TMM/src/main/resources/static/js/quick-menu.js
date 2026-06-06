@@ -39,6 +39,8 @@ function renderRecentThumbs() {
             const img = document.createElement('img');
             img.src = item.imageUrl;
             img.alt = item.title;
+            img.onload = () => img.classList.add('loaded');
+            if (img.complete) img.classList.add('loaded');
             a.appendChild(img);
         } else {
             a.innerHTML = '<div class="qm-thumb-no-img">📷</div>';

@@ -147,7 +147,12 @@ function closeSellConfirm() {
     _pendingSellData = null;
 }
 
-function compressImage(file, maxSize = 1200, quality = 0.8) {
+const WEBP_SUPPORTED = (() => {
+    const c = document.createElement('canvas');
+    return c.toDataURL('image/webp').startsWith('data:image/webp');
+})();
+
+function compressImage(file, maxSize = 900, quality = 0.82) {
     return new Promise((resolve) => {
         const img = new Image();
         const url = URL.createObjectURL(file);
@@ -161,7 +166,8 @@ function compressImage(file, maxSize = 1200, quality = 0.8) {
             const canvas = document.createElement('canvas');
             canvas.width = width; canvas.height = height;
             canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+            const mime = WEBP_SUPPORTED ? 'image/webp' : 'image/jpeg';
+            canvas.toBlob(blob => resolve(blob || file), mime, quality);
         };
         img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
         img.src = url;
@@ -174,9 +180,10 @@ async function uploadImages(uid, files) {
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         const compressed = await compressImage(file);
-        const ext = file.name.replace(/.*\./, '') || 'jpg';
-        const path = `products/${uid}/${Date.now()}_${i}.jpg`;
-        const snap = await uploadBytes(ref(window.storage, path), compressed, { contentType: 'image/jpeg' });
+        const ext = WEBP_SUPPORTED ? 'webp' : 'jpg';
+        const mime = WEBP_SUPPORTED ? 'image/webp' : 'image/jpeg';
+        const path = `products/${uid}/${Date.now()}_${i}.${ext}`;
+        const snap = await uploadBytes(ref(window.storage, path), compressed, { contentType: mime });
         urls.push(await getDownloadURL(snap.ref));
     }
     return urls;

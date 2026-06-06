@@ -290,8 +290,12 @@
     display: flex; flex-direction: column; gap: 10px;
     margin-bottom: 20px; font-size: 13px; color: #444;
 }
-.secession-reasons label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.secession-reasons input[type="checkbox"] { accent-color: #c62828; }
+.secession-reasons .custom-checkbox .check-box {
+    border-color: #e57373;
+}
+.secession-reasons .custom-checkbox input:checked + .check-box {
+    background: #c62828; border-color: #c62828;
+}
 .secession-terms {
     background: #fafafa; border: 1px solid #eee; border-radius: 8px;
     padding: 14px 16px; margin-bottom: 20px;
