@@ -169,6 +169,36 @@
 }
 .signup-login-link a:hover { text-decoration: underline; }
 
+/* ===== SMS 인증번호 입력 (타이머 오버레이) ===== */
+.sms-code-input-wrap {
+    position: relative;
+    flex: 1;
+}
+.sms-code-input-wrap .signup-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 52px;
+}
+.sms-timer-badge {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    font-weight: 700;
+    color: #e53935;
+    pointer-events: none;
+    min-width: 32px;
+    text-align: right;
+}
+
+/* 인증완료 버튼 상태 */
+.signup-check-btn.verified {
+    background: #2e7d32;
+    cursor: default;
+}
+.signup-check-btn.verified:hover { background: #2e7d32; }
+
 @media (max-width: 560px) {
     .signup-main { padding: 28px 20px 36px; }
     .signup-label { width: 80px; min-width: 80px; }

@@ -61,6 +61,37 @@
                         </div>
                         <p id="msgNick" class="signup-msg-row"></p>
 
+                        <!-- 전화번호 + 인증 버튼 -->
+                        <div class="signup-row">
+                            <label class="signup-label">
+                                전화번호 <span class="signup-required">*</span>
+                            </label>
+                            <div class="signup-input-with-btn">
+                                <input type="tel" id="signupPhone" class="signup-input"
+                                    placeholder="01012345678"
+                                    oninput="resetPhoneVerify()">
+                                <button type="button" class="signup-check-btn" id="smsSendBtn"
+                                    onclick="sendSmsCode()">인증</button>
+                            </div>
+                        </div>
+                        <p id="msgPhone" class="signup-msg-row"></p>
+
+                        <!-- 인증번호 입력 (발송 후 노출) -->
+                        <div class="signup-row" id="smsCodeRow" style="display:none;">
+                            <label class="signup-label">인증번호</label>
+                            <div class="signup-input-with-btn">
+                                <div class="sms-code-input-wrap">
+                                    <input type="text" id="smsCode" class="signup-input"
+                                        placeholder="6자리 숫자" maxlength="6" inputmode="numeric"
+                                        onkeydown="if(event.key==='Enter')verifySmsCode()">
+                                    <span id="smsTimer" class="sms-timer-badge"></span>
+                                </div>
+                                <button type="button" class="signup-check-btn" id="smsVerifyBtn"
+                                    onclick="verifySmsCode()">확인</button>
+                            </div>
+                        </div>
+                        <p id="msgSms" class="signup-msg-row"></p>
+
                     </div>
 
                     <!-- 선택 항목 -->
@@ -71,12 +102,6 @@
                             <label class="signup-label">이름</label>
                             <input type="text" id="signupName" class="signup-input"
                                 placeholder="실명 (선택)">
-                        </div>
-
-                        <div class="signup-row">
-                            <label class="signup-label">전화번호</label>
-                            <input type="tel" id="signupPhone" class="signup-input"
-                                placeholder="010-0000-0000 (선택)">
                         </div>
 
                     </div>
