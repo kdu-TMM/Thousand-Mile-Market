@@ -487,6 +487,10 @@ function startChatWithSeller() {
 
 /* ===== 신고 ===== */
 function openReportModal() {
+    if (!window.auth?.currentUser) {
+        alert('로그인 후 신고할 수 있습니다.');
+        return;
+    }
     document.querySelectorAll('input[name="reportReason"]').forEach(r => r.checked = false);
     document.getElementById('reportDetail').style.display = 'none';
     document.getElementById('reportDetail').value = '';
