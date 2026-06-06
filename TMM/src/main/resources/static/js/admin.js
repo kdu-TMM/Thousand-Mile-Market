@@ -310,7 +310,7 @@ function searchUsers() {
     renderUsers(filteredUsers);
 }
 
-const SUSPEND_DURATIONS = [3, 7, 30];
+let pendingSuspendUid = null;
 
 function suspendedLabel(u) {
     if (!u.suspended) return '<span class="admin-status active">정상</span>';
@@ -351,42 +351,10 @@ function setUserPage(page) { currentUserPage = page; renderUsers(filteredUsers.l
 
 async function toggleUserSuspend(uid, suspend) {
     if (suspend) {
-        const user = allUsers.find(u => u.uid === uid);
-        const cnt  = user?.suspendCount || 0;
-        const isPermanent = cnt >= SUSPEND_DURATIONS.length;
-        const days = isPermanent ? null : SUSPEND_DURATIONS[cnt];
-        const label = isPermanent ? '영구 정지' : `${days}일 정지`;
-
-        if (!confirm(`해당 사용자를 ${label}(${cnt + 1}회차) 처리하고 게시물을 모두 숨김 처리하시겠습니까?`)) return;
-
-        const suspendedUntil = isPermanent ? null : new Date(Date.now() + days * 86400 * 1000).toISOString();
-        try {
-            await window.fs.updateDoc(
-                window.fs.doc(window.db, 'users', uid),
-                { suspended: true, suspendedUntil, suspendCount: cnt + 1 }
-            );
-
-            /* 삭제 대신 status: '삭제' 로 표시 (복구 가능) */
-            const pSnap = await window.fs.getDocs(
-                window.fs.query(
-                    window.fs.collection(window.db, 'products'),
-                    window.fs.where('sellerUid', '==', uid)
-                )
-            );
-            const toHide = pSnap.docs.filter(d => d.data().status !== '삭제');
-            await Promise.all(toHide.map(d =>
-                window.fs.updateDoc(d.ref, {
-                    status:     '삭제',
-                    prevStatus: d.data().status || '판매중'
-                })
-            ));
-
-            if (user) { user.suspended = true; user.suspendedUntil = suspendedUntil; user.suspendCount = cnt + 1; }
-            renderUsers(allUsers);
-            alert(`${label} 처리되었고 게시물 ${toHide.length}개가 숨김 처리되었습니다.`);
-        } catch (e) {
-            alert('처리 중 오류: ' + e.message);
-        }
+        pendingSuspendUid = uid;
+        document.getElementById('suspendCustomDays').value = '';
+        document.getElementById('suspendModal').style.display = 'flex';
+        return;
     } else {
         if (!confirm('해당 사용자의 정지를 해제하시겠습니까?\n정지로 인해 숨김된 게시물도 함께 복구됩니다.')) return;
         try {
@@ -419,6 +387,60 @@ async function toggleUserSuspend(uid, suspend) {
             alert('처리 중 오류: ' + e.message);
         }
     }
+}
+
+/* ===== 정지 기간 선택 모달 ===== */
+function closeSuspendModal(event) {
+    if (event && event.target !== document.getElementById('suspendModal')) return;
+    document.getElementById('suspendModal').style.display = 'none';
+    pendingSuspendUid = null;
+}
+
+async function confirmSuspend(days) {
+    const uid = pendingSuspendUid;
+    if (!uid) return;
+
+    const label = days === null ? '영구 정지' : `${days}일 정지`;
+    if (!confirm(`해당 사용자를 ${label} 처리하고 게시물을 모두 숨김 처리하시겠습니까?`)) return;
+
+    document.getElementById('suspendModal').style.display = 'none';
+    pendingSuspendUid = null;
+
+    const suspendedUntil = days === null ? null : new Date(Date.now() + days * 86400 * 1000).toISOString();
+    const user = allUsers.find(u => u.uid === uid);
+
+    try {
+        await window.fs.updateDoc(
+            window.fs.doc(window.db, 'users', uid),
+            { suspended: true, suspendedUntil }
+        );
+
+        const pSnap = await window.fs.getDocs(
+            window.fs.query(
+                window.fs.collection(window.db, 'products'),
+                window.fs.where('sellerUid', '==', uid)
+            )
+        );
+        const toHide = pSnap.docs.filter(d => d.data().status !== '삭제');
+        await Promise.all(toHide.map(d =>
+            window.fs.updateDoc(d.ref, {
+                status:     '삭제',
+                prevStatus: d.data().status || '판매중'
+            })
+        ));
+
+        if (user) { user.suspended = true; user.suspendedUntil = suspendedUntil; }
+        renderUsers(filteredUsers.length ? filteredUsers : allUsers);
+        alert(`${label} 처리되었고 게시물 ${toHide.length}개가 숨김 처리되었습니다.`);
+    } catch (e) {
+        alert('처리 중 오류: ' + e.message);
+    }
+}
+
+function confirmSuspendCustom() {
+    const val = parseInt(document.getElementById('suspendCustomDays').value, 10);
+    if (!val || val < 1) { alert('유효한 일수를 입력해 주세요.'); return; }
+    confirmSuspend(val);
 }
 
 /* ===== 상품 관리 ===== */
