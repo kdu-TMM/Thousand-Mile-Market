@@ -56,17 +56,20 @@
                     </div>
                 </div>
                 <div class="verify-terms">
-                    <label class="verify-terms-all">
+                    <label class="custom-checkbox verify-terms-all">
                         <input type="checkbox" id="agreeAll" onchange="toggleAllTerms(this)">
+                        <span class="check-box">
+                            <svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg>
+                        </span>
                         <span>전체 동의</span>
                     </label>
                     <div class="verify-terms-divider"></div>
                     <div class="verify-terms-list">
-                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 천리마켓 이용약관 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 개인정보 수집·이용 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span>[필수] 휴대폰 본인확인서비스 이용약관</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 마케팅 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
-                        <label class="verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span>[선택] 광고성 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="custom-checkbox verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>[필수] 천리마켓 이용약관 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="custom-checkbox verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>[필수] 개인정보 수집·이용 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="custom-checkbox verify-term-item"><input type="checkbox" class="term-check" data-req="true" onchange="syncAllTerms()"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>[필수] 휴대폰 본인확인서비스 이용약관</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="custom-checkbox verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>[선택] 마케팅 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
+                        <label class="custom-checkbox verify-term-item"><input type="checkbox" class="term-check" data-req="false" onchange="syncAllTerms()"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>[선택] 광고성 정보 수신 동의</span><a href="#" class="verify-term-link" onclick="return false;">보기</a></label>
                     </div>
                 </div>
                 <div id="verifyMsg" class="verify-msg"></div>

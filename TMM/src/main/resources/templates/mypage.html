@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>마이페이지 - 천리마켓</title>
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com">
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/mypage.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -185,10 +187,10 @@
                     <h4 class="secession-title">회원 탈퇴</h4>
                     <p class="secession-desc">탈퇴하시면 모든 거래 내역, 찜 목록, 등록 상품이 삭제되며 복구가 불가능합니다.</p>
                     <div class="secession-reasons">
-                        <label><input type="checkbox" class="secession-check"> 사용 빈도가 낮고 개인정보 및 보안 우려</label>
-                        <label><input type="checkbox" class="secession-check"> 비매너 사용자로 인한 불편 (사기 등)</label>
-                        <label><input type="checkbox" class="secession-check"> 서비스 기능 불편 (상품등록/거래 등)</label>
-                        <label><input type="checkbox" class="secession-check"> 기타</label>
+                        <label class="custom-checkbox"><input type="checkbox" class="secession-check"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>사용 빈도가 낮고 개인정보 및 보안 우려</span></label>
+                        <label class="custom-checkbox"><input type="checkbox" class="secession-check"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>비매너 사용자로 인한 불편 (사기 등)</span></label>
+                        <label class="custom-checkbox"><input type="checkbox" class="secession-check"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>서비스 기능 불편 (상품등록/거래 등)</span></label>
+                        <label class="custom-checkbox"><input type="checkbox" class="secession-check"><span class="check-box"><svg class="check-icon" viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9.5 10.5,2.5"/></svg></span><span>기타</span></label>
                     </div>
                     <div class="secession-terms">
                         <p><strong>탈퇴 유의사항</strong></p>
