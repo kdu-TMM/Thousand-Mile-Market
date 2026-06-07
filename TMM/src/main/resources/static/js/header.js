@@ -1,3 +1,34 @@
+/* 캐싱된 로그인 상태를 Firebase 로드 전에 즉시 적용 */
+(function applyCachedAuth() {
+    try {
+        const raw = localStorage.getItem('tmm_auth');
+        if (!raw) return;
+        const { name, isAdmin } = JSON.parse(raw);
+        const bar  = document.getElementById('utilityBar');
+        const menu = document.getElementById('headerMenu');
+        const logo = document.querySelector('.logo');
+        if (!bar) return;
+        if (logo) logo.onclick = () => location.href = (isAdmin ? '/admin' : '/');
+        if (isAdmin) {
+            bar.innerHTML =
+                `<button onclick="location.href='/admin'">관리자</button>` +
+                `<span class="utility-divider">|</span>` +
+                `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="doLogout()">로그아웃</button>`;
+            if (menu) menu.style.visibility = 'hidden';
+        } else {
+            bar.innerHTML =
+                `<span style="font-size:13px;color:#555;padding:0 4px">${name}님</span>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="location.href='/mypage'">마이페이지</button>` +
+                `<span class="utility-divider">|</span>` +
+                `<button onclick="doLogout()">로그아웃</button>`;
+            if (menu) menu.style.visibility = '';
+        }
+    } catch (_) {}
+})();
+
 function openLoginModal() {
     document.getElementById('loginModal').classList.add('active');
     const userIdEl = document.getElementById('loginUserId');
@@ -115,6 +146,7 @@ function updateAuthUI(user, isAdmin = false) {
 
     if (user) {
         const name = user.displayName || user.email.split('@')[0];
+        try { localStorage.setItem('tmm_auth', JSON.stringify({ name, isAdmin })); } catch (_) {}
         if (isAdmin) {
             /* 관리자: 관리자 버튼 추가, 마이페이지 숨김, 헤더 메뉴 숨김 */
             bar.innerHTML =
@@ -135,6 +167,7 @@ function updateAuthUI(user, isAdmin = false) {
             if (menu) menu.style.visibility = '';
         }
     } else {
+        try { localStorage.removeItem('tmm_auth'); } catch (_) {}
         bar.innerHTML =
             `<button onclick="openLoginModal()">로그인</button>` +
             `<span class="utility-divider">|</span>` +

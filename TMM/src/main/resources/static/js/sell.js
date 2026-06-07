@@ -15,7 +15,7 @@ function checkSellAuth() {
 }
 window.addEventListener('firebase-ready', checkSellAuth);
 window.addEventListener('auth-changed', (e) => {
-    if (window.auth?.currentUser) { location.href = '/'; return; }
+    if (!window.auth?.currentUser) { location.href = '/'; return; }
     checkSellAuth(e);
 });
 if (window.firebaseReady) checkSellAuth();

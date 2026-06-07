@@ -4,14 +4,18 @@
 /* ===== 스켈레톤 카드 ===== */
 .product-card-skeleton { pointer-events: none; cursor: default; }
 .product-card-skeleton .product-image {
-    aspect-ratio: 1;
-    border-radius: 0;
+    /* product-image는 aspect-ratio:1 + shimmer를 style.css에서 이미 가짐 */
+    animation: skeletonShimmer 1.4s infinite;
 }
 .product-card-skeleton .product-info {
     padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+.product-card-skeleton .skeleton-title,
+.product-card-skeleton .skeleton-text {
+    display: block;
 }
 
 /* ===== 필터 바 ===== */
@@ -154,6 +158,45 @@
 .badge-auction { background: #fff1e6; color: #e65d0d; }
 .sales-price-bid { color: #e65d0d; font-weight: 800; font-size: 14px; }
 .auction-remain { color: #e65d0d; }
+
+/* ===== 검색/필터 결과 없음 ===== */
+.no-results-wrap { grid-column: 1 / -1; padding: 12px 0 32px; }
+.no-results-box {
+    text-align: center;
+    padding: 40px 24px 32px;
+    background: #f8fafc;
+    border: 1px solid #e8edf2;
+    border-radius: 10px;
+    margin-bottom: 36px;
+}
+.no-results-title { font-size: 17px; font-weight: 700; color: #222; margin-bottom: 8px; }
+.no-results-query { font-size: 14px; color: #007bff; margin-bottom: 10px; }
+.no-results-hint { font-size: 13px; color: #888; }
+.no-results-similar-title { font-size: 17px; font-weight: 800; color: #111; margin-bottom: 14px; }
+.nr-sim-wrap { display: flex; align-items: center; gap: 8px; }
+.nr-sim-arrow {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 50%; border: 1px solid #ddd;
+    background: #fff; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s;
+}
+.nr-sim-arrow:hover { border-color: #333; }
+.nr-sim-grid {
+    display: flex; gap: 12px; overflow-x: auto; flex: 1;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.nr-sim-grid::-webkit-scrollbar { display: none; }
+.nr-sim-card {
+    flex: 0 0 150px; scroll-snap-align: start; cursor: pointer;
+    border-radius: 10px; overflow: hidden; border: 1px solid #eee;
+    transition: box-shadow 0.15s;
+}
+.nr-sim-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.nr-sim-img { width: 100%; aspect-ratio: 1; background: #f0f0f0; overflow: hidden; }
+.nr-sim-img img { width: 100%; height: 100%; object-fit: cover; }
+.nr-sim-title { padding: 8px 10px 2px; font-size: 13px; font-weight: 600; color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nr-sim-price { padding: 0 10px 10px; font-size: 13px; font-weight: 700; color: #111; }
 
 /* ===== 무한 스크롤 로딩 ===== */
 .loading-spinner {

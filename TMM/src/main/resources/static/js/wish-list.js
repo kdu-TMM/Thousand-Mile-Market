@@ -108,7 +108,7 @@ function initWishList(e) {
 
 window.addEventListener('firebase-ready', initWishList);
 window.addEventListener('auth-changed', (e) => {
-    if (window.auth?.currentUser) { location.href = '/'; return; }
+    if (!window.auth?.currentUser) { location.href = '/'; return; }
     initWishList(e);
 });
 if (window.firebaseReady) initWishList();

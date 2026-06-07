@@ -126,7 +126,7 @@ function loadPopular() {
         grid.innerHTML = '';
         const docs = snapshot.docs
             .filter(doc => ['판매중', '경매중'].includes(doc.data().status))
-            .slice(0, 5);
+            .slice(0, 4);
         if (docs.length === 0) {
             grid.innerHTML = '<p style="color:#999; padding:16px; grid-column: 1 / -1;">인기 상품이 없습니다.</p>';
             return;
@@ -203,6 +203,7 @@ let filteredProducts = [];
 let renderedCount = 0;
 let isLoading = false;
 let scrollObserver = null;
+let searchSuppressed = false; // 검색 결과 없음 상태에서 필터 조작 시 검색어 무시
 
 function goProduct(id, title, price) {
     window.addRecentItem && window.addRecentItem(id, title, price + '원', null);
@@ -341,13 +342,14 @@ function getSortedProducts(products) {
     }
 }
 
-function applyAllItemsFilter() {
+function applyAllItemsFilter(userTriggered = false) {
     isLoading = false;   /* 이전 렌더 중단 후 재시작 보장 */
 
     const now      = new Date();
     const region   = getFilterRegion();
     const category = document.getElementById('filterCategory')?.value || '';
-    const q        = new URLSearchParams(location.search).get('q')?.trim().toLowerCase() || '';
+    const urlQ     = new URLSearchParams(location.search).get('q')?.trim() || '';
+    const q        = searchSuppressed ? '' : urlQ.toLowerCase();
 
     const filtered = allProducts.filter(p => {
         if (p.status === '숨김' || p.status === '삭제') return false;
@@ -370,6 +372,50 @@ function applyAllItemsFilter() {
     const grid = document.getElementById('mainGrid');
     grid.innerHTML = '';
     renderedCount = 0;
+
+    if (filteredProducts.length === 0 && (allProducts.length > 0 || userTriggered)) {
+        /* 사용자가 직접 필터를 조작한 경우에만 검색어 억제 활성화 */
+        if (urlQ && !searchSuppressed && userTriggered) searchSuppressed = true;
+
+        const displayQ = searchSuppressed ? '' : urlQ; // 억제 중이면 검색어 메시지 숨김
+        const recs = allProducts
+            .filter(p => !['숨김', '삭제'].includes(p.status))
+            .sort(() => Math.random() - 0.5)
+            .slice(0, 12);
+        const simCards = recs.map(p => {
+            const price = p.type === 'auction' ? (p.currentPrice ?? p.startPrice ?? 0) : (p.price ?? 0);
+            const thumb = p.imageUrls?.[0]
+                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<span style=color:#ccc>📷</span>'">`
+                : '<span style="color:#ccc">📷</span>';
+            return `<div class="nr-sim-card" onclick="location.href='/product/${p.id}'">
+                <div class="nr-sim-img">${thumb}</div>
+                <div class="nr-sim-title">${p.title}</div>
+                <div class="nr-sim-price">${price.toLocaleString()}원</div>
+            </div>`;
+        }).join('');
+        const queryLine = displayQ ? `<p class="no-results-query">'${displayQ}'</p>` : '';
+        const msgTitle  = displayQ ? '검색어를 확인해 주세요' : '조건에 맞는 상품이 없습니다';
+        const hintLine  = displayQ ? '<p class="no-results-hint">좀 더 자세한 단어로 검색해 보세요.</p>' : '';
+        const recsSection = simCards ? `
+            <div>
+                <p class="no-results-similar-title">추천 상품</p>
+                <div class="nr-sim-wrap">
+                    <button class="nr-sim-arrow" onclick="this.nextElementSibling.scrollBy({left:-500,behavior:'smooth'})">‹</button>
+                    <div class="nr-sim-grid">${simCards}</div>
+                    <button class="nr-sim-arrow" onclick="this.previousElementSibling.scrollBy({left:500,behavior:'smooth'})">›</button>
+                </div>
+            </div>` : '';
+        grid.innerHTML = `<div class="no-results-wrap">
+            <div class="no-results-box">
+                <p class="no-results-title">${msgTitle}</p>
+                ${queryLine}${hintLine}
+            </div>
+            ${recsSection}
+        </div>`;
+        return;
+    }
+
+    searchSuppressed = false; /* 결과가 생기면 억제 해제 */
 
     /* 8개 초과일 때만 무한 스크롤 활성화 */
     const sentinel = document.getElementById('scrollSentinel');
@@ -410,35 +456,18 @@ function loadProducts() {
             } catch (_) {}
             applyAllItemsFilter();
         })
-        .catch(() => {
-            if (allProducts.length > 0) return; // 캐시로 이미 렌더됐으면 스킵
+        .catch((err) => {
+            console.error('[TMM] Firestore 상품 로드 실패:', err?.code, err?.message);
+            if (allProducts.length > 0) return;
             fetch('/data/products.json')
                 .then(r => r.json())
-                .then(data => { allProducts = data; applyAllItemsFilter(); });
+                .then(data => { allProducts = data; applyAllItemsFilter(); })
+                .catch(e => console.error('[TMM] 폴백 products.json 로드도 실패:', e));
         });
-}
-
-function showSkeletonCards() {
-    const grid = document.getElementById('mainGrid');
-    if (!grid || grid.children.length > 0) return;
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < 8; i++) {
-        const card = document.createElement('div');
-        card.className = 'product-card product-card-skeleton';
-        card.innerHTML = `
-            <div class="product-image skeleton"></div>
-            <div class="product-info">
-                <div class="skeleton skeleton-title" style="margin-bottom:10px"></div>
-                <div class="skeleton skeleton-text" style="width:50%"></div>
-            </div>`;
-        frag.appendChild(card);
-    }
-    grid.appendChild(frag);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     initTimerEnds();
-    showSkeletonCards();
 
     const q = new URLSearchParams(location.search).get('q')?.trim();
     if (q) {
@@ -474,7 +503,7 @@ function applyFilter() {
     document.getElementById('section-popular').style.display = isFiltered ? 'none' : '';
     document.getElementById('section-auction').style.display = isFiltered ? 'none' : '';
 
-    applyAllItemsFilter();
+    applyAllItemsFilter(true);
 }
 function resetFilter() {
     document.getElementById('filterSido').value = '';
@@ -490,7 +519,8 @@ function resetFilter() {
     document.getElementById('section-popular').style.display = '';
     document.getElementById('section-auction').style.display = '';
 
-    applyAllItemsFilter();
+    searchSuppressed = false;
+    applyAllItemsFilter(true);
 }
 
 /* ===== 지역 필터 연동 ===== */
