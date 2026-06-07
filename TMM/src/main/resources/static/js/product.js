@@ -13,17 +13,23 @@ const localImageMap = {
 };
 
 function loadProduct() {
-    Promise.all([
-        window.fs.getDoc(window.fs.doc(window.db, 'products', String(productId))),
-        window.fs.getDocs(window.fs.collection(window.db, 'products'))
-    ])
-    .then(([docSnap, snapshot]) => {
+    // 유사 상품 목록은 한 번만 조회
+    window.fs.getDocs(window.fs.collection(window.db, 'products'))
+        .then(snapshot => { allProducts = snapshot.docs.map(d => d.data()); })
+        .catch(() => {});
+
+    const docRef = window.fs.doc(window.db, 'products', String(productId));
+
+    // onSnapshot으로 실시간 구독 — 다른 사용자의 입찰이 즉시 반영됨
+    window.fs.onSnapshot(docRef, (docSnap) => {
         if (!docSnap.exists()) {
             alert('삭제되었거나 없는 상품입니다.'); history.back();
             return;
         }
-        allProducts    = snapshot.docs.map(d => d.data());
+
+        const isFirstLoad = currentProduct === null;
         currentProduct = docSnap.data();
+
         if (currentProduct.status === '숨김' || currentProduct.status === '삭제') {
             document.getElementById('pdError').style.display = 'flex';
             return;
@@ -35,27 +41,27 @@ function loadProduct() {
             currentProduct.auctionEnd &&
             new Date(currentProduct.auctionEnd) <= new Date()) {
             currentProduct.status = '판매완료';
-            window.fs.updateDoc(
-                window.fs.doc(window.db, 'products', String(productId)),
-                { status: '판매완료' }
-            ).catch(() => {});
+            window.fs.updateDoc(docRef, { status: '판매완료' }).catch(() => {});
         }
 
-        renderProduct(currentProduct);
-        renderSimilar(currentProduct);
-        trackView(String(productId));
-        checkWishState();
-        const priceStr = currentProduct.type === 'auction'
-            ? currentProduct.currentPrice.toLocaleString() + '원'
-            : currentProduct.price.toLocaleString() + '원';
-        window.addRecentItem && window.addRecentItem(
-            currentProduct.id,
-            currentProduct.title,
-            priceStr,
-            currentProduct.imageUrls?.[0] ?? null
-        );
-    })
-    .catch(() => {
+        if (isFirstLoad) {
+            renderProduct(currentProduct);
+            renderSimilar(currentProduct);
+            trackView(String(productId));
+            checkWishState();
+            const priceStr = currentProduct.type === 'auction'
+                ? currentProduct.currentPrice.toLocaleString() + '원'
+                : currentProduct.price.toLocaleString() + '원';
+            window.addRecentItem && window.addRecentItem(
+                currentProduct.id, currentProduct.title, priceStr,
+                currentProduct.imageUrls?.[0] ?? null
+            );
+        } else if (currentProduct.type === 'auction') {
+            // 이후 업데이트: 경매 관련 필드만 갱신 (전체 재렌더 없이)
+            _updateAuctionLiveUI(currentProduct);
+        }
+    }, () => {
+        // Firestore 접근 실패 → 정적 데이터 폴백
         fetch('/data/products.json')
             .then(r => r.json())
             .then(data => {
@@ -73,6 +79,16 @@ function loadProduct() {
                 );
             });
     });
+}
+
+function _updateAuctionLiveUI(p) {
+    const priceEl    = document.getElementById('pdCurrentPrice');
+    const bidCountEl = document.getElementById('pdBidCount');
+    const pdPriceEl  = document.getElementById('pdPrice');
+    if (priceEl)    priceEl.textContent    = p.currentPrice.toLocaleString() + '원';
+    if (bidCountEl) bidCountEl.textContent = p.bidCount + '명';
+    if (pdPriceEl)  pdPriceEl.textContent  = p.currentPrice.toLocaleString();
+    updateActionButton(p);
 }
 
 /* ===== 이미지 갤러리 ===== */
@@ -155,13 +171,15 @@ function renderProduct(p) {
     document.getElementById('pdRegion').textContent    = p.region;
     document.getElementById('pdDescription').textContent = p.description || '';
 
-    /* 판매자 정보 (데이터에 없으면 기본값) */
+    /* 판매자 정보 — 우선 product 필드로 채우고, 이후 users 컬렉션에서 최신 프로필로 덮어씀 */
     const nickEl   = document.getElementById('pdSellerNickname');
     const regionEl = document.getElementById('pdSellerRegion');
     const ratingEl = document.getElementById('pdRating');
     if (nickEl)   nickEl.textContent   = p.sellerNickname || '판매자';
     if (regionEl) regionEl.textContent = p.sellerRegion   || p.region || '';
     if (ratingEl) ratingEl.textContent = p.sellerRating != null ? p.sellerRating.toFixed(1) : '0.0';
+
+    if (p.sellerUid) loadSellerProfile(p.sellerUid);
 
     const images = p.imageUrls?.length ? p.imageUrls : (localImageMap[p.id] ?? []);
     renderGallery(images, p.title);
@@ -175,6 +193,30 @@ function renderProduct(p) {
 
     // 액션 버튼 렌더 (auth 준비 후 재시도)
     updateActionButton(p);
+}
+
+/* ===== 판매자 프로필 (users 컬렉션에서 최신 정보 로드) ===== */
+function loadSellerProfile(sellerUid) {
+    if (!window.db || !window.fs) return;
+    window.fs.getDoc(window.fs.doc(window.db, 'users', sellerUid))
+        .then(snap => {
+            if (!snap.exists()) return;
+            const u = snap.data();
+
+            const nickEl   = document.getElementById('pdSellerNickname');
+            const regionEl = document.getElementById('pdSellerRegion');
+            const ratingEl = document.getElementById('pdRating');
+            const imgEl    = document.getElementById('pdSellerImg');
+
+            if (nickEl   && u.nickname) nickEl.textContent   = u.nickname;
+            if (regionEl && u.region)   regionEl.textContent = u.region;
+            if (ratingEl)               ratingEl.textContent = (u.rating ?? 0).toFixed(1);
+            if (imgEl    && u.photoURL) {
+                imgEl.src = u.photoURL;
+                imgEl.onerror = () => { imgEl.src = '/images/common/user.png'; };
+            }
+        })
+        .catch(() => {});
 }
 
 /* ===== 경매 액션 버튼 ===== */
