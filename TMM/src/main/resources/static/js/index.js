@@ -222,24 +222,29 @@ function createProductCard(product) {
     const isAuction = product.type === 'auction';
 
     if (isAuction) {
+        const now = new Date();
+        const isActive = product.status === '경매중' &&
+            product.auctionEnd && new Date(product.auctionEnd) > now;
         const hasBids = (product.bidCount || 0) > 0;
-        card.className = 'product-card auction ' + (hasBids ? 'bidding' : 'no-bid');
+        card.className = 'product-card auction ' + (isActive ? (hasBids ? 'bidding' : 'no-bid') : 'ended');
         const price = product.currentPrice ?? product.startPrice ?? 0;
         const priceClass = hasBids ? 'bid-price' : 'start-price';
-        const bidLabel = hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰';
+        const bidLabel = isActive ? (hasBids ? `${product.bidCount}명 입찰 중` : '0명 입찰') : '경매 종료';
         const thumb = product.imageUrls?.[0]
             ? `<img src="${product.imageUrls[0]}" alt="${product.title}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
             : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
-        const timerHtml = product.auctionEnd
+        const timerHtml = isActive && product.auctionEnd
             ? `<div class="auction-timer" data-end="${product.auctionEnd}">🕐 --</div>`
             : '';
+        const badgeText  = isActive ? '경매 중' : '경매 종료';
+        const badgeClass = isActive ? (hasBids ? 'bidding' : '') : 'ended';
         card.innerHTML = `
             <div class="product-image">
                 ${thumb}${timerHtml}
                 <div class="bid-count-banner">${bidLabel}</div>
             </div>
             <div class="product-info">
-                <div class="auction-badge-label ${hasBids ? 'bidding' : ''}">경매 중</div>
+                <div class="auction-badge-label ${badgeClass}">${badgeText}</div>
                 <h3 class="product-title">${product.title}</h3>
                 <div class="product-details">
                     <span class="product-price ${priceClass}">${price.toLocaleString()}</span>
