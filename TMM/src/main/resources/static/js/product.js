@@ -511,15 +511,20 @@ function renderSimilar(p) {
 
     similar.forEach(s => {
         const card = document.createElement('div');
-        card.className = 'pd-sim-card';
-        const price = s.type === 'auction' ? s.currentPrice : s.price;
+        card.className = 'product-card';
+        const price = s.type === 'auction' ? (s.currentPrice ?? s.startPrice ?? 0) : (s.price ?? 0);
         const thumb = s.imageUrls?.[0]
-            ? `<img src="${s.imageUrls[0]}" alt="${s.title}" loading="lazy">`
-            : `<span>📷</span>`;
+            ? `<img src="${s.imageUrls[0]}" alt="${s.title}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="this.closest('.product-image').innerHTML='<div class=\\'img-placeholder\\'><span>📷</span><p>사진 없음</p></div>'">`
+            : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
         card.innerHTML = `
-            <div class="pd-sim-img">${thumb}</div>
-            <p class="pd-sim-title">${s.title}</p>
-            <p class="pd-sim-price">${price.toLocaleString()}원</p>`;
+            <div class="product-image">${thumb}</div>
+            <div class="product-info">
+                <h3 class="product-title">${s.title}</h3>
+                <div class="product-details">
+                    <span class="product-price">${price.toLocaleString()}</span>
+                    <span class="product-date">${relativeDate(s.date)}</span>
+                </div>
+            </div>`;
         card.onclick = () => location.href = '/product/' + s.id;
         grid.appendChild(card);
     });

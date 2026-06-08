@@ -423,6 +423,11 @@
 }
 .pd-similar-arrow:hover { border-color: #333; }
 
+.pd-similar-grid .product-card {
+    flex: 0 0 190px;
+    scroll-snap-align: start;
+}
+
 /* ===== 신고 모달 ===== */
 .report-modal-overlay {
     position: fixed; inset: 0;

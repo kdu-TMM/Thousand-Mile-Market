@@ -358,23 +358,30 @@ async function toggleUserSuspend(uid, suspend) {
     } else {
         if (!confirm('해당 사용자의 정지를 해제하시겠습니까?\n정지로 인해 숨김된 게시물도 함께 복구됩니다.')) return;
         try {
-            await window.fs.updateDoc(
-                window.fs.doc(window.db, 'users', uid),
-                { suspended: false, suspendedUntil: null }
-            );
-
-            /* 정지로 숨김된(status === '삭제') 게시물 복구 */
-            const pSnap = await window.fs.getDocs(
-                window.fs.query(
-                    window.fs.collection(window.db, 'products'),
-                    window.fs.where('sellerUid', '==', uid),
-                    window.fs.where('status',    '==', '삭제')
+            /* users 업데이트 + products 조회 병렬 실행 */
+            const [, pSnap] = await Promise.all([
+                window.fs.updateDoc(
+                    window.fs.doc(window.db, 'users', uid),
+                    { suspended: false, suspendedUntil: null }
+                ),
+                window.fs.getDocs(
+                    window.fs.query(
+                        window.fs.collection(window.db, 'products'),
+                        window.fs.where('sellerUid', '==', uid),
+                        window.fs.where('status',    '==', '삭제')
+                    )
                 )
-            );
-            await Promise.all(pSnap.docs.map(d => {
-                const prev = d.data().prevStatus || '판매중';
-                return window.fs.updateDoc(d.ref, { status: prev, prevStatus: null });
-            }));
+            ]);
+
+            /* WriteBatch로 게시물 일괄 복구 (단일 요청) */
+            if (pSnap.size > 0) {
+                const batch = window.fs.writeBatch(window.db);
+                pSnap.docs.forEach(d => {
+                    const prev = d.data().prevStatus || '판매중';
+                    batch.update(d.ref, { status: prev, prevStatus: null });
+                });
+                await batch.commit();
+            }
 
             const user = allUsers.find(u => u.uid === uid);
             if (user) { user.suspended = false; user.suspendedUntil = null; }
@@ -410,24 +417,32 @@ async function confirmSuspend(days) {
     const user = allUsers.find(u => u.uid === uid);
 
     try {
-        await window.fs.updateDoc(
-            window.fs.doc(window.db, 'users', uid),
-            { suspended: true, suspendedUntil }
-        );
-
-        const pSnap = await window.fs.getDocs(
-            window.fs.query(
-                window.fs.collection(window.db, 'products'),
-                window.fs.where('sellerUid', '==', uid)
+        /* users 업데이트 + products 조회 병렬 실행 */
+        const [, pSnap] = await Promise.all([
+            window.fs.updateDoc(
+                window.fs.doc(window.db, 'users', uid),
+                { suspended: true, suspendedUntil }
+            ),
+            window.fs.getDocs(
+                window.fs.query(
+                    window.fs.collection(window.db, 'products'),
+                    window.fs.where('sellerUid', '==', uid)
+                )
             )
-        );
+        ]);
+
+        /* WriteBatch로 게시물 일괄 숨김 (단일 요청) */
         const toHide = pSnap.docs.filter(d => d.data().status !== '삭제');
-        await Promise.all(toHide.map(d =>
-            window.fs.updateDoc(d.ref, {
-                status:     '삭제',
-                prevStatus: d.data().status || '판매중'
-            })
-        ));
+        if (toHide.length > 0) {
+            const batch = window.fs.writeBatch(window.db);
+            toHide.forEach(d => {
+                batch.update(d.ref, {
+                    status:     '삭제',
+                    prevStatus: d.data().status || '판매중'
+                });
+            });
+            await batch.commit();
+        }
 
         if (user) { user.suspended = true; user.suspendedUntil = suspendedUntil; }
         renderUsers(filteredUsers.length ? filteredUsers : allUsers);

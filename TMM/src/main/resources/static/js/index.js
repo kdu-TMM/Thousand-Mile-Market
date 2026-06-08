@@ -391,12 +391,17 @@ function applyAllItemsFilter(userTriggered = false) {
         const simCards = recs.map(p => {
             const price = p.type === 'auction' ? (p.currentPrice ?? p.startPrice ?? 0) : (p.price ?? 0);
             const thumb = p.imageUrls?.[0]
-                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy" decoding="async" onerror="this.parentElement.innerHTML='<span style=color:#ccc>📷</span>'">`
-                : '<span style="color:#ccc">📷</span>';
-            return `<div class="nr-sim-card" onclick="location.href='/product/${p.id}'">
-                <div class="nr-sim-img">${thumb}</div>
-                <div class="nr-sim-title">${p.title}</div>
-                <div class="nr-sim-price">${price.toLocaleString()}원</div>
+                ? `<img src="${p.imageUrls[0]}" alt="${p.title}" loading="lazy" decoding="async" onload="this.classList.add('loaded')" onerror="imgError(this)">`
+                : `<div class="img-placeholder"><span>📷</span><p>사진 없음</p></div>`;
+            return `<div class="product-card" onclick="location.href='/product/${p.id}'">
+                <div class="product-image">${thumb}</div>
+                <div class="product-info">
+                    <h3 class="product-title">${p.title}</h3>
+                    <div class="product-details">
+                        <span class="product-price">${price.toLocaleString()}</span>
+                        <span class="product-date">${relativeDate(p.date)}</span>
+                    </div>
+                </div>
             </div>`;
         }).join('');
         const queryLine = displayQ ? `<p class="no-results-query">'${displayQ}'</p>` : '';

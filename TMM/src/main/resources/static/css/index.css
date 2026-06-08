@@ -188,6 +188,10 @@
     scroll-snap-type: x mandatory; scrollbar-width: none;
 }
 .nr-sim-grid::-webkit-scrollbar { display: none; }
+.nr-sim-grid .product-card {
+    flex: 0 0 190px;
+    scroll-snap-align: start;
+}
 .nr-sim-card {
     flex: 0 0 150px; scroll-snap-align: start; cursor: pointer;
     border-radius: 10px; overflow: hidden; border: 1px solid #eee;
