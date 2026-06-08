@@ -33,6 +33,7 @@ function loadProduct() {
         currentProduct = docSnap.data();
 
         if (currentProduct.status === '숨김' || currentProduct.status === '삭제') {
+            document.getElementById('item-detail').style.display  = 'none';
             document.getElementById('pdError').style.display = 'flex';
             return;
         }

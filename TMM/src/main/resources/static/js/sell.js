@@ -14,8 +14,15 @@ function checkSellAuth() {
                 window.fs.getDoc(window.fs.doc(window.db, 'users', user.uid))
                     .then(snap => {
                         if (snap.exists() && snap.data().region) {
-                            sidoEl.value = snap.data().region;
+                            const parts   = snap.data().region.split(' ');
+                            const sido    = parts[0] || '';
+                            const sigungu = parts.slice(1).join(' ') || '';
+                            sidoEl.value = sido;
                             updateSigungu();
+                            if (sigungu) {
+                                const sgEl = document.getElementById('regionSigungu');
+                                if (sgEl) { sgEl.value = sigungu; updateDong(); }
+                            }
                         }
                     }).catch(() => {});
             }
@@ -227,7 +234,7 @@ async function doSellConfirmed() {
 
     window.fs.setDoc(docRef, data)
         .then(() => {
-            msg('등록이 완료되었습니다!', true);
+            window.showToast && window.showToast('등록이 완료되었습니다!', 'success');
             btn.textContent = '등록하기';
             btn.disabled = false;
             setTimeout(() => location.href = '/product/' + docRef.id, 1000);

@@ -1,3 +1,42 @@
+/* ===== 시/군/구 데이터 ===== */
+const MP_SIGUNGU = {
+    '서울특별시': ['강남구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구'],
+    '경기도':     ['의정부시','수원시','성남시','고양시','용인시','부천시','안산시','남양주시','화성시','평택시','안양시','시흥시','파주시','김포시','광주시','광명시','하남시','오산시','안성시','이천시','포천시','양주시','구리시','여주시','동두천시','과천시','의왕시','군포시','가평군','양평군','연천군'],
+    '인천광역시': ['남동구','연수구','부평구','계양구','미추홀구','서구','동구','중구','강화군','옹진군'],
+    '부산광역시': ['해운대구','수영구','사상구','강서구','금정구','남구','동구','동래구','부산진구','북구','사하구','서구','연제구','영도구','중구','기장군'],
+    '대구광역시': ['달서구','달성군','동구','북구','서구','남구','중구','수성구'],
+    '광주광역시': ['광산구','남구','동구','북구','서구'],
+    '대전광역시': ['대덕구','동구','서구','유성구','중구'],
+    '울산광역시': ['남구','동구','북구','중구','울주군'],
+    '세종특별자치시': [],
+    '강원도':     ['춘천시','원주시','강릉시','동해시','태백시','속초시','삼척시','홍천군','횡성군','영월군','평창군','정선군','철원군','화천군','양구군','인제군','고성군','양양군'],
+    '충청북도':   ['청주시','충주시','제천시','보은군','옥천군','영동군','증평군','진천군','괴산군','음성군','단양군'],
+    '충청남도':   ['천안시','공주시','보령시','아산시','서산시','논산시','계룡시','당진시','금산군','부여군','서천군','청양군','홍성군','예산군','태안군'],
+    '전라북도':   ['전주시','군산시','익산시','정읍시','남원시','김제시','완주군','진안군','무주군','장수군','임실군','순창군','고창군','부안군'],
+    '전라남도':   ['목포시','여수시','순천시','나주시','광양시','담양군','곡성군','구례군','고흥군','보성군','화순군','장흥군','강진군','해남군','영암군','무안군','함평군','영광군','장성군','완도군','진도군','신안군'],
+    '경상북도':   ['포항시','경주시','김천시','안동시','구미시','영주시','영천시','상주시','문경시','경산시','의성군','청송군','영양군','영덕군','청도군','고령군','성주군','칠곡군','예천군','봉화군','울진군','울릉군'],
+    '경상남도':   ['창원시','진주시','통영시','사천시','김해시','밀양시','거제시','양산시','의령군','함안군','창녕군','고성군','남해군','하동군','산청군','함양군','거창군','합천군'],
+    '제주특별자치도': ['제주시','서귀포시'],
+};
+
+function _setMpSigunguOptions(sido, sigungu) {
+    const sel = document.getElementById('settingRegionSigungu');
+    if (!sel) return;
+    const list = MP_SIGUNGU[sido] || [];
+    if (!sido || !list.length) { sel.style.display = 'none'; return; }
+    sel.innerHTML = '<option value="">시/군/구 선택</option>' +
+        list.map(sg => `<option value="${sg}">${sg}</option>`).join('');
+    if (sigungu) sel.value = sigungu;
+    sel.style.display = '';
+}
+
+function updateMypageSigungu() {
+    const sido = document.getElementById('settingRegion').value;
+    _setMpSigunguOptions(sido, '');
+    const sel = document.getElementById('settingRegionSigungu');
+    if (sel) sel.disabled = !_isEditMode;
+}
+
 /* ===== 탭 전환 ===== */
 function switchMypageTab(tab, btn) {
     document.querySelectorAll('.mypage-tab').forEach(b => b.classList.remove('active'));
@@ -94,7 +133,11 @@ function loadUserInfo() {
             setVal('settingBio',      d.bio      || '');
             _originalPhone = (d.phone || '').replace(/\D/g, '') || '01012341234';
             setVal('settingPhone',    _formatPhone(_originalPhone));
-            setVal('settingRegion',   d.region   || '');
+            const regionParts = (d.region || '').split(' ');
+            const savedSido    = regionParts[0] || '';
+            const savedSigungu = regionParts.slice(1).join(' ') || '';
+            setVal('settingRegion', savedSido);
+            _setMpSigunguOptions(savedSido, savedSigungu);
             setVal('infoCreatedAt',   formatDate(d.createdAt));
 
             _originalNickname  = d.nickname || '';
@@ -119,6 +162,7 @@ function enterEditMode() {
         nickname: document.getElementById('settingNickname').value,
         bio:      document.getElementById('settingBio').value,
         region:   document.getElementById('settingRegion').value,
+        sigungu:  document.getElementById('settingRegionSigungu')?.value || '',
         phone:    document.getElementById('settingPhone').value
     };
 
@@ -126,6 +170,9 @@ function enterEditMode() {
     const region = document.getElementById('settingRegion');
     if (bio)    bio.disabled    = false;
     if (region) region.disabled = false;
+
+    const sgEl = document.getElementById('settingRegionSigungu');
+    if (sgEl) sgEl.disabled = false;
 
     const remaining     = _nicknameRemainingDays();
     const nickInput     = document.getElementById('settingNickname');
@@ -149,6 +196,7 @@ function exitEditMode(afterSave) {
         setVal('settingBio',      _editSnapshot.bio);
         setVal('settingRegion',   _editSnapshot.region);
         setVal('settingPhone',    _editSnapshot.phone);
+        _setMpSigunguOptions(_editSnapshot.region, _editSnapshot.sigungu);
         _nicknameChecked = (_editSnapshot.nickname === _originalNickname);
         showFieldMsg('nicknameMsg', '', '');
         showFieldMsg('phoneMsg',    '', '');
@@ -158,6 +206,9 @@ function exitEditMode(afterSave) {
         const el = document.getElementById(id);
         if (el) el.disabled = true;
     });
+
+    const sgEl = document.getElementById('settingRegionSigungu');
+    if (sgEl) sgEl.disabled = true;
 
     const nickCheckBtn = document.getElementById('nicknameCheckBtn');
     if (nickCheckBtn) nickCheckBtn.disabled = true;
@@ -337,7 +388,9 @@ async function saveMypageSettings(e) {
     const nickname = document.getElementById('settingNickname').value.trim();
     const bio      = document.getElementById('settingBio').value.trim();
     const phone    = document.getElementById('settingPhone').value.replace(/\D/g, '');
-    const region   = document.getElementById('settingRegion').value;
+    const sido     = document.getElementById('settingRegion').value;
+    const sigungu  = document.getElementById('settingRegionSigungu')?.value || '';
+    const region   = sido && sigungu ? sido + ' ' + sigungu : sido;
     const btn      = e.currentTarget;
 
     if (!nickname) { showFieldMsg('nicknameMsg', '닉네임을 입력해 주세요.', 'error'); return; }

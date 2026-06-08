@@ -619,10 +619,16 @@ function _loadUserRegion() {
             if (!snap.exists()) return;
             const r = snap.data().region;
             if (!r) return;
+            const sido    = r.split(' ')[0];
+            const sigungu = r.split(' ').slice(1).join(' ') || '';
             const sidoEl = document.getElementById('filterSido');
             if (sidoEl && !sidoEl.value) {
-                sidoEl.value = r;
+                sidoEl.value = sido;
                 updateFilterSigungu();
+                if (sigungu) {
+                    const sgEl = document.getElementById('filterSigungu');
+                    if (sgEl) { sgEl.value = sigungu; updateFilterDong?.(); }
+                }
             }
         }).catch(() => {});
 }
