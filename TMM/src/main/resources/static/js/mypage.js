@@ -456,12 +456,10 @@ async function saveMypageSettings(e) {
             setVal('settingPhone', _formatPhone(_verifiedPhone));
         }
 
-        btn.textContent = '저장 완료!';
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.textContent = '저장';
-            exitEditMode(true);
-        }, 800);
+        window.showToast && window.showToast('변경이 완료되었습니다.', 'success');
+        btn.disabled = false;
+        btn.textContent = '저장';
+        exitEditMode(true);
     } catch (err) {
         alert('저장 중 오류: ' + err.message);
         btn.disabled = false;
