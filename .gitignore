@@ -265,6 +265,8 @@ out/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
-.vscode/
-BoogiMovie/src/main/resources/application-secret.yml
+### Secrets ###
+firebase-service-account.json
+*-service-account.json
+application-secret.yml
+
