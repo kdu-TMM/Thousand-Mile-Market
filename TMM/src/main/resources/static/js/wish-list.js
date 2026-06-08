@@ -32,6 +32,7 @@ function loadWishList() {
 
         snap.docs.forEach(d => {
             const p = d.data();
+            if (p.status === '숨김' || p.status === '삭제') return;
             renderWishCard(grid, p, uid);
         });
     }).catch(() => {
@@ -108,7 +109,7 @@ function initWishList(e) {
 
 window.addEventListener('firebase-ready', initWishList);
 window.addEventListener('auth-changed', (e) => {
-    if (!window.auth?.currentUser) { location.href = '/'; return; }
+    if (!window.auth?.currentUser) { loadWishList(); return; }
     initWishList(e);
 });
 if (window.firebaseReady) initWishList();

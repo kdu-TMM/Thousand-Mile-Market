@@ -36,13 +36,18 @@ window.showToast = function(message, type, duration) {
     }
 };
 
-/* 로그인 직후 플래시 토스트 (login 후 redirect된 페이지에서 실행) */
+/* 로그인/회원가입 직후 플래시 토스트 */
 document.addEventListener('DOMContentLoaded', function() {
     try {
-        var name = sessionStorage.getItem('tmm_login_flash');
-        if (name) {
+        var loginName = sessionStorage.getItem('tmm_login_flash');
+        if (loginName) {
             sessionStorage.removeItem('tmm_login_flash');
-            window.showToast(name + '님, 환영합니다!', 'success');
+            window.showToast(loginName + '님, 환영합니다!', 'success');
+        }
+        var signupName = sessionStorage.getItem('tmm_signup_flash');
+        if (signupName) {
+            sessionStorage.removeItem('tmm_signup_flash');
+            window.showToast(signupName + '님, 회원가입이 완료되었습니다!', 'success');
         }
     } catch(_) {}
 });

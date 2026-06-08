@@ -33,10 +33,7 @@ function checkSellAuth() {
     }
 }
 window.addEventListener('firebase-ready', checkSellAuth);
-window.addEventListener('auth-changed', (e) => {
-    if (!window.auth?.currentUser) { location.href = '/'; return; }
-    checkSellAuth(e);
-});
+window.addEventListener('auth-changed', checkSellAuth);
 if (window.firebaseReady) checkSellAuth();
 
 function toggleAuctionFields(radio) {

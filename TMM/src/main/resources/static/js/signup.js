@@ -307,6 +307,7 @@ async function doSignup() {
             createdAt:  new Date().toISOString()
         });
 
+        try { sessionStorage.setItem('tmm_signup_flash', nickname); } catch(_) {}
         location.href = '/';
     } catch (e) {
         btn.disabled    = false;
