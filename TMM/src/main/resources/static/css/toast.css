@@ -1,0 +1,124 @@
+/* ===== 토스트 알림 ===== */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 320px;
+    width: calc(100% - 48px);
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 14px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+    pointer-events: auto;
+    transform: translateX(calc(100% + 24px));
+    transition: transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.35s ease;
+    opacity: 0;
+    border-left: 4px solid #ddd;
+    font-size: 14px;
+    color: #222;
+    word-break: keep-all;
+    line-height: 1.5;
+}
+
+.toast.toast-show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-success { border-left-color: #22c55e; }
+.toast-error   { border-left-color: #ef4444; }
+.toast-info    { border-left-color: #3b82f6; }
+.toast-warning { border-left-color: #f59e0b; }
+
+.toast-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+    padding-top: 1px;
+}
+
+.toast-success .toast-icon { color: #22c55e; }
+.toast-error   .toast-icon { color: #ef4444; }
+.toast-info    .toast-icon { color: #3b82f6; }
+.toast-warning .toast-icon { color: #f59e0b; }
+
+.toast-msg {
+    flex: 1;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #bbb;
+    padding: 0 0 0 6px;
+    flex-shrink: 0;
+    align-self: center;
+    transition: color 0.15s;
+    line-height: 1;
+}
+.toast-close:hover { color: #555; }
+
+/* ===== 채팅 알림 ===== */
+#chat-notif-wrap {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 320px;
+    width: calc(100% - 48px);
+}
+.chat-notif {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px 14px 14px 16px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.16);
+    border-left: 4px solid #f7971d;
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translateX(calc(100% + 32px));
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.34, 1.25, 0.64, 1), opacity 0.35s ease, background 0.15s;
+    word-break: keep-all;
+}
+.chat-notif.chat-notif-in  { transform: translateX(0); opacity: 1; }
+.chat-notif.chat-notif-out { transform: translateX(calc(100% + 32px)); opacity: 0; }
+.chat-notif:hover { background: #fffbf3; }
+.chat-notif-icon { font-size: 20px; flex-shrink: 0; padding-top: 1px; }
+.chat-notif-body { flex: 1; min-width: 0; }
+.chat-notif-title   { font-weight: 700; font-size: 12px; color: #f7971d; margin: 0 0 3px; }
+.chat-notif-from    { font-weight: 600; font-size: 13px; color: #222; margin: 0 0 2px; }
+.chat-notif-preview { font-size: 13px; color: #777; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-notif-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #bbb;
+    padding: 0 0 0 6px;
+    flex-shrink: 0;
+    align-self: flex-start;
+    transition: color 0.15s;
+    line-height: 1;
+}
+.chat-notif-close:hover { color: #555; }

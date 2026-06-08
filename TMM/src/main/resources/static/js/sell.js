@@ -8,6 +8,18 @@ function checkSellAuth() {
     if (user) {
         guard.style.display   = 'none';
         content.style.display = 'block';
+        if (window.db && window.fs) {
+            const sidoEl = document.getElementById('regionSido');
+            if (sidoEl && !sidoEl.value) {
+                window.fs.getDoc(window.fs.doc(window.db, 'users', user.uid))
+                    .then(snap => {
+                        if (snap.exists() && snap.data().region) {
+                            sidoEl.value = snap.data().region;
+                            updateSigungu();
+                        }
+                    }).catch(() => {});
+            }
+        }
     } else if (content.style.display !== 'block') {
         /* 콘텐츠가 이미 표시 중(서버 세션으로 열린 경우)이면 건드리지 않음 */
         guard.style.display   = 'flex';

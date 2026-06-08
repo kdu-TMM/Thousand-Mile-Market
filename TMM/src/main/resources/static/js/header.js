@@ -114,6 +114,9 @@ async function doLogin() {
         });
         closeLoginModal();
 
+        /* 리다이렉트 후 환영 토스트 표시를 위해 이름 저장 */
+        try { sessionStorage.setItem('tmm_login_flash', cred.user.displayName || userId); } catch(_) {}
+
         /* 관리자 → /admin, 일반 사용자 → / */
         location.href = isAdmin ? '/admin' : '/';
     } catch (e) {
@@ -183,13 +186,92 @@ function initAuthListener() {
                 const snap = await window.fs.getDoc(window.fs.doc(window.db, 'users', user.uid));
                 const isAdmin = snap.exists() && snap.data().isAdmin === true;
                 updateAuthUI(user, isAdmin);
+                if (!isAdmin) _startChatNotifications(user.uid);
             } catch (e) {
                 updateAuthUI(user, false);
+                _startChatNotifications(user.uid);
             }
         } else {
             updateAuthUI(user, false);
+            _stopChatNotifications();
         }
     });
+}
+
+/* ===== 채팅 알림 ===== */
+let _chatNotifUnsub = null;
+let _chatRoomTs = {};
+
+function _startChatNotifications(uid) {
+    if (!window.db || !window.fs) return;
+    if (_chatNotifUnsub) { _chatNotifUnsub(); _chatNotifUnsub = null; }
+    _chatRoomTs = {};
+
+    const q = window.fs.query(
+        window.fs.collection(window.db, 'chatRooms'),
+        window.fs.where('participants', 'array-contains', uid)
+    );
+
+    let initialized = false;
+    _chatNotifUnsub = window.fs.onSnapshot(q, snap => {
+        if (!initialized) {
+            snap.docs.forEach(d => {
+                const ts = d.data().lastMessageAt;
+                _chatRoomTs[d.id] = ts ? (ts.toMillis ? ts.toMillis() : new Date(ts).getTime()) : 0;
+            });
+            initialized = true;
+            return;
+        }
+        snap.docChanges().forEach(change => {
+            if (change.type !== 'modified') return;
+            const data = change.doc.data();
+            const roomId = change.doc.id;
+            if (!Array.isArray(data.unreadUids) || !data.unreadUids.includes(uid)) return;
+            const newTs = data.lastMessageAt
+                ? (data.lastMessageAt.toMillis ? data.lastMessageAt.toMillis() : new Date(data.lastMessageAt).getTime())
+                : 0;
+            if (newTs <= (_chatRoomTs[roomId] || 0)) return;
+            _chatRoomTs[roomId] = newTs;
+            if (window.location.pathname === '/chat' && window._currentChatRoomId === roomId) return;
+            const sender = data.user1Uid === uid ? data.user2Nickname : data.user1Nickname;
+            _showChatNotif(roomId, sender, data.lastMessage);
+        });
+    }, () => {});
+}
+
+function _stopChatNotifications() {
+    if (_chatNotifUnsub) { _chatNotifUnsub(); _chatNotifUnsub = null; }
+    _chatRoomTs = {};
+}
+
+function _escN(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function _showChatNotif(roomId, sender, preview) {
+    let wrap = document.getElementById('chat-notif-wrap');
+    if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'chat-notif-wrap';
+        document.body.appendChild(wrap);
+    }
+    const el = document.createElement('div');
+    el.className = 'chat-notif';
+    el.innerHTML =
+        `<span class="chat-notif-icon">💬</span>` +
+        `<div class="chat-notif-body">` +
+            `<p class="chat-notif-title">새로운 채팅이 도착했습니다</p>` +
+            `<p class="chat-notif-from">${_escN(sender)}</p>` +
+            `<p class="chat-notif-preview">${_escN(preview)}</p>` +
+        `</div>` +
+        `<button class="chat-notif-close" onclick="event.stopPropagation();this.closest('.chat-notif').remove()">✕</button>`;
+    el.onclick = () => { location.href = '/chat?roomId=' + encodeURIComponent(roomId); };
+    wrap.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('chat-notif-in'));
+    setTimeout(() => {
+        el.classList.replace('chat-notif-in', 'chat-notif-out');
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
+    }, 6000);
 }
 
 if (window.auth && window.authFuncs) initAuthListener();

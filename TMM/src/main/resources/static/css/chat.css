@@ -391,7 +391,6 @@
 .chat-msg-other { justify-content: flex-start; }
 
 .chat-bubble-wrap { display: flex; align-items: flex-end; gap: 4px; }
-.chat-msg-me .chat-bubble-wrap { flex-direction: row-reverse; }
 
 .chat-bubble {
     max-width: 320px;
@@ -404,7 +403,22 @@
 .chat-bubble-me    { background: #007bff; color: #fff; border-bottom-right-radius: 4px; }
 .chat-bubble-other { background: #f0f0f0; color: #212121; border-bottom-left-radius: 4px; }
 
-.chat-time-small { font-size: 10px; color: #bbb; white-space: nowrap; }
+.chat-time-small { font-size: 10px; color: #999; white-space: nowrap; line-height: 1; padding-bottom: 2px; }
+
+/* ===== 날짜 구분선 ===== */
+.chat-date-divider {
+    text-align: center;
+    margin: 10px 0 4px;
+    list-style: none;
+}
+.chat-date-divider span {
+    display: inline-block;
+    background: rgba(0,0,0,0.07);
+    color: #666;
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 12px;
+}
 
 .chat-avatar-small {
     width: 36px; height: 36px;
@@ -554,6 +568,139 @@
 /* ===== 드롭다운 나가기 항목 ===== */
 .chat-dropdown p.leave { color: #e53935; }
 .chat-dropdown p.leave:hover { background: #fff5f5; }
+
+/* ===== 아바타 프로필 이미지 ===== */
+.chat-room-avatar img,
+.chat-avatar-small img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+.chat-room-avatar,
+.chat-avatar-small { overflow: hidden; cursor: pointer; }
+
+/* ===== 프로필 팝업 ===== */
+.profile-popup {
+    position: fixed;
+    z-index: 2500;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.06);
+    width: 240px;
+    padding: 18px 18px 14px;
+}
+.pp-close {
+    position: absolute;
+    top: 10px; right: 12px;
+    background: none; border: none;
+    font-size: 14px; color: #bbb;
+    cursor: pointer; line-height: 1;
+    transition: color 0.15s;
+}
+.pp-close:hover { color: #555; }
+.pp-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.pp-avatar-large {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: #007bff; color: #fff;
+    font-size: 20px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+}
+.pp-avatar-large img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-info { flex: 1; min-width: 0; }
+.pp-nickname {
+    display: block;
+    font-size: 15px; font-weight: 700; color: #111;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 4px;
+}
+.pp-rating { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.pp-star   { color: #f59e0b; font-size: 14px; }
+.pp-rating-val { font-weight: 700; color: #222; }
+.pp-trades     { color: #999; font-size: 12px; }
+.pp-bio {
+    font-size: 13px; color: #666; margin: 0 0 12px;
+    line-height: 1.5;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pp-report-btn {
+    width: 100%; padding: 8px;
+    background: none; border: 1px solid #e53935;
+    border-radius: 8px; color: #e53935;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+}
+.pp-report-btn:hover { background: #fff5f5; }
+
+/* ===== 사용자 신고 모달 (상품 신고와 동일한 스타일) ===== */
+.report-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 3000;
+    display: flex; align-items: center; justify-content: center;
+    animation: overlayFadeIn 0.15s ease;
+}
+.report-modal-box {
+    background: #fff; border-radius: 14px;
+    padding: 32px; width: 100%; max-width: 420px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    animation: dialogZoomIn 0.15s ease;
+}
+.report-modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: none;
+    font-size: 18px; cursor: pointer; color: #888;
+}
+.report-modal-close:hover { color: #333; }
+.report-modal-title {
+    font-size: 18px; font-weight: 700;
+    color: #111; margin-bottom: 6px;
+}
+.report-modal-desc {
+    font-size: 13px; color: #888; margin-bottom: 20px;
+}
+.report-reason-list {
+    display: flex; flex-direction: column; gap: 4px;
+    margin-bottom: 16px;
+}
+.report-reason-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    border: 1px solid #eee; border-radius: 8px;
+    font-size: 14px; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+}
+.report-reason-item:hover { background: #f5f7fa; border-color: #ddd; }
+.report-reason-item input[type="radio"] { accent-color: #e53935; width: 16px; height: 16px; }
+.report-detail-input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; resize: none; outline: none;
+    font-family: inherit; box-sizing: border-box;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+}
+.report-detail-input:focus { border-color: #e53935; }
+.report-msg { font-size: 13px; min-height: 18px; margin-bottom: 10px; }
+.report-msg.ok { color: #2e7d32; }
+.report-msg:not(.ok) { color: #e53935; }
+.report-submit-btn {
+    width: 100%; padding: 12px;
+    background: #e53935; color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: background 0.15s;
+}
+.report-submit-btn:hover { background: #c62828; }
+.report-submit-btn:disabled { background: #aaa; cursor: not-allowed; }
 
 /* ===== 종료된 입력창 ===== */
 .chat-textarea:disabled {

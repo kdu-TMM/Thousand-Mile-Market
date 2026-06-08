@@ -61,6 +61,8 @@ function renderStars(elId, rating) {
 let _originalNickname  = '';
 let _nicknameChecked   = false;
 let _nicknameChangedAt = null;
+let _isEditMode        = false;
+let _editSnapshot      = {};
 
 function _nicknameRemainingDays() {
     if (!_nicknameChangedAt) return 0;
@@ -90,9 +92,9 @@ function loadUserInfo() {
             setVal('infoUserId',      d.userId || window.auth.currentUser.email || '-');
             setVal('settingNickname', d.nickname || '');
             setVal('settingBio',      d.bio      || '');
-            setVal('settingPhone',    d.phone    || '');
+            _originalPhone = (d.phone || '').replace(/\D/g, '') || '01012341234';
+            setVal('settingPhone',    _formatPhone(_originalPhone));
             setVal('settingRegion',   d.region   || '');
-            _originalPhone = (d.phone || '').replace(/\D/g, '');
             setVal('infoCreatedAt',   formatDate(d.createdAt));
 
             _originalNickname  = d.nickname || '';
@@ -102,16 +104,97 @@ function loadUserInfo() {
             const remaining = _nicknameRemainingDays();
             if (remaining > 0) {
                 showFieldMsg('nicknameMsg', `마지막 변경 후 ${remaining}일 남았습니다. (30일 이후 변경 가능)`, 'info');
-                const nickInput = document.getElementById('settingNickname');
-                const checkBtn  = document.querySelector('[onclick="checkNicknameDup()"]');
-                if (nickInput) nickInput.disabled = true;
-                if (checkBtn)  checkBtn.disabled  = true;
             }
         })
         .catch(() => {
             if (loading) loading.style.display = 'none';
             if (errEl)   errEl.style.display = 'block';
         });
+}
+
+/* ===== 수정 모드 ===== */
+function enterEditMode() {
+    _isEditMode = true;
+    _editSnapshot = {
+        nickname: document.getElementById('settingNickname').value,
+        bio:      document.getElementById('settingBio').value,
+        region:   document.getElementById('settingRegion').value,
+        phone:    document.getElementById('settingPhone').value
+    };
+
+    const bio    = document.getElementById('settingBio');
+    const region = document.getElementById('settingRegion');
+    if (bio)    bio.disabled    = false;
+    if (region) region.disabled = false;
+
+    const remaining     = _nicknameRemainingDays();
+    const nickInput     = document.getElementById('settingNickname');
+    const nickCheckBtn  = document.getElementById('nicknameCheckBtn');
+    if (remaining <= 0) {
+        if (nickInput)    nickInput.disabled    = false;
+        if (nickCheckBtn) nickCheckBtn.disabled = false;
+    }
+
+    document.getElementById('phoneChangeBtn').style.display = '';
+    document.getElementById('mpEditBtn').style.display   = 'none';
+    document.getElementById('mpCancelBtn').style.display  = '';
+    document.getElementById('mpFormActions').style.display = '';
+}
+
+function exitEditMode(afterSave) {
+    _isEditMode = false;
+
+    if (!afterSave) {
+        setVal('settingNickname', _editSnapshot.nickname);
+        setVal('settingBio',      _editSnapshot.bio);
+        setVal('settingRegion',   _editSnapshot.region);
+        setVal('settingPhone',    _editSnapshot.phone);
+        _nicknameChecked = (_editSnapshot.nickname === _originalNickname);
+        showFieldMsg('nicknameMsg', '', '');
+        showFieldMsg('phoneMsg',    '', '');
+    }
+
+    ['settingNickname', 'settingBio', 'settingRegion'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = true;
+    });
+
+    const nickCheckBtn = document.getElementById('nicknameCheckBtn');
+    if (nickCheckBtn) nickCheckBtn.disabled = true;
+
+    const phoneInput = document.getElementById('settingPhone');
+    if (phoneInput) phoneInput.readOnly = true;
+
+    document.getElementById('phoneChangeBtn').style.display = 'none';
+    document.getElementById('phoneVerifyBtn').style.display = 'none';
+    document.getElementById('phoneCodeField').style.display = 'none';
+    clearInterval(_phoneTimerInterval);
+    _verifiedPhone = '';
+
+    document.getElementById('mpEditBtn').style.display    = '';
+    document.getElementById('mpCancelBtn').style.display  = 'none';
+    document.getElementById('mpFormActions').style.display = 'none';
+}
+
+function showPhoneChangeMode() {
+    const phoneInput     = document.getElementById('settingPhone');
+    const phoneChangeBtn = document.getElementById('phoneChangeBtn');
+    const phoneVerifyBtn = document.getElementById('phoneVerifyBtn');
+
+    if (phoneInput) {
+        phoneInput.readOnly    = false;
+        phoneInput.value       = '';
+        phoneInput.placeholder = '새 전화번호 입력 (예: 01012345678)';
+        phoneInput.focus();
+    }
+    if (phoneChangeBtn) phoneChangeBtn.style.display = 'none';
+    if (phoneVerifyBtn) {
+        phoneVerifyBtn.style.display = '';
+        phoneVerifyBtn.disabled      = false;
+        phoneVerifyBtn.textContent   = '인증';
+    }
+    showFieldMsg('phoneMsg', '', '');
+    _verifiedPhone = '';
 }
 
 function checkNicknameDup() {
@@ -237,6 +320,8 @@ async function confirmPhoneCode() {
             document.getElementById('phoneCodeField').style.display = 'none';
             document.getElementById('phoneTimer').textContent = '';
             showFieldMsg('phoneMsg', '인증이 완료되었습니다.', 'ok');
+            const phoneInput = document.getElementById('settingPhone');
+            if (phoneInput) { phoneInput.value = _formatPhone(phone); phoneInput.readOnly = true; }
             const btn = document.getElementById('phoneVerifyBtn');
             btn.disabled    = true;
             btn.textContent = '인증완료';
@@ -251,8 +336,8 @@ async function confirmPhoneCode() {
 async function saveMypageSettings(e) {
     const nickname = document.getElementById('settingNickname').value.trim();
     const bio      = document.getElementById('settingBio').value.trim();
-    const phone    = document.getElementById('settingPhone').value.trim();
-    const region   = document.getElementById('settingRegion').value.trim();
+    const phone    = document.getElementById('settingPhone').value.replace(/\D/g, '');
+    const region   = document.getElementById('settingRegion').value;
     const btn      = e.currentTarget;
 
     if (!nickname) { showFieldMsg('nicknameMsg', '닉네임을 입력해 주세요.', 'error'); return; }
@@ -311,15 +396,19 @@ async function saveMypageSettings(e) {
             avatar.textContent = nickname[0].toUpperCase();
 
         if (nicknameChanged) {
-            const nickInput = document.getElementById('settingNickname');
-            const checkBtn  = document.querySelector('[onclick="checkNicknameDup()"]');
             showFieldMsg('nicknameMsg', '닉네임이 변경되었습니다. 다음 변경은 30일 후 가능합니다.', 'info');
-            if (nickInput) nickInput.disabled = true;
-            if (checkBtn)  checkBtn.disabled  = true;
+        }
+        if (_verifiedPhone) {
+            _originalPhone = _verifiedPhone;
+            setVal('settingPhone', _formatPhone(_verifiedPhone));
         }
 
         btn.textContent = '저장 완료!';
-        setTimeout(() => { btn.disabled = false; btn.textContent = '저장'; }, 1000);
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '저장';
+            exitEditMode(true);
+        }, 800);
     } catch (err) {
         alert('저장 중 오류: ' + err.message);
         btn.disabled = false;
@@ -336,6 +425,26 @@ document.getElementById('settingNickname')?.addEventListener('input', () => {
 /* ===== 아바타 업로드 ===== */
 function triggerAvatarUpload() {
     document.getElementById('mpAvatarInput')?.click();
+}
+
+function _compressAvatar(file) {
+    return new Promise(resolve => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            const size = Math.min(Math.max(img.width, img.height), 300);
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const scale = size / Math.min(img.width, img.height);
+            const sw = img.width * scale, sh = img.height * scale;
+            ctx.drawImage(img, (size - sw) / 2, (size - sh) / 2, sw, sh);
+            canvas.toBlob(blob => resolve(blob || file), 'image/webp', 0.85);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+    });
 }
 
 async function uploadAvatar(input) {
@@ -362,8 +471,9 @@ async function uploadAvatar(input) {
 
     try {
         const { ref, uploadBytes, getDownloadURL } = window.storageUtils;
+        const compressed = await _compressAvatar(file);
         const sRef = ref(window.storage, `avatars/${uid}`);
-        await uploadBytes(sRef, file);
+        await uploadBytes(sRef, compressed, { contentType: 'image/webp' });
         const url = await getDownloadURL(sRef);
 
         await window.fs.updateDoc(window.fs.doc(window.db, 'users', uid), { photoURL: url });
@@ -713,6 +823,13 @@ function doSecession() {
 /* ===== 헬퍼 ===== */
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function setVal(id, val)  { const el = document.getElementById(id); if (el) el.value = val; }
+
+function _formatPhone(digits) {
+    const d = (digits || '').replace(/\D/g, '');
+    if (d.length === 11) return d.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+    if (d.length === 10) return d.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    return d;
+}
 
 function showFieldMsg(id, text, type) {
     const el = document.getElementById(id);

@@ -35,7 +35,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
     align-items: center;
     padding: 25px 0;
 }
-.logo { font-size: 28px; font-weight: 800; color: #007bff; cursor: pointer; letter-spacing: -1px; }
+.logo { font-size: 28px; font-weight: 800; color: #007bff; cursor: pointer; letter-spacing: -1px; white-space: nowrap; flex-shrink: 0; }
 
 .search-bar {
     width: 460px; height: 44px;
@@ -53,10 +53,22 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: #
 }
 .search-button:hover { background: #0056b3; }
 
-.header-menu { display: flex; align-items: center; gap: 20px; justify-self: end; }
-.header-menu > button { background: none; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
+.header-menu { display: flex; align-items: center; gap: 20px; justify-self: end; white-space: nowrap; overflow: hidden; }
+.header-menu > button { background: none; border: none; font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
 .header-menu > button:hover { color: #007bff; }
-.menu-divider { color: #ddd; }
+.menu-divider { color: #ddd; flex-shrink: 0; }
+
+@media (max-width: 920px) {
+    .header-menu { display: none; }
+    .header-top {
+        grid-template-columns: auto 1fr;
+        min-width: 0;
+        gap: 16px;
+    }
+    .search-bar { width: 100%; max-width: 460px; }
+}
+
+.header-top { min-width: 440px; }
 
 /* ===== 로그인 모달 ===== */
 .modal-overlay {

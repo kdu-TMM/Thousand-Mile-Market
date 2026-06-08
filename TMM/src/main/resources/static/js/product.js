@@ -27,7 +27,9 @@ function loadProduct() {
             return;
         }
 
-        const isFirstLoad = currentProduct === null;
+        const isFirstLoad  = currentProduct === null;
+        const prevBidCount = currentProduct?.bidCount ?? 0;
+        const prevStatus   = currentProduct?.status   ?? null;
         currentProduct = docSnap.data();
 
         if (currentProduct.status === '숨김' || currentProduct.status === '삭제') {
@@ -59,6 +61,24 @@ function loadProduct() {
         } else if (currentProduct.type === 'auction') {
             // 이후 업데이트: 경매 관련 필드만 갱신 (전체 재렌더 없이)
             _updateAuctionLiveUI(currentProduct);
+
+            /* ── 실시간 알림 토스트 ── */
+            const uid = window.auth?.currentUser?.uid;
+            if (currentProduct.bidCount > prevBidCount) {
+                /* 내가 낙찰 중이 아닌 경우에만 "새 입찰" 알림 (본인 입찰은 submitBid에서 처리) */
+                if (!uid || currentProduct.currentWinnerId !== uid) {
+                    window.showToast && window.showToast(
+                        '새 입찰! 현재가 ' + currentProduct.currentPrice.toLocaleString() + '원', 'info'
+                    );
+                }
+            }
+            if (prevStatus === '경매중' && currentProduct.status === '판매완료') {
+                if (uid && currentProduct.currentWinnerId === uid) {
+                    window.showToast && window.showToast('🎉 낙찰을 축하합니다!', 'success', 8000);
+                } else {
+                    window.showToast && window.showToast('경매가 종료되었습니다.', 'info', 5000);
+                }
+            }
         }
     }, () => {
         // Firestore 접근 실패 → 정적 데이터 폴백
@@ -373,6 +393,7 @@ async function submitBid() {
 
         msgEl.className   = 'bid-msg ok';
         msgEl.textContent = '입찰 성공!';
+        window.showToast && window.showToast('입찰 완료! ' + amount.toLocaleString() + '원', 'success');
         setTimeout(() => {
             document.getElementById('bidModal').style.display = 'none';
             updateActionButton(currentProduct);

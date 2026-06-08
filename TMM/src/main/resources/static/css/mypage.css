@@ -80,8 +80,11 @@
 .mypage-tab:hover { color: #007bff; }
 .mypage-tab.active { color: #007bff; border-bottom-color: #007bff; }
 
+/* ===== 페이지 박스 너비 (마이페이지 전용) ===== */
+.page-box { max-width: 860px; }
+
 /* ===== 내 정보 탭 ===== */
-.mp-info-form { max-width: 560px; }
+.mp-info-form { max-width: 100%; }
 .mp-info-loading {
     padding: 40px 0; text-align: center;
     color: #bbb; font-size: 14px;
@@ -104,6 +107,12 @@
 }
 .mp-field-input:focus { border-color: #007bff; }
 .mp-field-input.readonly { background: #f8f8f8; color: #999; cursor: default; }
+.mp-field-input:disabled,
+.mp-field-input[readonly],
+.mp-field-textarea:disabled {
+    background: #f8f8f8; color: #999; cursor: default;
+    border-color: #eee;
+}
 .mp-field-textarea {
     flex: 1; padding: 12px 16px;
     border: 1px solid #ddd; border-radius: 8px;
@@ -120,6 +129,10 @@
     white-space: nowrap; transition: all 0.15s; flex-shrink: 0;
 }
 .mp-check-btn:hover { background: #007bff; color: #fff; }
+.mp-check-btn:disabled {
+    border-color: #ddd; color: #bbb; cursor: default; background: #fff;
+}
+.mp-check-btn:disabled:hover { background: #fff; color: #bbb; }
 
 .mp-field-msg { margin-top: 5px; font-size: 12px; min-height: 16px; color: #aaa; }
 .mp-field-msg.ok    { color: #2e7d32; }
@@ -128,9 +141,31 @@
 
 .mp-form-actions { margin-top: 28px; display: flex; gap: 10px; }
 
+/* ===== 수정 모드 버튼 바 ===== */
+.mp-edit-bar {
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-bottom: 20px;
+}
+.mp-edit-btn {
+    padding: 8px 22px;
+    border: 1px solid #007bff; border-radius: 8px;
+    background: #fff; color: #007bff;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+}
+.mp-edit-btn:hover { background: #007bff; color: #fff; }
+.mp-cancel-btn {
+    padding: 8px 22px;
+    border: 1px solid #ccc; border-radius: 8px;
+    background: #fff; color: #888;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+}
+.mp-cancel-btn:hover { background: #f5f5f5; }
+
 /* ===== 비밀번호 변경 섹션 ===== */
 .mp-pw-section {
-    max-width: 560px;
+    max-width: 100%;
     margin-top: 32px;
     border: 1px solid #eee;
     border-radius: 10px;
@@ -283,7 +318,7 @@
 .rating-submit-btn:disabled { background: #aaa; cursor: default; }
 
 /* ===== 회원탈퇴 ===== */
-.secession-section { max-width: 560px; }
+.secession-section { max-width: 100%; }
 .secession-title { font-size: 15px; font-weight: 800; color: #c62828; margin-bottom: 8px; }
 .secession-desc  { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.6; }
 .secession-reasons {

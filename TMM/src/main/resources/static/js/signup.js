@@ -209,7 +209,7 @@ async function doSignup() {
     const pw        = document.getElementById('signupPw').value;
     const pwConfirm = document.getElementById('signupPwConfirm').value;
     const nickname  = document.getElementById('signupNickname').value.trim();
-    const name      = document.getElementById('signupName').value.trim();
+    const region    = document.getElementById('signupRegion').value;
     const phone     = document.getElementById('signupPhone').value.replace(/\D/g, '');
 
     setMsg('msgUserId', '', false);
@@ -267,10 +267,9 @@ async function doSignup() {
             uid:        userCred.user.uid,
             userId,
             nickname,
-            name,
             phone,
             profileImg: '',
-            region:     '',
+            region,
             bio:        '',
             createdAt:  new Date().toISOString()
         });

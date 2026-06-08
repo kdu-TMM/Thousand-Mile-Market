@@ -92,7 +92,7 @@
                     <h2 class="admin-section-title">사용자 관리</h2>
 
                     <div class="admin-search-bar">
-                        <input type="text" id="userSearchInput" class="admin-search-input" placeholder="닉네임 또는 아이디 검색">
+                        <input type="text" id="userSearchInput" class="admin-search-input" placeholder="닉네임 또는 아이디 검색" onkeydown="if(event.key==='Enter') searchUsers()">
                         <button class="admin-search-btn" onclick="searchUsers()">검색</button>
                     </div>
 

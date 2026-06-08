@@ -121,6 +121,53 @@
 
     <div th:replace="~{fragments/quick-menu :: quickMenu}"></div>
 
+    <!-- 프로필 팝업 -->
+    <div id="profilePopup" class="profile-popup" style="display:none;" onclick="event.stopPropagation()">
+        <button class="pp-close" onclick="closeProfilePopup()">✕</button>
+        <div class="pp-top">
+            <div class="pp-avatar-large" id="ppAvatar"></div>
+            <div class="pp-info">
+                <span class="pp-nickname" id="ppNickname"></span>
+                <div class="pp-rating">
+                    <span class="pp-star">★</span>
+                    <span class="pp-rating-val" id="ppRating">-</span>
+                    <span class="pp-trades" id="ppTrades"></span>
+                </div>
+            </div>
+        </div>
+        <p class="pp-bio" id="ppBio"></p>
+        <button class="pp-report-btn" id="ppReportBtn" onclick="openUserReportModal()">🚨 신고하기</button>
+    </div>
+
+    <!-- 사용자 신고 모달 -->
+    <div id="userReportModal" class="report-modal-overlay" style="display:none;" onclick="closeUserReportModal(event)">
+        <div class="report-modal-box" onclick="event.stopPropagation()">
+            <button class="report-modal-close" onclick="closeUserReportModal()">✕</button>
+            <h3 class="report-modal-title">사용자 신고</h3>
+            <p class="report-modal-desc">신고 사유를 선택해 주세요.</p>
+            <div class="report-reason-list">
+                <label class="report-reason-item">
+                    <input type="radio" name="userReportReason" value="사기 의심" onchange="toggleUserReportDetail()"> 사기 의심
+                </label>
+                <label class="report-reason-item">
+                    <input type="radio" name="userReportReason" value="욕설/비방" onchange="toggleUserReportDetail()"> 욕설/비방
+                </label>
+                <label class="report-reason-item">
+                    <input type="radio" name="userReportReason" value="개인정보 요구" onchange="toggleUserReportDetail()"> 개인정보 요구
+                </label>
+                <label class="report-reason-item">
+                    <input type="radio" name="userReportReason" value="도배/스팸" onchange="toggleUserReportDetail()"> 도배/스팸
+                </label>
+                <label class="report-reason-item">
+                    <input type="radio" name="userReportReason" value="기타" onchange="toggleUserReportDetail()"> 기타
+                </label>
+            </div>
+            <textarea id="userReportDetail" class="report-detail-input" rows="3" placeholder="신고 내용을 입력해 주세요." style="display:none;"></textarea>
+            <div id="userReportMsg" class="report-msg"></div>
+            <button class="report-submit-btn" onclick="submitUserReport()">신고하기</button>
+        </div>
+    </div>
+
     <script th:inline="javascript">
         const SERVER_UID           = /*[[${loginUid}]]*/           null;
         const SERVER_NICKNAME      = /*[[${loginNickname}]]*/      null;

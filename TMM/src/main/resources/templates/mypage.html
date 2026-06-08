@@ -55,6 +55,12 @@
                 <div class="mp-info-form" id="mpInfoForm">
                     <div class="mp-info-loading" id="mpInfoLoading">불러오는 중...</div>
 
+                    <!-- 수정/취소 버튼 바 -->
+                    <div class="mp-edit-bar">
+                        <button class="mp-edit-btn" id="mpEditBtn" onclick="enterEditMode()">수정</button>
+                        <button class="mp-cancel-btn" id="mpCancelBtn" onclick="exitEditMode()" style="display:none;">취소</button>
+                    </div>
+
                     <div class="mp-field">
                         <label class="mp-field-label">아이디</label>
                         <div class="mp-field-input-wrap">
@@ -65,8 +71,8 @@
                     <div class="mp-field">
                         <label class="mp-field-label">닉네임</label>
                         <div class="mp-field-input-wrap">
-                            <input type="text" id="settingNickname" class="mp-field-input" placeholder="닉네임을 입력하세요">
-                            <button class="mp-check-btn" onclick="checkNicknameDup()">중복확인</button>
+                            <input type="text" id="settingNickname" class="mp-field-input" disabled placeholder="닉네임을 입력하세요">
+                            <button class="mp-check-btn" id="nicknameCheckBtn" onclick="checkNicknameDup()" disabled>중복확인</button>
                         </div>
                         <p class="mp-field-msg" id="nicknameMsg"></p>
                     </div>
@@ -74,15 +80,16 @@
                     <div class="mp-field">
                         <label class="mp-field-label">한 줄 소개</label>
                         <div class="mp-field-input-wrap">
-                            <textarea id="settingBio" class="mp-field-textarea" placeholder="자신을 소개해 주세요."></textarea>
+                            <textarea id="settingBio" class="mp-field-textarea" disabled placeholder="자신을 소개해 주세요."></textarea>
                         </div>
                     </div>
 
                     <div class="mp-field">
                         <label class="mp-field-label">전화번호</label>
                         <div class="mp-field-input-wrap">
-                            <input type="tel" id="settingPhone" class="mp-field-input" placeholder="010-0000-0000">
-                            <button class="mp-check-btn" id="phoneVerifyBtn" onclick="requestPhoneVerify()">인증</button>
+                            <input type="tel" id="settingPhone" class="mp-field-input" readonly placeholder="010-0000-0000">
+                            <button class="mp-check-btn" id="phoneChangeBtn" onclick="showPhoneChangeMode()" style="display:none;">변경</button>
+                            <button class="mp-check-btn" id="phoneVerifyBtn" onclick="requestPhoneVerify()" style="display:none;">인증</button>
                         </div>
                         <div id="phoneCodeField" style="display:none; margin-top:8px;">
                             <div class="mp-field-input-wrap">
@@ -97,7 +104,26 @@
                     <div class="mp-field">
                         <label class="mp-field-label">거래 지역</label>
                         <div class="mp-field-input-wrap">
-                            <input type="text" id="settingRegion" class="mp-field-input" placeholder="예) 경기도 의정부시">
+                            <select id="settingRegion" class="mp-field-input" disabled>
+                                <option value="">지역 선택</option>
+                                <option value="서울특별시">서울특별시</option>
+                                <option value="경기도">경기도</option>
+                                <option value="인천광역시">인천광역시</option>
+                                <option value="부산광역시">부산광역시</option>
+                                <option value="대구광역시">대구광역시</option>
+                                <option value="광주광역시">광주광역시</option>
+                                <option value="대전광역시">대전광역시</option>
+                                <option value="울산광역시">울산광역시</option>
+                                <option value="세종특별자치시">세종특별자치시</option>
+                                <option value="강원도">강원도</option>
+                                <option value="충청북도">충청북도</option>
+                                <option value="충청남도">충청남도</option>
+                                <option value="전라북도">전라북도</option>
+                                <option value="전라남도">전라남도</option>
+                                <option value="경상북도">경상북도</option>
+                                <option value="경상남도">경상남도</option>
+                                <option value="제주특별자치도">제주특별자치도</option>
+                            </select>
                         </div>
                     </div>
 
@@ -108,7 +134,7 @@
                         </div>
                     </div>
 
-                    <div class="mp-form-actions">
+                    <div class="mp-form-actions" id="mpFormActions" style="display:none;">
                         <button class="btn-primary" style="width:auto;padding:11px 36px;" onclick="saveMypageSettings(event)">저장</button>
                     </div>
 

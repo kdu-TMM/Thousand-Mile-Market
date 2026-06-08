@@ -8,6 +8,145 @@ let msgsUnsub    = null;
 let allRooms     = [];
 let typeFilter   = 'all';  // 'all' | 'sell' | 'buy'
 let statusFilter = 'all';  // 'all' | 'waiting' | 'active' | 'ended'
+let lastMsgDate  = null;   // 날짜 구분선 추적용
+let _pendingRoomId = new URLSearchParams(location.search).get('roomId') || null;
+
+/* ===== 프로필 캐시 ===== */
+const userProfileCache = {};
+
+async function fetchUserProfile(uid) {
+    if (userProfileCache[uid]) return userProfileCache[uid];
+    try {
+        const snap = await window.fs.getDoc(window.fs.doc(window.db, 'users', uid));
+        const d = snap.exists() ? snap.data() : {};
+        userProfileCache[uid] = {
+            photoURL:    d.photoURL    || null,
+            bio:         d.bio         || '',
+            rating:      d.rating      ?? 0,
+            totalTrades: d.totalTrades ?? 0,
+            nickname:    d.nickname    || ''
+        };
+    } catch (_) {
+        userProfileCache[uid] = { photoURL: null, bio: '', rating: 0, totalTrades: 0, nickname: '' };
+    }
+    return userProfileCache[uid];
+}
+
+function initAvatarEl(el, uid, nickname) {
+    el.addEventListener('click', e => { e.stopPropagation(); openProfilePopup(e, uid, nickname); });
+    if (!uid) return;
+    fetchUserProfile(uid).then(p => {
+        if (p.photoURL) {
+            el.innerHTML = `<img src="${p.photoURL}" alt="${escHtml(nickname)}">`;
+        }
+    });
+}
+
+/* ===== 프로필 팝업 ===== */
+let _ppUid = null;
+let _ppNickname = null;
+
+async function openProfilePopup(e, uid, nickname) {
+    _ppUid = uid;
+    _ppNickname = nickname;
+    const popup = document.getElementById('profilePopup');
+    if (!popup) return;
+
+    /* 자기 자신이면 신고 버튼 숨김 */
+    const reportBtn = document.getElementById('ppReportBtn');
+    if (reportBtn) reportBtn.style.display = uid === myUid ? 'none' : 'block';
+
+    /* 초기 렌더 */
+    document.getElementById('ppNickname').textContent  = nickname;
+    document.getElementById('ppRating').textContent    = '-';
+    document.getElementById('ppTrades').textContent    = '';
+    document.getElementById('ppBio').textContent       = '';
+    const avatarEl = document.getElementById('ppAvatar');
+    avatarEl.innerHTML = (nickname || '?')[0].toUpperCase();
+    avatarEl.classList.remove('has-photo');
+
+    /* 위치 계산 */
+    const rect = e.currentTarget.getBoundingClientRect();
+    popup.style.display = 'block';
+    const pw = popup.offsetWidth || 240;
+    let left = rect.right + 8;
+    let top  = rect.top;
+    if (left + pw > window.innerWidth - 8)  left = rect.left - pw - 8;
+    if (left < 8)                            left = 8;
+    if (top + 200 > window.innerHeight - 8) top  = window.innerHeight - 210;
+    popup.style.left = left + 'px';
+    popup.style.top  = Math.max(8, top) + 'px';
+
+    /* Firestore 조회 후 업데이트 */
+    const p = await fetchUserProfile(uid);
+    document.getElementById('ppNickname').textContent = p.nickname || nickname;
+    document.getElementById('ppRating').textContent   = (p.rating ?? 0).toFixed(1);
+    document.getElementById('ppTrades').textContent   = p.totalTrades ? `(${p.totalTrades}회)` : '';
+    document.getElementById('ppBio').textContent      = p.bio || '소개가 없습니다.';
+    if (p.photoURL) {
+        avatarEl.innerHTML = `<img src="${p.photoURL}" alt="${escHtml(p.nickname || nickname)}">`;
+        avatarEl.classList.add('has-photo');
+    }
+}
+
+function closeProfilePopup() {
+    const popup = document.getElementById('profilePopup');
+    if (popup) popup.style.display = 'none';
+}
+
+/* ===== 사용자 신고 ===== */
+function openUserReportModal() {
+    closeProfilePopup();
+    document.querySelectorAll('[name="userReportReason"]').forEach(r => r.checked = false);
+    const detail = document.getElementById('userReportDetail');
+    if (detail) { detail.value = ''; detail.style.display = 'none'; }
+    const msg = document.getElementById('userReportMsg');
+    if (msg)   { msg.textContent = ''; msg.className = 'report-msg'; }
+    document.getElementById('userReportModal').style.display = 'flex';
+}
+
+function closeUserReportModal(e) {
+    if (!e || e.target === document.getElementById('userReportModal')) {
+        document.getElementById('userReportModal').style.display = 'none';
+    }
+}
+
+function toggleUserReportDetail() {
+    const val    = document.querySelector('[name="userReportReason"]:checked')?.value;
+    const detail = document.getElementById('userReportDetail');
+    if (detail) detail.style.display = val === '기타' ? 'block' : 'none';
+}
+
+async function submitUserReport() {
+    if (!window.db || !window.auth?.currentUser) return;
+    const reason = document.querySelector('[name="userReportReason"]:checked')?.value;
+    const msgEl  = document.getElementById('userReportMsg');
+    if (!reason) {
+        msgEl.className = 'report-msg';
+        msgEl.textContent = '신고 사유를 선택해 주세요.';
+        return;
+    }
+    const detail = document.getElementById('userReportDetail').value.trim();
+    try {
+        await window.fs.addDoc(window.fs.collection(window.db, 'reports'), {
+            targetType:       'user',
+            targetId:         _ppUid,
+            targetNickname:   _ppNickname,
+            reason,
+            detail:           reason === '기타' ? detail : '',
+            reporterUid:      window.auth.currentUser.uid,
+            reporterNickname: window.auth.currentUser.displayName || '',
+            status:           '검토중',
+            createdAt:        window.fs.serverTimestamp()
+        });
+        msgEl.className = 'report-msg ok';
+        msgEl.textContent = '신고가 접수되었습니다.';
+        setTimeout(closeUserReportModal, 1500);
+    } catch (_) {
+        msgEl.className = 'report-msg';
+        msgEl.textContent = '오류가 발생했습니다.';
+    }
+}
 
 /* ===== 초기화 ===== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -84,11 +223,23 @@ function subscribeRooms() {
         allRooms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderRoomList(getFilteredRooms());
 
+        if (_pendingRoomId && !currentRoomId) {
+            const room = allRooms.find(r => r.id === _pendingRoomId);
+            if (room) {
+                _pendingRoomId = null;
+                history.replaceState({}, '', '/chat');
+                selectRoom(room);
+            }
+        }
+
         if (currentRoomId) {
             const updated = allRooms.find(r => r.id === currentRoomId);
             if (updated) {
                 if (updated.status === 'confirmed' && prevStatus !== 'confirmed') {
                     appendSystemMessage('🎉 양측 모두 종료하여 구매확정이 완료되었습니다!');
+                }
+                if (updated.unreadUids?.includes(myUid)) {
+                    markAsRead(currentRoomId);
                 }
                 currentRoom = updated;
                 syncInputState(updated);
@@ -164,6 +315,7 @@ function renderRoomList(rooms) {
         return;
     }
     rooms.forEach(room => {
+        const targetUid      = room.user1Uid === myUid ? room.user2Uid      : room.user1Uid;
         const targetNickname = room.user1Uid === myUid ? room.user2Nickname : room.user1Nickname;
         const hasUnread      = room.unreadUids?.includes(myUid);
         const li = document.createElement('li');
@@ -187,6 +339,8 @@ function renderRoomList(rooms) {
                 </div>
             </div>`;
         ul.appendChild(li);
+        const avatarEl = li.querySelector('.chat-room-avatar');
+        if (avatarEl && targetUid) initAvatarEl(avatarEl, targetUid, targetNickname);
     });
 }
 
@@ -194,6 +348,7 @@ function renderRoomList(rooms) {
 function selectRoom(room) {
     currentRoomId = room.id;
     currentRoom   = room;
+    window._currentChatRoomId = room.id;
 
     document.querySelectorAll('.chat-room-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`[data-room-id="${room.id}"]`)?.classList.add('active');
@@ -216,6 +371,7 @@ function selectRoom(room) {
     document.getElementById('chatPlaceholder').style.display = 'none';
     document.getElementById('chatContent').style.display     = 'flex';
     document.getElementById('chatMessages').innerHTML        = '';
+    lastMsgDate = null;
 
     syncInputState(room);
     markAsRead(room.id);
@@ -248,7 +404,16 @@ function subscribeMessages(roomId) {
             scrollToBottom();
         } else {
             snap.docChanges().forEach(change => {
-                if (change.type === 'added') appendMessage({ id: change.doc.id, ...change.doc.data() });
+                if (change.type === 'added') {
+                    appendMessage({ id: change.doc.id, ...change.doc.data() });
+                } else if (change.type === 'modified') {
+                    /* serverTimestamp() 해소 시 시간 업데이트 */
+                    const data = change.doc.data();
+                    if (data.sentAt) {
+                        const timeEl = document.querySelector(`[data-msg-id="${CSS.escape(change.doc.id)}"] .chat-time-small`);
+                        if (timeEl) timeEl.textContent = formatMsgTime(data.sentAt);
+                    }
+                }
             });
         }
     }, err => console.error('메시지 구독 오류:', err));
@@ -262,11 +427,28 @@ function markAsRead(roomId) {
     }).catch(() => {});
 }
 
+/* ===== 날짜 구분선용 포맷 ===== */
+function formatDateDivider(ts) {
+    if (!ts) return null;
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    if (isNaN(d)) return null;
+    return d.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+}
+
+/* sentAt null(serverTimestamp 미해소) 시 현재 시각 표시 */
+function formatMsgTime(ts) {
+    const d = ts ? (ts.toDate ? ts.toDate() : new Date(ts)) : new Date();
+    if (isNaN(d)) return '';
+    return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
 /* ===== 메시지 렌더링 ===== */
 function appendMessage(msg, isHistory = false) {
     const isMine = msg.senderUid === myUid;
     const ul = document.getElementById('chatMessages');
+
     const li = document.createElement('li');
+    if (msg.id) li.dataset.msgId = msg.id;
 
     if (msg.type === 'system') {
         li.className = 'chat-sys-msg';
@@ -275,7 +457,7 @@ function appendMessage(msg, isHistory = false) {
         li.className = 'chat-msg chat-msg-me';
         li.innerHTML = `
             <div class="chat-bubble-wrap">
-                <span class="chat-time-small">${formatTime(msg.sentAt)}</span>
+                <span class="chat-time-small">${formatMsgTime(msg.sentAt)}</span>
                 <div class="chat-bubble chat-bubble-me">${escHtml(msg.content)}</div>
             </div>`;
     } else {
@@ -286,11 +468,30 @@ function appendMessage(msg, isHistory = false) {
                 <b class="chat-sender-name">${escHtml(msg.senderNickname)}</b>
                 <div class="chat-bubble-wrap">
                     <div class="chat-bubble chat-bubble-other">${escHtml(msg.content)}</div>
-                    <span class="chat-time-small">${formatTime(msg.sentAt)}</span>
+                    <span class="chat-time-small">${formatMsgTime(msg.sentAt)}</span>
                 </div>
             </div>`;
     }
+    /* 날짜 구분선: 메시지 위에 삽입 (sentAt 없으면 현재 시각 기준으로 비교) */
+    if (msg.type !== 'system') {
+        const dateLabel = formatDateDivider(msg.sentAt || new Date());
+        if (dateLabel && dateLabel !== lastMsgDate) {
+            lastMsgDate = dateLabel;
+            const divLi = document.createElement('li');
+            divLi.className = 'chat-date-divider';
+            divLi.innerHTML = `<span>${dateLabel}</span>`;
+            ul.appendChild(divLi);
+        }
+    }
+
     ul.appendChild(li);
+
+    /* 상대방 아바타 프로필 이미지 + 팝업 연결 */
+    if (msg.type !== 'system' && !isMine && msg.senderUid) {
+        const avatarEl = li.querySelector('.chat-avatar-small');
+        if (avatarEl) initAvatarEl(avatarEl, msg.senderUid, msg.senderNickname || '');
+    }
+
     if (!isHistory) scrollToBottom();
 }
 
@@ -418,6 +619,11 @@ function toggleDropdown() {
 }
 
 document.addEventListener('click', e => {
+    if (!e.target.closest('.profile-popup') &&
+        !e.target.closest('.chat-room-avatar') &&
+        !e.target.closest('.chat-avatar-small')) {
+        closeProfilePopup();
+    }
     if (!e.target.closest('.chat-dropdown-wrap')) {
         document.getElementById('chatDropdown')?.classList.add('hidden');
     }
@@ -490,6 +696,7 @@ async function confirmLeaveRoom() {
     if (msgsUnsub) { msgsUnsub(); msgsUnsub = null; }
     currentRoomId = null;
     currentRoom   = null;
+    window._currentChatRoomId = null;
     document.getElementById('chatContent').style.display     = 'none';
     document.getElementById('chatPlaceholder').style.display = 'flex';
 }
@@ -548,11 +755,15 @@ function formatTime(ts) {
     if (!ts) return '';
     const d = ts.toDate ? ts.toDate() : new Date(ts);
     if (isNaN(d)) return '';
-    const now     = new Date();
-    const diffDay = Math.floor((now - d) / 86400000);
-    if (diffDay === 0) return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    if (diffDay < 7)   return ['일','월','화','수','목','금','토'][d.getDay()] + '요일';
-    return `${d.getMonth()+1}/${d.getDate()}`;
+    const today = new Date();
+    const isToday = d.getFullYear() === today.getFullYear() &&
+                    d.getMonth()    === today.getMonth()    &&
+                    d.getDate()     === today.getDate();
+    if (isToday) return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
 }
 
 function escHtml(str) {

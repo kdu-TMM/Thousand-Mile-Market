@@ -348,6 +348,7 @@ function getSortedProducts(products) {
 }
 
 function applyAllItemsFilter(userTriggered = false) {
+    if (userTriggered) _saveFilterState();
     isLoading = false;   /* 이전 렌더 중단 후 재시작 보장 */
 
     const now      = new Date();
@@ -436,10 +437,69 @@ function applyAllItemsFilter(userTriggered = false) {
     }
 }
 
-const CACHE_KEY = 'tmm_products';
-const CACHE_TTL = 3 * 60 * 1000; // 3분
+const CACHE_KEY  = 'tmm_products';
+const CACHE_TTL  = 3 * 60 * 1000; // 3분
+const FILTER_KEY = 'tmm_filter';
+
+function _saveFilterState() {
+    try {
+        sessionStorage.setItem(FILTER_KEY, JSON.stringify({
+            sido:     document.getElementById('filterSido')?.value     || '',
+            sigungu:  document.getElementById('filterSigungu')?.value  || '',
+            dong:     document.getElementById('filterDong')?.value     || '',
+            category: document.getElementById('filterCategory')?.value || '',
+            sort:     document.getElementById('sortSelect')?.value     || 'latest',
+        }));
+    } catch (_) {}
+}
+
+function _restoreFilterState() {
+    try {
+        const raw = sessionStorage.getItem(FILTER_KEY);
+        if (!raw) return;
+        const f = JSON.parse(raw);
+
+        const sidoEl    = document.getElementById('filterSido');
+        const sigunguEl = document.getElementById('filterSigungu');
+        const dongEl    = document.getElementById('filterDong');
+        const catEl     = document.getElementById('filterCategory');
+        const sortEl    = document.getElementById('sortSelect');
+
+        if (sidoEl && f.sido) {
+            sidoEl.value = f.sido;
+            if (sigunguEl && filterRegionData[f.sido]) {
+                const subs = Object.keys(filterRegionData[f.sido]);
+                if (subs.length) {
+                    sigunguEl.innerHTML = '<option value="">시/군/구</option>' +
+                        subs.map(sg => `<option value="${sg}">${sg}</option>`).join('');
+                    sigunguEl.style.display = '';
+                    if (f.sigungu) {
+                        sigunguEl.value = f.sigungu;
+                        if (dongEl && filterRegionData[f.sido]?.[f.sigungu]?.length) {
+                            dongEl.innerHTML = '<option value="">읍/면/동</option>' +
+                                filterRegionData[f.sido][f.sigungu]
+                                    .map(d => `<option value="${d}">${d}</option>`).join('');
+                            dongEl.style.display = '';
+                            if (f.dong) dongEl.value = f.dong;
+                        }
+                    }
+                }
+            }
+        }
+        if (catEl  && f.category) catEl.value  = f.category;
+        if (sortEl && f.sort)     sortEl.value = f.sort;
+
+        const isFiltered = !!(f.sido || f.category);
+        const popEl = document.getElementById('section-popular');
+        const aucEl = document.getElementById('section-auction');
+        if (popEl) popEl.style.display = isFiltered ? 'none' : '';
+        if (aucEl) aucEl.style.display = isFiltered ? 'none' : '';
+    } catch (_) {}
+}
 
 function loadProducts() {
+    let renderedFromCache = false;
+
     // 캐시 확인 → 있으면 즉시 렌더링
     try {
         const cached = sessionStorage.getItem(CACHE_KEY);
@@ -448,6 +508,7 @@ function loadProducts() {
             if (Date.now() - ts < CACHE_TTL) {
                 allProducts = data;
                 applyAllItemsFilter();
+                renderedFromCache = true;
             }
         }
     } catch (_) {}
@@ -455,11 +516,17 @@ function loadProducts() {
     // 백그라운드에서 최신 데이터 갱신
     window.fs.getDocs(window.fs.collection(window.db, 'products'))
         .then(snapshot => {
-            allProducts = snapshot.docs.map(d => d.data());
+            const fresh = snapshot.docs.map(d => d.data());
             try {
-                sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: allProducts, ts: Date.now() }));
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data: fresh, ts: Date.now() }));
             } catch (_) {}
-            applyAllItemsFilter();
+            // 캐시로 이미 렌더했고 상품 수가 같으면 재렌더 생략
+            if (!renderedFromCache || fresh.length !== allProducts.length) {
+                allProducts = fresh;
+                applyAllItemsFilter();
+            } else {
+                allProducts = fresh;
+            }
         })
         .catch((err) => {
             console.error('[TMM] Firestore 상품 로드 실패:', err?.code, err?.message);
@@ -473,6 +540,7 @@ function loadProducts() {
 
 document.addEventListener('DOMContentLoaded', function () {
     initTimerEnds();
+    _restoreFilterState();
 
     const q = new URLSearchParams(location.search).get('q')?.trim();
     if (q) {
@@ -492,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function () {
             loadProducts();
             loadAuctions();
             loadPopular();
+            _loadUserRegion();
         });
     }
 });
@@ -511,6 +580,7 @@ function applyFilter() {
     applyAllItemsFilter(true);
 }
 function resetFilter() {
+    try { sessionStorage.removeItem(FILTER_KEY); } catch (_) {}
     document.getElementById('filterSido').value = '';
     const sigunguEl = document.getElementById('filterSigungu');
     sigunguEl.innerHTML = '<option value="">시/군/구</option>';
@@ -529,6 +599,29 @@ function resetFilter() {
 }
 
 /* ===== 지역 필터 연동 ===== */
+function _saveUserRegion(sido) {
+    if (!sido || !window.db || !window.auth?.currentUser) return;
+    window.fs.updateDoc(
+        window.fs.doc(window.db, 'users', window.auth.currentUser.uid),
+        { region: sido }
+    ).catch(() => {});
+}
+
+function _loadUserRegion() {
+    if (!window.db || !window.auth?.currentUser) return;
+    window.fs.getDoc(window.fs.doc(window.db, 'users', window.auth.currentUser.uid))
+        .then(snap => {
+            if (!snap.exists()) return;
+            const r = snap.data().region;
+            if (!r) return;
+            const sidoEl = document.getElementById('filterSido');
+            if (sidoEl && !sidoEl.value) {
+                sidoEl.value = r;
+                updateFilterSigungu();
+            }
+        }).catch(() => {});
+}
+
 function updateFilterSigungu() {
     const sido      = document.getElementById('filterSido').value;
     const sigunguEl = document.getElementById('filterSigungu');
@@ -546,6 +639,7 @@ function updateFilterSigungu() {
     } else {
         sigunguEl.style.display = 'none';
     }
+    _saveUserRegion(sido);
     applyFilter();
 }
 
